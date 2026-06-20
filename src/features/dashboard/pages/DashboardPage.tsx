@@ -1,0 +1,345 @@
+import { useQuery } from '@tanstack/react-query';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  UserPlus,
+  Percent,
+  Wallet,
+  TrendingUp,
+  Users,
+  Briefcase,
+  Target,
+  Receipt,
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardGridSkeleton } from '@/components/common/table-skeleton';
+import { ErrorState, EmptyState } from '@/components/common/states';
+import { KpiCard } from '@/features/dashboard/components/KpiCard';
+import {
+  getConversion,
+  getKpis,
+  getPipeline,
+  getProspectsByCity,
+  getRevenueByService,
+  getSummary,
+  getTrend,
+} from '@/features/dashboard/api/dashboard.api';
+import { formatCOP, formatCompact } from '@/lib/utils';
+import type { NamedValue } from '@/types/api';
+
+const PIE_COLORS = ['#0e9aa7', '#22b8cf', '#4263eb', '#7048e8', '#e64980', '#f59f00'];
+
+const KPI_ICON: Record<string, JSX.Element> = {
+  new_prospects_month: <UserPlus />,
+  conversion_rate: <Percent />,
+  monthly_revenue: <Wallet />,
+  weighted_pipeline: <TrendingUp />,
+};
+
+function kpiValue(key: string, value: number): string {
+  if (key === 'conversion_rate') return `${value}%`;
+  if (key === 'monthly_revenue' || key === 'weighted_pipeline') return formatCOP(value);
+  return String(value);
+}
+
+export function DashboardPage() {
+  const kpis = useQuery({ queryKey: ['dashboard', 'kpis'], queryFn: getKpis });
+  const summary = useQuery({ queryKey: ['dashboard', 'summary'], queryFn: getSummary });
+  const trend = useQuery({ queryKey: ['dashboard', 'trend'], queryFn: getTrend });
+  const pipeline = useQuery({ queryKey: ['dashboard', 'pipeline'], queryFn: getPipeline });
+  const conversion = useQuery({ queryKey: ['dashboard', 'conversion'], queryFn: getConversion });
+  const revenue = useQuery({ queryKey: ['dashboard', 'revenue'], queryFn: getRevenueByService });
+  const cities = useQuery({ queryKey: ['dashboard', 'cities'], queryFn: getProspectsByCity });
+
+  const revenueTotal = (revenue.data ?? []).reduce((s, r) => s + r.value, 0);
+
+  return (
+    <div className="space-y-6">
+      <header>
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard gerencial</h1>
+        <p className="text-sm text-muted-foreground">
+          Visión consolidada del embudo comercial, la conversión y la facturación.
+        </p>
+      </header>
+
+      {/* KPIs principales */}
+      {kpis.isLoading ? (
+        <CardGridSkeleton count={4} />
+      ) : kpis.error ? (
+        <ErrorState error={kpis.error} onRetry={() => kpis.refetch()} />
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {kpis.data?.kpis.map((k) => (
+            <KpiCard
+              key={k.key}
+              label={k.label}
+              value={kpiValue(k.key, k.value)}
+              trend={k.trend}
+              icon={KPI_ICON[k.key]}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Métricas de contexto */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatChip
+          icon={<Users />}
+          label="Prospectos totales"
+          value={summary.data ? String(summary.data.total_prospects) : '—'}
+        />
+        <StatChip
+          icon={<Briefcase />}
+          label="Clientes activos"
+          value={summary.data ? String(summary.data.active_clients) : '—'}
+        />
+        <StatChip
+          icon={<Target />}
+          label="Oportunidades abiertas"
+          value={summary.data ? String(summary.data.open_opportunities) : '—'}
+        />
+        <StatChip
+          icon={<Receipt />}
+          label="Ticket promedio"
+          value={summary.data ? formatCOP(summary.data.avg_ticket) : '—'}
+        />
+      </div>
+
+      {/* Tendencia mensual */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Tendencia comercial</CardTitle>
+          <CardDescription>
+            Prospectos nuevos frente a clientes ganados en los últimos 6 meses.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-72">
+          <ChartGuard query={trend}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={trend.data} margin={{ left: -18, right: 8, top: 4 }}>
+                <defs>
+                  <linearGradient id="gNuevos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#0e9aa7" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#0e9aa7" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gGanados" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                <Tooltip cursor={{ stroke: 'hsl(var(--border))' }} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Area
+                  type="monotone"
+                  dataKey="nuevos"
+                  name="Nuevos"
+                  stroke="#0e9aa7"
+                  strokeWidth={2}
+                  fill="url(#gNuevos)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="ganados"
+                  name="Ganados"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  fill="url(#gGanados)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartGuard>
+        </CardContent>
+      </Card>
+
+      {/* Embudo + conversión */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Embudo de oportunidades</CardTitle>
+            <CardDescription>Cantidad y valor mensual por etapa del pipeline.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartGuard query={pipeline}>
+              <Funnel data={pipeline.data ?? []} />
+            </ChartGuard>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversión por asesor</CardTitle>
+            <CardDescription>Prospectos gestionados y cuántos se ganaron.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ChartGuard query={conversion}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={conversion.data} layout="vertical" margin={{ left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="advisor" width={96} tick={{ fontSize: 11 }} />
+                  <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="prospects" name="Prospectos" radius={[0, 6, 6, 0]} fill="#94a3b8" />
+                  <Bar dataKey="won" name="Ganados" radius={[0, 6, 6, 0]} fill="#0e9aa7" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartGuard>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Facturación + ciudades */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Facturación por servicio</CardTitle>
+            <CardDescription>Ingreso mensual recurrente de clientes activos.</CardDescription>
+          </CardHeader>
+          <CardContent className="relative h-72">
+            <ChartGuard query={revenue}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={revenue.data}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={62}
+                    outerRadius={92}
+                    paddingAngle={2}
+                  >
+                    {(revenue.data ?? []).map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(v: number) => formatCOP(v)} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="pointer-events-none absolute inset-0 mb-8 flex flex-col items-center justify-center">
+                <span className="text-xs text-muted-foreground">Total / mes</span>
+                <span className="text-lg font-bold">{formatCOP(revenueTotal)}</span>
+              </div>
+            </ChartGuard>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Prospectos por ciudad</CardTitle>
+            <CardDescription>Distribución geográfica de la base comercial.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ChartGuard query={cities}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={cities.data} margin={{ left: -18 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+                  <Tooltip
+                    cursor={{ fill: 'hsl(var(--muted))' }}
+                    formatter={(v: number) => formatCompact(v)}
+                  />
+                  <Bar dataKey="value" name="Prospectos" radius={[6, 6, 0, 0]} fill="#4263eb" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartGuard>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function StatChip({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-card p-3 shadow-soft">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary [&_svg]:h-5 [&_svg]:w-5">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-xs text-muted-foreground">{label}</p>
+        <p className="truncate text-lg font-bold leading-tight">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+const STAGE_LABEL: Record<string, string> = {
+  calificacion: 'Calificación',
+  propuesta: 'Propuesta',
+  negociacion: 'Negociación',
+  cierre: 'Cierre',
+  ganada: 'Ganada',
+  perdida: 'Perdida',
+};
+
+interface FunnelRow extends NamedValue {
+  amount?: number;
+}
+
+function Funnel({ data }: { data: FunnelRow[] }) {
+  const max = Math.max(1, ...data.map((d) => d.value));
+  return (
+    <div className="space-y-2.5">
+      {data.map((row) => {
+        const pct = Math.round((row.value / max) * 100);
+        return (
+          <div key={row.name} className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">{STAGE_LABEL[row.name] ?? row.name}</span>
+              <span className="text-muted-foreground">
+                {row.value} · {formatCOP(row.amount ?? 0)}
+              </span>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all"
+                style={{ width: `${Math.max(pct, row.value > 0 ? 6 : 0)}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+interface QueryLike<T> {
+  isLoading: boolean;
+  error: unknown;
+  data: T[] | undefined;
+  refetch: () => void;
+}
+
+function ChartGuard<T>({ query, children }: { query: QueryLike<T>; children: React.ReactNode }) {
+  if (query.isLoading)
+    return <div className="h-full w-full animate-pulse rounded-lg bg-muted" aria-label="Cargando" />;
+  if (query.error) return <ErrorState error={query.error} onRetry={() => query.refetch()} />;
+  if (!query.data || query.data.length === 0)
+    return <EmptyState title="Sin datos" description="Aún no hay información para graficar." />;
+  return <>{children}</>;
+}

@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 200 33% 97%;
+    --foreground: 200 24% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 24% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 24% 14%;
+
+    --primary: 187 86% 33%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 200 30% 93%;
+    --secondary-foreground: 200 24% 18%;
+
+    --muted: 200 28% 94%;
+    --muted-foreground: 200 12% 44%;
+
+    --accent: 186 70% 94%;
+    --accent-foreground: 187 86% 24%;
+
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 158 64% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 32 92% 48%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 200 24% 89%;
+    --input: 200 24% 88%;
+    --ring: 187 86% 38%;
+
+    --radius: 0.95rem;
+  }
+
+  .dark {
+    --background: 200 30% 7%;
+    --foreground: 200 20% 94%;
+
+    --card: 200 26% 11%;
+    --card-foreground: 200 20% 94%;
+
+    --popover: 200 28% 10%;
+    --popover-foreground: 200 20% 94%;
+
+    --primary: 184 78% 46%;
+    --primary-foreground: 200 40% 8%;
+
+    --secondary: 200 22% 17%;
+    --secondary-foreground: 200 20% 94%;
+
+    --muted: 200 20% 16%;
+    --muted-foreground: 200 14% 62%;
+
+    --accent: 200 24% 19%;
+    --accent-foreground: 184 78% 70%;
+
+    --destructive: 0 66% 47%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 158 56% 46%;
+    --success-foreground: 200 40% 8%;
+
+    --warning: 32 92% 56%;
+    --warning-foreground: 200 40% 8%;
+
+    --border: 200 18% 20%;
+    --input: 200 18% 22%;
+    --ring: 184 78% 46%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+  /* Telón de fondo sutil con un velo del color de acento. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60rem 60rem at 110% -10%, hsl(var(--primary) / 0.07), transparent 60%),
+      radial-gradient(50rem 50rem at -10% 110%, hsl(var(--primary) / 0.05), transparent 55%);
+  }
+  /* Focus visible accesible, nunca outline:none sin reemplazo. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+}
+
+/* Scrollbar discreto */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-muted-foreground/25;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/40;
+}
