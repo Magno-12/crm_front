@@ -40,6 +40,11 @@ export type ClientServiceCreate = Schemas['ClientServiceCreate'];
 export type ServiceRead = Schemas['ServiceRead'];
 export type ServiceCreate = Schemas['ServiceCreate'];
 
+export type InvoiceRead = Schemas['InvoiceRead'];
+export type InvoiceCreate = Schemas['InvoiceCreate'];
+export type InvoiceItemCreate = Schemas['InvoiceItemCreate'];
+export type InvoiceStatus = Schemas['InvoiceStatus'];
+
 export type EmailTemplateRead = Schemas['EmailTemplateRead'];
 export type EmailTemplateCreate = Schemas['EmailTemplateCreate'];
 export type EmailSendRequest = Schemas['EmailSendRequest'];

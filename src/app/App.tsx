@@ -34,6 +34,9 @@ const ClientDetailPage = lazy(() =>
 const EmailsPage = lazy(() =>
   import('@/features/emails/pages/EmailsPage').then((m) => ({ default: m.EmailsPage })),
 );
+const InvoicesPage = lazy(() =>
+  import('@/features/invoices/pages/InvoicesPage').then((m) => ({ default: m.InvoicesPage })),
+);
 const UsersPage = lazy(() =>
   import('@/features/admin/users/UsersPage').then((m) => ({ default: m.UsersPage })),
 );
@@ -112,6 +115,14 @@ export function App() {
             element={
               <ProtectedRoute requires="clients.view">
                 <ClientDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/invoices"
+            element={
+              <ProtectedRoute requires="invoices.view">
+                <InvoicesPage />
               </ProtectedRoute>
             }
           />
