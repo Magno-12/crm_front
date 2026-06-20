@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2, Plus, Trash2, Search } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -14,15 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useDebounce } from '@/hooks/useDebounce';
-import { listProspects } from '@/features/prospects/api/prospects.api';
+import { ProspectCombobox } from '@/features/invoices/components/ProspectCombobox';
 import { createInvoice, openInvoicePdf } from '@/features/invoices/api/invoices.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP } from '@/lib/utils';
@@ -49,15 +41,7 @@ export function InvoiceFormDialog({
   onOpenChange: (o: boolean) => void;
 }) {
   const qc = useQueryClient();
-  const [search, setSearch] = useState('');
-  const debounced = useDebounce(search, 300);
   const [submitting, setSubmitting] = useState(false);
-
-  const prospects = useQuery({
-    queryKey: ['prospects', 'invoice-search', debounced],
-    queryFn: () => listProspects({ q: debounced || undefined, page: 1, page_size: 20 }),
-    enabled: open,
-  });
 
   const form = useForm<FormValues>({
     defaultValues: {
@@ -133,30 +117,10 @@ export function InvoiceFormDialog({
           {/* Prospecto */}
           <div>
             <Label className="mb-1.5 block">Cliente (prospecto)</Label>
-            <div className="relative mb-2">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar por razón social o NIT…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select
+            <ProspectCombobox
               value={form.watch('prospect_id')}
-              onValueChange={(v) => form.setValue('prospect_id', v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona un prospecto" />
-              </SelectTrigger>
-              <SelectContent>
-                {prospects.data?.items.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.razon_social} — {p.nit}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(id) => form.setValue('prospect_id', id)}
+            />
           </div>
 
           {/* Ítems */}
