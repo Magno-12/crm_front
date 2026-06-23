@@ -34,7 +34,9 @@ import {
   getPipeline,
   getProspectsByCity,
   getRevenueByService,
+  getRevenueByActivity,
   getSummary,
+  getTopClients,
   getTrend,
 } from '@/features/dashboard/api/dashboard.api';
 import { formatCOP, formatCompact } from '@/lib/utils';
@@ -63,6 +65,11 @@ export function DashboardPage() {
   const conversion = useQuery({ queryKey: ['dashboard', 'conversion'], queryFn: getConversion });
   const revenue = useQuery({ queryKey: ['dashboard', 'revenue'], queryFn: getRevenueByService });
   const cities = useQuery({ queryKey: ['dashboard', 'cities'], queryFn: getProspectsByCity });
+  const byActivity = useQuery({
+    queryKey: ['dashboard', 'by-activity'],
+    queryFn: getRevenueByActivity,
+  });
+  const topClients = useQuery({ queryKey: ['dashboard', 'top-clients'], queryFn: getTopClients });
 
   const revenueTotal = (revenue.data ?? []).reduce((s, r) => s + r.value, 0);
 
@@ -256,6 +263,49 @@ export function DashboardPage() {
                     formatter={(v: number) => formatCompact(v)}
                   />
                   <Bar dataKey="value" name="Prospectos" radius={[6, 6, 0, 0]} fill="#4263eb" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartGuard>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Inteligencia comercial */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ingresos por actividad económica</CardTitle>
+            <CardDescription>Qué actividad (CIIU) genera más ingreso recurrente.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ChartGuard query={byActivity}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={byActivity.data} layout="vertical" margin={{ left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatCompact(v)} />
+                  <YAxis type="category" dataKey="name" width={70} tick={{ fontSize: 11 }} />
+                  <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} formatter={(v: number) => formatCOP(v)} />
+                  <Bar dataKey="value" name="Ingreso/mes" radius={[0, 6, 6, 0]} fill="#0e9aa7" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartGuard>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Clientes más rentables</CardTitle>
+            <CardDescription>Ranking por ingreso mensual contratado.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-72">
+            <ChartGuard query={topClients}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topClients.data} layout="vertical" margin={{ left: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatCompact(v)} />
+                  <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 11 }} />
+                  <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} formatter={(v: number) => formatCOP(v)} />
+                  <Bar dataKey="value" name="Ingreso/mes" radius={[0, 6, 6, 0]} fill="#7048e8" />
                 </BarChart>
               </ResponsiveContainer>
             </ChartGuard>

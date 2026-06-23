@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Plus, Upload, Search, Download } from 'lucide-react';
+import { Users, Plus, Upload, Search, Download, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -33,15 +33,25 @@ export function ProspectsPage() {
   const [q, setQ] = useState('');
   const [estado, setEstado] = useState<string>('all');
   const [segmento, setSegmento] = useState<string>('all');
+  const [ciiu, setCiiu] = useState('');
+  const [regimen, setRegimen] = useState('');
+  const [ingresosMin, setIngresosMin] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const debouncedQ = useDebounce(q, 300);
+  const debouncedCiiu = useDebounce(ciiu, 400);
+  const debouncedRegimen = useDebounce(regimen, 400);
+  const debouncedIngresos = useDebounce(ingresosMin, 400);
 
   const filters = {
     q: debouncedQ || undefined,
     estado: estado === 'all' ? undefined : estado,
     segmento: segmento === 'all' ? undefined : segmento,
+    actividad_ciiu: debouncedCiiu || undefined,
+    regimen: debouncedRegimen || undefined,
+    ingresos_min: debouncedIngresos || undefined,
     page,
     page_size: 20,
   };
@@ -139,7 +149,54 @@ export function ProspectsPage() {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          variant="outline"
+          onClick={() => setShowAdvanced((v) => !v)}
+          className="shrink-0"
+        >
+          <SlidersHorizontal className="h-4 w-4" /> Filtros
+        </Button>
       </div>
+
+      {showAdvanced && (
+        <div className="grid grid-cols-1 gap-3 rounded-lg border bg-muted/30 p-3 sm:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Actividad CIIU</label>
+            <Input
+              placeholder="Ej. 8610"
+              value={ciiu}
+              onChange={(e) => {
+                setCiiu(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Régimen tributario</label>
+            <Input
+              placeholder="Ej. Responsable de IVA"
+              value={regimen}
+              onChange={(e) => {
+                setRegimen(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Ingresos mínimos (COP)</label>
+            <Input
+              type="number"
+              min={0}
+              placeholder="Ej. 500000000"
+              value={ingresosMin}
+              onChange={(e) => {
+                setIngresosMin(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <TableSkeleton rows={8} columns={5} />

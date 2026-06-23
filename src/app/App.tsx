@@ -37,6 +37,14 @@ const EmailsPage = lazy(() =>
 const InvoicesPage = lazy(() =>
   import('@/features/invoices/pages/InvoicesPage').then((m) => ({ default: m.InvoicesPage })),
 );
+const TaxObligationsPage = lazy(() =>
+  import('@/features/tax/pages/TaxObligationsPage').then((m) => ({
+    default: m.TaxObligationsPage,
+  })),
+);
+const AlertsPage = lazy(() =>
+  import('@/features/alerts/pages/AlertsPage').then((m) => ({ default: m.AlertsPage })),
+);
 const UsersPage = lazy(() =>
   import('@/features/admin/users/UsersPage').then((m) => ({ default: m.UsersPage })),
 );
@@ -123,6 +131,22 @@ export function App() {
             element={
               <ProtectedRoute requires="invoices.view">
                 <InvoicesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tax"
+            element={
+              <ProtectedRoute requires="tax.view">
+                <TaxObligationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/alerts"
+            element={
+              <ProtectedRoute requires="dashboard.view">
+                <AlertsPage />
               </ProtectedRoute>
             }
           />

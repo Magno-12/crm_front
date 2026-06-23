@@ -562,6 +562,76 @@ export interface paths {
         patch: operations["update_status_api_v1_invoices__invoice_id__status_patch"];
         trace?: never;
     };
+    "/api/v1/tax-obligations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Obligations */
+        get: operations["list_obligations_api_v1_tax_obligations_get"];
+        put?: never;
+        /** Create Obligation */
+        post: operations["create_obligation_api_v1_tax_obligations_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tax-obligations/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Summary */
+        get: operations["summary_api_v1_tax_obligations_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tax-obligations/{obligation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Obligation */
+        delete: operations["delete_obligation_api_v1_tax_obligations__obligation_id__delete"];
+        options?: never;
+        head?: never;
+        /** Update Obligation */
+        patch: operations["update_obligation_api_v1_tax_obligations__obligation_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Alerts */
+        get: operations["get_alerts_api_v1_alerts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/services": {
         parameters: {
             query?: never;
@@ -751,6 +821,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/charts/revenue-by-activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Chart Revenue By Activity */
+        get: operations["chart_revenue_by_activity_api_v1_dashboard_charts_revenue_by_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/top-clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Top Clients */
+        get: operations["top_clients_api_v1_dashboard_top_clients_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -772,6 +876,37 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** Alert */
+        Alert: {
+            /** Category */
+            category: string;
+            /** Severity */
+            severity: string;
+            /** Title */
+            title: string;
+            /** Detail */
+            detail: string;
+            /** Entity Type */
+            entity_type: string;
+            /**
+             * Entity Id
+             * Format: uuid
+             */
+            entity_id: string;
+            /** Days */
+            days?: number | null;
+        };
+        /** AlertsResponse */
+        AlertsResponse: {
+            /** Total */
+            total: number;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            /** Alerts */
+            alerts: components["schemas"]["Alert"][];
+        };
         /** AssignPermissionsRequest */
         AssignPermissionsRequest: {
             /** Permission Codes */
@@ -1660,6 +1795,100 @@ export interface components {
             /** Is Active */
             is_active?: boolean | null;
         };
+        /** TaxObligationCreate */
+        TaxObligationCreate: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            type: components["schemas"]["TaxObligationType"];
+            /** Period */
+            period: string;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            /** Amount */
+            amount?: number | string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** TaxObligationRead */
+        TaxObligationRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name?: string | null;
+            type: components["schemas"]["TaxObligationType"];
+            /** Period */
+            period: string;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
+            status: components["schemas"]["TaxObligationStatus"];
+            /** Paid Date */
+            paid_date: string | null;
+            /** Amount */
+            amount: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Semaforo */
+            semaforo: string;
+            /** Days To Due */
+            days_to_due: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * TaxObligationStatus
+         * @enum {string}
+         */
+        TaxObligationStatus: "pendiente" | "cumplida";
+        /**
+         * TaxObligationType
+         * @enum {string}
+         */
+        TaxObligationType: "iva" | "retencion" | "ica" | "renta" | "exogena" | "distrital" | "renovacion_cc" | "renovacion_rut";
+        /** TaxObligationUpdate */
+        TaxObligationUpdate: {
+            /** Period */
+            period?: string | null;
+            /** Due Date */
+            due_date?: string | null;
+            status?: components["schemas"]["TaxObligationStatus"] | null;
+            /** Paid Date */
+            paid_date?: string | null;
+            /** Amount */
+            amount?: number | string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** TaxSummary */
+        TaxSummary: {
+            /** Total */
+            total: number;
+            /** Cumplidas */
+            cumplidas: number;
+            /** Proximas */
+            proximas: number;
+            /** Vencidas */
+            vencidas: number;
+        };
         /** TempPasswordResponse */
         TempPasswordResponse: {
             /** Temporary Password */
@@ -2385,6 +2614,10 @@ export interface operations {
                 estado?: components["schemas"]["ProspectStatus"] | null;
                 ciudad?: string | null;
                 segmento?: components["schemas"]["ProspectSegment"] | null;
+                actividad_ciiu?: string | null;
+                regimen?: string | null;
+                ingresos_min?: number | string | null;
+                ingresos_max?: number | string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -3229,6 +3462,176 @@ export interface operations {
             };
         };
     };
+    list_obligations_api_v1_tax_obligations_get: {
+        parameters: {
+            query?: {
+                client_id?: string | null;
+                status?: components["schemas"]["TaxObligationStatus"] | null;
+                type?: components["schemas"]["TaxObligationType"] | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxObligationRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_obligation_api_v1_tax_obligations_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxObligationCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxObligationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_v1_tax_obligations_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxSummary"];
+                };
+            };
+        };
+    };
+    delete_obligation_api_v1_tax_obligations__obligation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obligation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_obligation_api_v1_tax_obligations__obligation_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                obligation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxObligationUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxObligationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_alerts_api_v1_alerts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertsResponse"];
+                };
+            };
+        };
+    };
     list_services_api_v1_services_get: {
         parameters: {
             query?: {
@@ -3559,6 +3962,50 @@ export interface operations {
         };
     };
     chart_by_service_api_v1_dashboard_charts_by_service_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    chart_revenue_by_activity_api_v1_dashboard_charts_revenue_by_activity_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    top_clients_api_v1_dashboard_top_clients_get: {
         parameters: {
             query?: never;
             header?: never;

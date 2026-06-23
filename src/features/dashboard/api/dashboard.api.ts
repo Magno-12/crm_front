@@ -46,3 +46,15 @@ export async function getProspectsByCity(): Promise<NamedValue[]> {
   const { data } = await api.get<ChartResponse<NamedValue>>('/dashboard/charts/by-service');
   return data.data;
 }
+
+export async function getRevenueByActivity(): Promise<NamedValue[]> {
+  const { data } = await api.get<ChartResponse<NamedValue>>(
+    '/dashboard/charts/revenue-by-activity',
+  );
+  return data.data;
+}
+
+export async function getTopClients(): Promise<NamedValue[]> {
+  const { data } = await api.get<ChartResponse<NamedValue>>('/dashboard/top-clients');
+  return data.data;
+}

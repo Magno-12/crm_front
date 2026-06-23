@@ -8,6 +8,8 @@ import {
   Settings,
   ShieldCheck,
   ScrollText,
+  BellRing,
+  Receipt,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,6 +34,8 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: 'Oportunidades', to: '/opportunities', icon: Target, permission: 'opportunities.view' },
       { label: 'Clientes', to: '/clients', icon: Briefcase, permission: 'clients.view' },
       { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },
+      { label: 'Obligaciones', to: '/tax', icon: Receipt, permission: 'tax.view' },
+      { label: 'Alertas', to: '/alerts', icon: BellRing, permission: 'dashboard.view' },
       { label: 'Correos', to: '/emails', icon: Mail, permission: 'emails.send' },
     ],
   },

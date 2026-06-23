@@ -14,6 +14,9 @@ export interface ProspectFilters {
   estado?: string;
   ciudad?: string;
   segmento?: string;
+  actividad_ciiu?: string;
+  regimen?: string;
+  ingresos_min?: string;
   page?: number;
   page_size?: number;
 }
