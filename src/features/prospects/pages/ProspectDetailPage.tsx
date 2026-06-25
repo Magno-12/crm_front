@@ -20,6 +20,7 @@ import {
 import { FullPageSpinner, ErrorState, EmptyState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
+import { OpportunitiesSection } from '@/features/prospects/components/OpportunitiesSection';
 import { useQuery } from '@tanstack/react-query';
 import {
   useProspect,
@@ -89,6 +90,22 @@ export function ProspectDetailPage() {
         <Badge variant={meta.variant}>{meta.label}</Badge>
       </div>
 
+      {prospect.estado === 'fidelizado' && (
+        <Can code="clients.convert_from_prospect">
+          <div className="flex flex-col items-start gap-2 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium">Cliente fidelizado 🎉</p>
+              <p className="text-sm text-muted-foreground">
+                Registra el servicio prestado y el valor del contrato para activarlo como cliente.
+              </p>
+            </div>
+            <Button onClick={onConvert} disabled={convert.isPending}>
+              <UserCheck className="h-4 w-4" /> Registrar contrato
+            </Button>
+          </div>
+        </Can>
+      )}
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader className="flex-row items-center justify-between">
@@ -103,6 +120,20 @@ export function ProspectDetailPage() {
             <InfoRow label="NIT" value={prospect.nit + (prospect.dv ? `-${prospect.dv}` : '')} />
             <InfoRow label="Segmento" value={segmentLabel(prospect.segmento)} />
             <InfoRow label="Representante legal" value={prospect.representante_legal ?? '—'} />
+            <InfoRow label="Cédula representante" value={prospect.cedula_representante ?? '—'} />
+            <InfoRow
+              label="Contacto comercial"
+              value={
+                prospect.contacto_nombre
+                  ? `${prospect.contacto_nombre}${prospect.contacto_cargo ? ` (${prospect.contacto_cargo})` : ''}`
+                  : '—'
+              }
+            />
+            <InfoRow
+              label="Tel. contacto"
+              value={prospect.contacto_telefono ?? '—'}
+              icon={<Phone className="h-4 w-4" />}
+            />
             <InfoRow
               label="Ciudad"
               value={[prospect.ciudad, prospect.departamento].filter(Boolean).join(', ') || '—'}
@@ -143,8 +174,9 @@ export function ProspectDetailPage() {
           </CardContent>
         </Card>
 
-        <div className="lg:col-span-2">
+        <div className="space-y-6 lg:col-span-2">
           <FollowUpTimeline prospectId={prospect.id} />
+          <OpportunitiesSection prospectId={prospect.id} />
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 import {
   LayoutDashboard,
   Users,
-  Target,
+  ClipboardList,
   Briefcase,
   FileText,
   Mail,
@@ -31,7 +31,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Dashboard', to: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
       { label: 'Prospectos', to: '/prospects', icon: Users, permission: 'prospects.view' },
-      { label: 'Oportunidades', to: '/opportunities', icon: Target, permission: 'opportunities.view' },
+      { label: 'Seguimiento', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
       { label: 'Clientes', to: '/clients', icon: Briefcase, permission: 'clients.view' },
       { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },
       { label: 'Obligaciones', to: '/tax', icon: Receipt, permission: 'tax.view' },

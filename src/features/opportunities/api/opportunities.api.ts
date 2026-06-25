@@ -20,6 +20,13 @@ export async function listOpportunities(): Promise<OpportunityRead[]> {
   return data.items;
 }
 
+export async function listOpportunitiesByProspect(prospectId: string): Promise<OpportunityRead[]> {
+  const { data } = await api.get<ListResponse>('/opportunities', {
+    params: { view: 'list', prospect_id: prospectId },
+  });
+  return data.items;
+}
+
 export async function createOpportunity(body: OpportunityCreate): Promise<OpportunityRead> {
   const { data } = await api.post<OpportunityRead>('/opportunities', body);
   return data;

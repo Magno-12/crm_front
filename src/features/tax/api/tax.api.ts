@@ -31,3 +31,18 @@ export async function markObligation(
 export async function deleteObligation(id: string): Promise<void> {
   await api.delete(`/tax-obligations/${id}`);
 }
+
+export interface CalendarSuggestion {
+  obligacion: string;
+  tipo_contribuyente: string | null;
+  periodo: string | null;
+  due_date: string;
+}
+
+/** Vencimientos sugeridos del calendario DIAN 2026 según obligación + NIT. */
+export async function searchTaxCalendar(q: string, nit?: string): Promise<CalendarSuggestion[]> {
+  const { data } = await api.get<CalendarSuggestion[]>('/tax-calendar', {
+    params: { q, nit, limit: 12 },
+  });
+  return data;
+}

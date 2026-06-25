@@ -18,9 +18,9 @@ const ProspectDetailPage = lazy(() =>
     default: m.ProspectDetailPage,
   })),
 );
-const OpportunitiesPage = lazy(() =>
-  import('@/features/opportunities/pages/OpportunitiesPage').then((m) => ({
-    default: m.OpportunitiesPage,
+const SeguimientoPage = lazy(() =>
+  import('@/features/prospects/pages/SeguimientoPage').then((m) => ({
+    default: m.SeguimientoPage,
   })),
 );
 const ClientsPage = lazy(() =>
@@ -103,13 +103,15 @@ export function App() {
             }
           />
           <Route
-            path="/opportunities"
+            path="/seguimiento"
             element={
-              <ProtectedRoute requires="opportunities.view">
-                <OpportunitiesPage />
+              <ProtectedRoute requires="prospects.view">
+                <SeguimientoPage />
               </ProtectedRoute>
             }
           />
+          {/* Oportunidades se consolidó dentro de la ficha del prospecto (Seguimiento). */}
+          <Route path="/opportunities" element={<Navigate to="/seguimiento" replace />} />
           <Route
             path="/clients"
             element={

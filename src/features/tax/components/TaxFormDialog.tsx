@@ -21,10 +21,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { listClients } from '@/features/clients/api/clients.api';
-import { createObligation } from '@/features/tax/api/tax.api';
+import { createObligation, searchTaxCalendar } from '@/features/tax/api/tax.api';
 import { TAX_TYPES, taxTypeLabel } from '@/features/tax/lib/meta';
 import { apiErrorMessage } from '@/api/client';
+import { formatDate } from '@/lib/utils';
 import type { TaxObligationType } from '@/types/api';
+
+/** Texto de búsqueda en el calendario DIAN por tipo de obligación. */
+const CALENDAR_QUERY: Partial<Record<TaxObligationType, string>> = {
+  iva: 'iva',
+  retencion: 'retención',
+  renta: 'renta',
+};
 
 interface FormValues {
   client_id: string;
@@ -51,6 +59,16 @@ export function TaxFormDialog({
   });
   const form = useForm<FormValues>({
     defaultValues: { client_id: '', type: 'iva', period: '', due_date: '', amount: '', notes: '' },
+  });
+
+  const clientId = form.watch('client_id');
+  const type = form.watch('type');
+  const selectedNit = clients.data?.items.find((c) => c.id === clientId)?.nit;
+  const calendarQ = CALENDAR_QUERY[type];
+  const suggestions = useQuery({
+    queryKey: ['tax-calendar', calendarQ, selectedNit],
+    queryFn: () => searchTaxCalendar(calendarQ as string, selectedNit),
+    enabled: open && !!calendarQ && !!selectedNit,
   });
 
   const mut = useMutation({
@@ -147,6 +165,30 @@ export function TaxFormDialog({
               <Input id="amount" type="number" min={0} {...form.register('amount')} />
             </div>
           </div>
+
+          {suggestions.data && suggestions.data.length > 0 && (
+            <div className="rounded-md border bg-muted/30 p-3">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                Vencimientos DIAN 2026 sugeridos (último dígito del NIT {selectedNit}):
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {suggestions.data.map((s, i) => (
+                  <button
+                    key={`${s.due_date}-${i}`}
+                    type="button"
+                    className="rounded-md border bg-background px-2 py-1 text-xs hover:bg-accent"
+                    onClick={() => {
+                      form.setValue('due_date', s.due_date);
+                      if (s.periodo) form.setValue('period', s.periodo);
+                    }}
+                  >
+                    {formatDate(s.due_date)}
+                    {s.periodo ? ` · ${s.periodo}` : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <Label htmlFor="notes" className="mb-1.5 block">
               Notas

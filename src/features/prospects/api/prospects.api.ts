@@ -20,6 +20,7 @@ export interface ProspectFilters {
   ingresos_max?: string;
   activos_min?: string;
   activos_max?: string;
+  en_gestion?: boolean;
   page?: number;
   page_size?: number;
 }

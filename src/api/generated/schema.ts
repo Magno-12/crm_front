@@ -615,6 +615,26 @@ export interface paths {
         patch: operations["update_obligation_api_v1_tax_obligations__obligation_id__patch"];
         trace?: never;
     };
+    "/api/v1/tax-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Search Calendar
+         * @description Sugiere vencimientos. Si se da el NIT, filtra por su último dígito.
+         */
+        get: operations["search_calendar_api_v1_tax_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/alerts": {
         parameters: {
             query?: never;
@@ -1590,6 +1610,16 @@ export interface components {
             nivel?: string | null;
             /** Representante Legal */
             representante_legal?: string | null;
+            /** Cedula Representante */
+            cedula_representante?: string | null;
+            /** Contacto Nombre */
+            contacto_nombre?: string | null;
+            /** Contacto Cargo */
+            contacto_cargo?: string | null;
+            /** Contacto Telefono */
+            contacto_telefono?: string | null;
+            /** Contacto Email */
+            contacto_email?: string | null;
             /** Direccion */
             direccion?: string | null;
             /** Ciudad */
@@ -1644,6 +1674,16 @@ export interface components {
             nivel: string | null;
             /** Representante Legal */
             representante_legal: string | null;
+            /** Cedula Representante */
+            cedula_representante: string | null;
+            /** Contacto Nombre */
+            contacto_nombre: string | null;
+            /** Contacto Cargo */
+            contacto_cargo: string | null;
+            /** Contacto Telefono */
+            contacto_telefono: string | null;
+            /** Contacto Email */
+            contacto_email: string | null;
             /** Direccion */
             direccion: string | null;
             /** Ciudad */
@@ -1711,8 +1751,20 @@ export interface components {
         ProspectUpdate: {
             /** Razon Social */
             razon_social?: string | null;
+            /** Nivel */
+            nivel?: string | null;
             /** Representante Legal */
             representante_legal?: string | null;
+            /** Cedula Representante */
+            cedula_representante?: string | null;
+            /** Contacto Nombre */
+            contacto_nombre?: string | null;
+            /** Contacto Cargo */
+            contacto_cargo?: string | null;
+            /** Contacto Telefono */
+            contacto_telefono?: string | null;
+            /** Contacto Email */
+            contacto_email?: string | null;
             /** Direccion */
             direccion?: string | null;
             /** Ciudad */
@@ -1721,6 +1773,12 @@ export interface components {
             departamento?: string | null;
             /** Actividad Ciiu */
             actividad_ciiu?: string | null;
+            /** Fecha Matricula */
+            fecha_matricula?: string | null;
+            /** Fecha Renovacion */
+            fecha_renovacion?: string | null;
+            /** Estado Actual */
+            estado_actual?: string | null;
             /** Ingresos */
             ingresos?: number | string | null;
             /** Activos */
@@ -1835,6 +1893,20 @@ export interface components {
             default_value?: number | string | null;
             /** Is Active */
             is_active?: boolean | null;
+        };
+        /** TaxCalendarRead */
+        TaxCalendarRead: {
+            /** Obligacion */
+            obligacion: string;
+            /** Tipo Contribuyente */
+            tipo_contribuyente: string | null;
+            /** Periodo */
+            periodo: string | null;
+            /**
+             * Due Date
+             * Format: date
+             */
+            due_date: string;
         };
         /** TaxObligationCreate */
         TaxObligationCreate: {
@@ -2661,6 +2733,7 @@ export interface operations {
                 ingresos_max?: number | string | null;
                 activos_min?: number | string | null;
                 activos_max?: number | string | null;
+                en_gestion?: boolean;
                 page?: number;
                 page_size?: number;
             };
@@ -3011,6 +3084,7 @@ export interface operations {
         parameters: {
             query?: {
                 view?: "list" | "kanban";
+                prospect_id?: string | null;
             };
             header?: never;
             path?: never;
@@ -3642,6 +3716,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaxObligationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_calendar_api_v1_tax_calendar_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                nit?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxCalendarRead"][];
                 };
             };
             /** @description Validation Error */
