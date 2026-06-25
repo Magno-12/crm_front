@@ -704,6 +704,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/rues/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lookup */
+        get: operations["lookup_api_v1_rues_lookup_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/send": {
         parameters: {
             query?: never;
@@ -715,6 +732,40 @@ export interface paths {
         put?: never;
         /** Send Email */
         post: operations["send_email_api_v1_emails_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/audience": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audience Count */
+        get: operations["audience_count_api_v1_emails_audience_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/campaign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Campaign */
+        post: operations["send_campaign_api_v1_emails_campaign_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -962,6 +1013,11 @@ export interface components {
             /** Role Ids */
             role_ids: string[];
         };
+        /** AudienceCount */
+        AudienceCount: {
+            /** Count */
+            count: number;
+        };
         /** AuditRead */
         AuditRead: {
             /**
@@ -995,6 +1051,32 @@ export interface components {
         Body_import_prospects_api_v1_prospects_import_post: {
             /** File */
             file: string;
+        };
+        /** CampaignQueued */
+        CampaignQueued: {
+            /** Queued */
+            queued: number;
+            /** Message */
+            message: string;
+        };
+        /** CampaignRequest */
+        CampaignRequest: {
+            /**
+             * Template Id
+             * Format: uuid
+             */
+            template_id: string;
+            /** Segmento */
+            segmento?: string | null;
+            /** Estado */
+            estado?: string | null;
+            /** Actividad Ciiu */
+            actividad_ciiu?: string | null;
+            /**
+             * Limit
+             * @default 500
+             */
+            limit: number;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -1831,6 +1913,23 @@ export interface components {
         RoleUpdate: {
             /** Description */
             description?: string | null;
+        };
+        /** RuesLookup */
+        RuesLookup: {
+            /** Nit */
+            nit: string;
+            /** Razon Social */
+            razon_social: string | null;
+            /** Actividad Ciiu */
+            actividad_ciiu: string | null;
+            /** Ciiu Descripcion */
+            ciiu_descripcion: string | null;
+            /** Camara */
+            camara: string | null;
+            /** Estado */
+            estado: string | null;
+            /** Organizacion Juridica */
+            organizacion_juridica: string | null;
         };
         /** ServiceCreate */
         ServiceCreate: {
@@ -3913,6 +4012,37 @@ export interface operations {
             };
         };
     };
+    lookup_api_v1_rues_lookup_get: {
+        parameters: {
+            query: {
+                nit: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuesLookup"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     send_email_api_v1_emails_send_post: {
         parameters: {
             query?: never;
@@ -3933,6 +4063,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmailSendResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    audience_count_api_v1_emails_audience_get: {
+        parameters: {
+            query?: {
+                segmento?: string | null;
+                estado?: string | null;
+                actividad_ciiu?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AudienceCount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_campaign_api_v1_emails_campaign_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignQueued"];
                 };
             };
             /** @description Validation Error */

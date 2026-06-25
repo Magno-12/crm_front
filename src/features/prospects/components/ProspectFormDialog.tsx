@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CiiuPicker } from '@/features/prospects/components/CiiuPicker';
+import { lookupRues } from '@/features/prospects/api/prospects.api';
 import {
   PROSPECT_STATUSES,
   SEGMENTS,
@@ -77,11 +78,37 @@ export function ProspectFormDialog({ open, onOpenChange, prospect }: Props) {
   const create = useCreateProspect();
   const update = useUpdateProspect(prospect?.id ?? '');
   const [submitting, setSubmitting] = useState(false);
+  const [ruesLoading, setRuesLoading] = useState(false);
 
   const form = useForm<FormInput>({
     resolver: zodResolver(schema),
     defaultValues: { nit: '', razon_social: '', segmento: 'otro', estado: 'nuevo' },
   });
+
+  const handleRues = async () => {
+    const nit = form.getValues('nit')?.trim();
+    if (!nit || nit.length < 3) {
+      toast.error('Escribe el NIT primero');
+      return;
+    }
+    setRuesLoading(true);
+    try {
+      const r = await lookupRues(nit);
+      if (!r) {
+        toast.error('No se encontró ese NIT en el RUES');
+        return;
+      }
+      if (r.razon_social) form.setValue('razon_social', r.razon_social);
+      if (r.actividad_ciiu) form.setValue('actividad_ciiu', r.actividad_ciiu);
+      toast.success(
+        `RUES: ${r.razon_social ?? ''}${r.camara ? ` · ${r.camara}` : ''}${r.estado ? ` · ${r.estado}` : ''}`,
+      );
+    } catch {
+      toast.error('No se pudo consultar el RUES');
+    } finally {
+      setRuesLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
@@ -150,7 +177,25 @@ export function ProspectFormDialog({ open, onOpenChange, prospect }: Props) {
         </DialogHeader>
         <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField label="NIT" id="nit" error={form.formState.errors.nit?.message}>
-            <Input id="nit" disabled={editing} {...form.register('nit')} />
+            <div className="flex gap-2">
+              <Input id="nit" disabled={editing} {...form.register('nit')} />
+              {!editing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleRues}
+                  disabled={ruesLoading}
+                  title="Traer razón social y CIIU desde el RUES"
+                >
+                  {ruesLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  RUES
+                </Button>
+              )}
+            </div>
           </FormField>
           <FormField
             label="Razón social"

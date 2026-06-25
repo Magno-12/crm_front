@@ -95,3 +95,19 @@ export async function searchCiiu(q: string): Promise<CiiuRow[]> {
   const { data } = await api.get<CiiuRow[]>('/ciiu', { params: { q, limit: 10 } });
   return data;
 }
+
+export interface RuesLookup {
+  nit: string;
+  razon_social: string | null;
+  actividad_ciiu: string | null;
+  ciiu_descripcion: string | null;
+  camara: string | null;
+  estado: string | null;
+  organizacion_juridica: string | null;
+}
+
+/** Consulta el RUES (registro mercantil) por NIT vía datos.gov.co. */
+export async function lookupRues(nit: string): Promise<RuesLookup | null> {
+  const { data } = await api.get<RuesLookup | null>('/rues/lookup', { params: { nit } });
+  return data;
+}
