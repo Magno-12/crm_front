@@ -17,6 +17,9 @@ export interface ProspectFilters {
   actividad_ciiu?: string;
   regimen?: string;
   ingresos_min?: string;
+  ingresos_max?: string;
+  activos_min?: string;
+  activos_max?: string;
   page?: number;
   page_size?: number;
 }
@@ -77,5 +80,17 @@ export async function createFollowUp(
   body: FollowUpCreate,
 ): Promise<FollowUpRead> {
   const { data } = await api.post<FollowUpRead>(`/prospects/${prospectId}/follow-ups`, body);
+  return data;
+}
+
+interface CiiuRow {
+  code: string;
+  nivel: string | null;
+  description: string;
+}
+
+/** Busca códigos CIIU por código o descripción (catálogo DIAN). */
+export async function searchCiiu(q: string): Promise<CiiuRow[]> {
+  const { data } = await api.get<CiiuRow[]>('/ciiu', { params: { q, limit: 10 } });
   return data;
 }

@@ -20,12 +20,14 @@ import {
 import { FullPageSpinner, ErrorState, EmptyState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
+import { useQuery } from '@tanstack/react-query';
 import {
   useProspect,
   useFollowUps,
   useCreateFollowUp,
   useConvertToClient,
 } from '@/features/prospects/hooks/useProspects';
+import { searchCiiu } from '@/features/prospects/api/prospects.api';
 import { segmentLabel, statusMeta } from '@/features/prospects/lib/status';
 import { apiErrorMessage } from '@/api/client';
 import { formatDate } from '@/lib/utils';
@@ -52,6 +54,14 @@ export function ProspectDetailPage() {
   const { data: prospect, isLoading, error, refetch } = useProspect(id);
   const [editOpen, setEditOpen] = useState(false);
   const convert = useConvertToClient();
+
+  const ciiuCode = prospect?.actividad_ciiu ?? '';
+  const ciiu = useQuery({
+    queryKey: ['ciiu', ciiuCode],
+    queryFn: () => searchCiiu(ciiuCode),
+    enabled: !!ciiuCode,
+  });
+  const ciiuDesc = ciiu.data?.find((c) => c.code === ciiuCode)?.description;
 
   if (isLoading) return <FullPageSpinner />;
   if (error || !prospect) return <ErrorState error={error} onRetry={() => refetch()} />;
@@ -108,7 +118,14 @@ export function ProspectDetailPage() {
               value={prospect.email ?? '—'}
               icon={<Mail className="h-4 w-4" />}
             />
-            <InfoRow label="Actividad CIIU" value={prospect.actividad_ciiu ?? '—'} />
+            <InfoRow
+              label="Actividad CIIU"
+              value={
+                prospect.actividad_ciiu
+                  ? `${prospect.actividad_ciiu}${ciiuDesc ? ` — ${ciiuDesc}` : ''}`
+                  : '—'
+              }
+            />
             <InfoRow label="Estado actual" value={prospect.estado_actual ?? '—'} />
             <InfoRow label="Matrícula mercantil" value={formatDate(prospect.fecha_matricula)} />
             <InfoRow label="Renovación" value={formatDate(prospect.fecha_renovacion)} />

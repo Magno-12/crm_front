@@ -667,6 +667,23 @@ export interface paths {
         patch: operations["update_service_api_v1_services__service_id__patch"];
         trace?: never;
     };
+    "/api/v1/ciiu": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search Ciiu */
+        get: operations["search_ciiu_api_v1_ciiu_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/send": {
         parameters: {
             query?: never;
@@ -965,6 +982,15 @@ export interface components {
             current_password: string;
             /** New Password */
             new_password: string;
+        };
+        /** CiiuRead */
+        CiiuRead: {
+            /** Code */
+            code: string;
+            /** Nivel */
+            nivel: string | null;
+            /** Description */
+            description: string;
         };
         /** ClientCreate */
         ClientCreate: {
@@ -1753,10 +1779,17 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Category
+             * @default
+             */
+            category: string;
+            /**
              * Description
              * @default
              */
             description: string;
+            /** Norma */
+            norma?: string | null;
             /**
              * Default Value
              * @default 0
@@ -1777,8 +1810,12 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /** Category */
+            category: string;
             /** Description */
             description: string;
+            /** Norma */
+            norma: string | null;
             /** Default Value */
             default_value: string;
             /** Is Active */
@@ -1788,8 +1825,12 @@ export interface components {
         ServiceUpdate: {
             /** Name */
             name?: string | null;
+            /** Category */
+            category?: string | null;
             /** Description */
             description?: string | null;
+            /** Norma */
+            norma?: string | null;
             /** Default Value */
             default_value?: number | string | null;
             /** Is Active */
@@ -2618,6 +2659,8 @@ export interface operations {
                 regimen?: string | null;
                 ingresos_min?: number | string | null;
                 ingresos_max?: number | string | null;
+                activos_min?: number | string | null;
+                activos_max?: number | string | null;
                 page?: number;
                 page_size?: number;
             };
@@ -3718,6 +3761,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    search_ciiu_api_v1_ciiu_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CiiuRead"][];
                 };
             };
             /** @description Validation Error */

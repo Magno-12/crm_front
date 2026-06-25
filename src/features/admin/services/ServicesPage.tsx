@@ -55,6 +55,7 @@ export function ServicesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
+                <TableHead>Categoría</TableHead>
                 <TableHead>Descripción</TableHead>
                 <TableHead>Valor base</TableHead>
                 <TableHead>Estado</TableHead>
@@ -64,7 +65,12 @@ export function ServicesPage() {
               {services.data.map((s) => (
                 <TableRow key={s.id}>
                   <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{s.description || '—'}</TableCell>
+                  <TableCell>
+                    {s.category ? <Badge variant="outline">{s.category}</Badge> : '—'}
+                  </TableCell>
+                  <TableCell className="max-w-xs truncate text-muted-foreground">
+                    {s.description || '—'}
+                  </TableCell>
                   <TableCell>{formatCOP(Number(s.default_value))}</TableCell>
                   <TableCell>
                     {s.is_active ? (
@@ -103,6 +109,7 @@ function ServiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
     mutationFn: (v: FormOutput) =>
       createService({
         name: v.name,
+        category: '',
         description: v.description ?? '',
         default_value: String(v.default_value),
         is_active: true,

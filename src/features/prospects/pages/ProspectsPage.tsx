@@ -36,6 +36,9 @@ export function ProspectsPage() {
   const [ciiu, setCiiu] = useState('');
   const [regimen, setRegimen] = useState('');
   const [ingresosMin, setIngresosMin] = useState('');
+  const [ingresosMax, setIngresosMax] = useState('');
+  const [activosMin, setActivosMin] = useState('');
+  const [activosMax, setActivosMax] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -43,7 +46,10 @@ export function ProspectsPage() {
   const debouncedQ = useDebounce(q, 300);
   const debouncedCiiu = useDebounce(ciiu, 400);
   const debouncedRegimen = useDebounce(regimen, 400);
-  const debouncedIngresos = useDebounce(ingresosMin, 400);
+  const debouncedIngMin = useDebounce(ingresosMin, 400);
+  const debouncedIngMax = useDebounce(ingresosMax, 400);
+  const debouncedActMin = useDebounce(activosMin, 400);
+  const debouncedActMax = useDebounce(activosMax, 400);
 
   const filters = {
     q: debouncedQ || undefined,
@@ -51,7 +57,10 @@ export function ProspectsPage() {
     segmento: segmento === 'all' ? undefined : segmento,
     actividad_ciiu: debouncedCiiu || undefined,
     regimen: debouncedRegimen || undefined,
-    ingresos_min: debouncedIngresos || undefined,
+    ingresos_min: debouncedIngMin || undefined,
+    ingresos_max: debouncedIngMax || undefined,
+    activos_min: debouncedActMin || undefined,
+    activos_max: debouncedActMax || undefined,
     page,
     page_size: 20,
   };
@@ -182,15 +191,55 @@ export function ProspectsPage() {
               }}
             />
           </div>
+          <div />
           <div>
-            <label className="mb-1 block text-xs text-muted-foreground">Ingresos mínimos (COP)</label>
+            <label className="mb-1 block text-xs text-muted-foreground">Ingresos desde (COP)</label>
             <Input
               type="number"
               min={0}
-              placeholder="Ej. 500000000"
+              placeholder="Ej. 3000000"
               value={ingresosMin}
               onChange={(e) => {
                 setIngresosMin(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Ingresos hasta (COP)</label>
+            <Input
+              type="number"
+              min={0}
+              value={ingresosMax}
+              onChange={(e) => {
+                setIngresosMax(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div />
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Patrimonio desde (COP)</label>
+            <Input
+              type="number"
+              min={0}
+              placeholder="Ej. 80000000"
+              value={activosMin}
+              onChange={(e) => {
+                setActivosMin(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Patrimonio hasta (COP)</label>
+            <Input
+              type="number"
+              min={0}
+              placeholder="Ej. 100000000"
+              value={activosMax}
+              onChange={(e) => {
+                setActivosMax(e.target.value);
                 setPage(1);
               }}
             />
