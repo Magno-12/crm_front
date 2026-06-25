@@ -53,7 +53,7 @@ export function EmailsPage() {
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Correos</h1>
-          <p className="text-sm text-muted-foreground">Plantillas, envíos individuales y campañas vía SMTP.</p>
+          <p className="text-sm text-muted-foreground">Plantillas, envíos individuales y campañas masivas.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Can code="emails.templates.create">
