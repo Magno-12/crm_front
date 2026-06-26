@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,12 +27,13 @@ import {
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import {
-  createTemplate,
   getAudienceCount,
   listTemplates,
   sendCampaign,
   sendEmail,
 } from '@/features/emails/api/emails.api';
+import { TemplateBuilderDialog } from '@/features/emails/components/TemplateBuilderDialog';
+import { TemplatePreviewDialog } from '@/features/emails/components/TemplatePreviewDialog';
 import {
   PROSPECT_STATUSES,
   SEGMENTS,
@@ -41,12 +42,14 @@ import {
 } from '@/features/prospects/lib/status';
 import { useDebounce } from '@/hooks/useDebounce';
 import { apiErrorMessage } from '@/api/client';
+import type { EmailTemplateRead } from '@/types/api';
 
 export function EmailsPage() {
   const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates });
   const [templateOpen, setTemplateOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
+  const [previewTemplate, setPreviewTemplate] = useState<EmailTemplateRead | null>(null);
 
   return (
     <div className="space-y-6">
@@ -87,7 +90,14 @@ export function EmailsPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {templates.data.map((t) => (
-            <Card key={t.id}>
+            <Card
+              key={t.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setPreviewTemplate(t)}
+              onKeyDown={(e) => e.key === 'Enter' && setPreviewTemplate(t)}
+              className="cursor-pointer transition hover:border-primary/50 hover:shadow-sm"
+            >
               <CardHeader>
                 <CardTitle className="flex items-center justify-between text-base">
                   {t.name}
@@ -109,13 +119,18 @@ export function EmailsPage() {
                     ))}
                   </div>
                 )}
+                <p className="mt-3 text-xs font-medium text-primary">Clic para previsualizar →</p>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      <TemplateDialog open={templateOpen} onOpenChange={setTemplateOpen} />
+      <TemplateBuilderDialog open={templateOpen} onOpenChange={setTemplateOpen} />
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+      />
       <ComposerDialog
         open={composerOpen}
         onOpenChange={setComposerOpen}
@@ -252,84 +267,6 @@ function CampaignDialog({
             <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, 500)}
           </Button>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-const templateSchema = z.object({
-  name: z.string().min(1, 'Requerido'),
-  subject: z.string().min(1, 'Requerido'),
-  body_html: z.string().min(1, 'Requerido'),
-});
-type TemplateInput = z.infer<typeof templateSchema>;
-
-function TemplateDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-}) {
-  const qc = useQueryClient();
-  const form = useForm<TemplateInput>({
-    resolver: zodResolver(templateSchema),
-    defaultValues: { name: '', subject: '', body_html: '' },
-  });
-  const mut = useMutation({
-    mutationFn: (body: TemplateInput) => createTemplate({ ...body, variables: [], is_active: true }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['email-templates'] });
-      toast.success('Plantilla creada');
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Nueva plantilla</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={form.handleSubmit((v) => mut.mutate(v))} className="space-y-4">
-          <div>
-            <Label htmlFor="name" className="mb-1.5 block">
-              Nombre
-            </Label>
-            <Input id="name" {...form.register('name')} />
-            {form.formState.errors.name && (
-              <p className="mt-1 text-sm text-destructive">{form.formState.errors.name.message}</p>
-            )}
-          </div>
-          <div>
-            <Label htmlFor="subject" className="mb-1.5 block">
-              Asunto
-            </Label>
-            <Input id="subject" placeholder="Hola $nombre" {...form.register('subject')} />
-          </div>
-          <div>
-            <Label htmlFor="body" className="mb-1.5 block">
-              Cuerpo HTML
-            </Label>
-            <textarea
-              id="body"
-              rows={6}
-              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder="<p>Hola $nombre, …</p>"
-              {...form.register('body_html')}
-            />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={mut.isPending}>
-              Crear
-            </Button>
-          </DialogFooter>
-        </form>
       </DialogContent>
     </Dialog>
   );
