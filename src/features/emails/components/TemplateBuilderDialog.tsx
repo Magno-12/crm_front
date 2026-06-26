@@ -123,6 +123,12 @@ export function TemplateBuilderDialog({
             <Field label="Asunto del correo">
               <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
             </Field>
+            <Field
+              label="Vista previa en bandeja (preheader)"
+              hint="El texto gris que se ve junto al asunto en Gmail/Outlook."
+            >
+              <Input value={fields.preheader} onChange={(e) => set('preheader', e.target.value)} />
+            </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Nombre de la firma (encabezado)">
                 <Input value={fields.company} onChange={(e) => set('company', e.target.value)} />
