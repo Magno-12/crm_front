@@ -123,18 +123,40 @@ export function TemplateBuilderDialog({
             <Field label="Asunto del correo">
               <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
             </Field>
-            <Field label="Nombre de la firma (encabezado)">
-              <Input value={fields.company} onChange={(e) => set('company', e.target.value)} />
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Nombre de la firma (encabezado)">
+                <Input value={fields.company} onChange={(e) => set('company', e.target.value)} />
+              </Field>
+              <Field label="Lema (opcional)">
+                <Input value={fields.tagline} onChange={(e) => set('tagline', e.target.value)} />
+              </Field>
+            </div>
             <Field label="Título principal">
               <Input value={fields.title} onChange={(e) => set('title', e.target.value)} />
             </Field>
+            <Field label="Subtítulo (opcional)">
+              <Input value={fields.subtitle} onChange={(e) => set('subtitle', e.target.value)} />
+            </Field>
             <Field label="Cuerpo del mensaje" hint="Usa $razon_social, $nit, $ciudad para personalizar.">
               <textarea
-                rows={6}
+                rows={5}
                 className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 value={fields.body}
                 onChange={(e) => set('body', e.target.value)}
+              />
+            </Field>
+            <Field label="Recuadro destacado (opcional)" hint="Una frase clave: un vencimiento, una promo…">
+              <Input value={fields.highlight} onChange={(e) => set('highlight', e.target.value)} />
+            </Field>
+            <Field
+              label="Lista / pasos (opcional)"
+              hint="Una línea por punto. Sale con check ✓ (o numerada en Bienvenida)."
+            >
+              <textarea
+                rows={3}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={fields.points}
+                onChange={(e) => set('points', e.target.value)}
               />
             </Field>
             <div className="grid grid-cols-2 gap-3">
@@ -152,6 +174,9 @@ export function TemplateBuilderDialog({
                 value={fields.signature}
                 onChange={(e) => set('signature', e.target.value)}
               />
+            </Field>
+            <Field label="Pie / contacto (opcional)">
+              <Input value={fields.contact} onChange={(e) => set('contact', e.target.value)} />
             </Field>
           </div>
 
