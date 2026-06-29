@@ -36,9 +36,16 @@ export function TemplateBuilderDialog({
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('Información de su firma contable');
   const [fields, setFields] = useState<TemplateFields>(DEFAULT_FIELDS);
+  const [mode, setMode] = useState<'design' | 'html'>('design');
+  const [customHtml, setCustomHtml] = useState(
+    '<div style="font-family:Arial,sans-serif;padding:24px;">\n  <h1>Tu título</h1>\n  <p>Pega aquí tu HTML. Puedes usar $razon_social, $nit, $ciudad.</p>\n</div>',
+  );
 
   const design = DESIGNS.find((d) => d.id === designId) ?? DESIGNS[0]!;
-  const html = useMemo(() => design.render(fields), [design, fields]);
+  const html = useMemo(
+    () => (mode === 'html' ? customHtml : design.render(fields)),
+    [mode, customHtml, design, fields],
+  );
   const preview = useMemo(() => withSampleData(html), [html]);
 
   const set = (key: keyof TemplateFields, value: string) =>
@@ -74,6 +81,30 @@ export function TemplateBuilderDialog({
         <div className="grid max-h-[70vh] grid-cols-1 overflow-hidden md:grid-cols-2">
           {/* Editor */}
           <div className="space-y-4 overflow-y-auto border-r p-6">
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('design')}
+                className={cn(
+                  'flex-1 rounded-md border px-3 py-1.5 text-sm transition',
+                  mode === 'design' ? 'border-primary bg-primary/10 font-medium' : 'border-border',
+                )}
+              >
+                Diseño guiado
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('html')}
+                className={cn(
+                  'flex-1 rounded-md border px-3 py-1.5 text-sm transition',
+                  mode === 'html' ? 'border-primary bg-primary/10 font-medium' : 'border-border',
+                )}
+              >
+                HTML propio
+              </button>
+            </div>
+
+            {mode === 'design' && (
             <div>
               <Label className="mb-2 block text-xs font-semibold uppercase text-muted-foreground">
                 Diseño
@@ -112,6 +143,7 @@ export function TemplateBuilderDialog({
               </div>
               <p className="mt-1.5 text-xs text-muted-foreground">{design.description}</p>
             </div>
+            )}
 
             <Field label="Nombre de la plantilla (interno)">
               <Input
@@ -123,12 +155,32 @@ export function TemplateBuilderDialog({
             <Field label="Asunto del correo">
               <Input value={subject} onChange={(e) => setSubject(e.target.value)} />
             </Field>
-            <Field
-              label="Vista previa en bandeja (preheader)"
-              hint="El texto gris que se ve junto al asunto en Gmail/Outlook."
-            >
-              <Input value={fields.preheader} onChange={(e) => set('preheader', e.target.value)} />
-            </Field>
+
+            {mode === 'html' && (
+              <Field
+                label="HTML del correo"
+                hint="Pega tu diseño HTML. Usa $razon_social, $nit, $ciudad para personalizar."
+              >
+                <textarea
+                  rows={16}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={customHtml}
+                  onChange={(e) => setCustomHtml(e.target.value)}
+                />
+              </Field>
+            )}
+
+            {mode === 'design' && (
+              <Field
+                label="Vista previa en bandeja (preheader)"
+                hint="El texto gris que se ve junto al asunto en Gmail/Outlook."
+              >
+                <Input value={fields.preheader} onChange={(e) => set('preheader', e.target.value)} />
+              </Field>
+            )}
+            {mode === 'design' && (
+            <>
+              {/* campos guiados */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Nombre de la firma (encabezado)">
                 <Input value={fields.company} onChange={(e) => set('company', e.target.value)} />
@@ -184,6 +236,8 @@ export function TemplateBuilderDialog({
             <Field label="Pie / contacto (opcional)">
               <Input value={fields.contact} onChange={(e) => set('contact', e.target.value)} />
             </Field>
+            </>
+            )}
           </div>
 
           {/* Previsualización en vivo */}
