@@ -4,6 +4,7 @@ import type {
   ClientRead,
   ClientServiceCreate,
   ClientServiceRead,
+  ClientUpdate,
   Page,
 } from '@/types/api';
 
@@ -23,6 +24,11 @@ export async function getClient(id: string): Promise<ClientRead> {
 
 export async function createClient(body: ClientCreate): Promise<ClientRead> {
   const { data } = await api.post<ClientRead>('/clients', body);
+  return data;
+}
+
+export async function updateClient(id: string, body: ClientUpdate): Promise<ClientRead> {
+  const { data } = await api.patch<ClientRead>(`/clients/${id}`, body);
   return data;
 }
 

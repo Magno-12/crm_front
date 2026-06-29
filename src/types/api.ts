@@ -34,6 +34,7 @@ export type OpportunityStage = Schemas['OpportunityStage'];
 
 export type ClientRead = Schemas['ClientRead'];
 export type ClientCreate = Schemas['ClientCreate'];
+export type ClientUpdate = Schemas['ClientUpdate'];
 export type ClientServiceRead = Schemas['ClientServiceRead'];
 export type ClientServiceCreate = Schemas['ClientServiceCreate'];
 

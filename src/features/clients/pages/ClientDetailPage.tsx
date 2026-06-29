@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,7 @@ import {
   listClientServices,
   addClientService,
 } from '@/features/clients/api/clients.api';
+import { ClientEditDialog } from '@/features/clients/components/ClientEditDialog';
 import { listServices } from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP, formatDate } from '@/lib/utils';
@@ -53,6 +54,7 @@ export function ClientDetailPage() {
   const catalog = useQuery({ queryKey: ['services'], queryFn: () => listServices(true) });
 
   const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(false);
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(schema),
     defaultValues: { service_id: '', valor_mensual: 0 },
@@ -88,25 +90,29 @@ export function ClientDetailPage() {
         </Button>
         <h1 className="flex-1 text-2xl font-bold tracking-tight">{client.razon_social}</h1>
         <Badge variant="success">{client.status}</Badge>
+        <Can code="clients.edit">
+          <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+            <Pencil className="h-4 w-4" /> Editar
+          </Button>
+        </Can>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Datos</CardTitle>
+          <CardTitle>Datos de facturación y contrato</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-          <div>
-            <p className="text-muted-foreground">NIT</p>
-            <p className="font-medium">{client.nit}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Inicio</p>
-            <p className="font-medium">{formatDate(client.start_date)}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground">Creado</p>
-            <p className="font-medium">{formatDate(client.created_at)}</p>
-          </div>
+          <Info label="NIT" value={client.nit} />
+          <Info label="Teléfono" value={client.telefono} />
+          <Info label="Email" value={client.email} />
+          <Info label="Dirección" value={client.direccion} />
+          <Info label="Contacto contabilidad" value={client.contacto_contabilidad_nombre} />
+          <Info label="Tel. contabilidad" value={client.contacto_contabilidad_telefono} />
+          <Info label="Correo contabilidad" value={client.contacto_contabilidad_email} />
+          <Info label="N° contrato" value={client.contrato_numero} />
+          <Info label="Fecha contrato" value={formatDate(client.fecha_contrato)} />
+          <Info label="Inicio" value={formatDate(client.start_date)} />
+          <Info label="Creado" value={formatDate(client.created_at)} />
         </CardContent>
       </Card>
 
@@ -181,6 +187,17 @@ export function ClientDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <ClientEditDialog client={client} open={editing} onOpenChange={setEditing} />
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div>
+      <p className="text-muted-foreground">{label}</p>
+      <p className="font-medium">{value || '—'}</p>
     </div>
   );
 }

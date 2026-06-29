@@ -1152,6 +1152,24 @@ export interface components {
             start_date: string | null;
             /** End Date */
             end_date: string | null;
+            /** Direccion */
+            direccion: string | null;
+            /** Telefono */
+            telefono: string | null;
+            /** Email */
+            email: string | null;
+            /** Contacto Contabilidad Nombre */
+            contacto_contabilidad_nombre: string | null;
+            /** Contacto Contabilidad Telefono */
+            contacto_contabilidad_telefono: string | null;
+            /** Contacto Contabilidad Email */
+            contacto_contabilidad_email: string | null;
+            /** Contrato Numero */
+            contrato_numero: string | null;
+            /** Fecha Contrato */
+            fecha_contrato: string | null;
+            /** Notas */
+            notas: string | null;
             /** Account Manager Id */
             account_manager_id: string | null;
             /**
@@ -1226,6 +1244,24 @@ export interface components {
             start_date?: string | null;
             /** End Date */
             end_date?: string | null;
+            /** Direccion */
+            direccion?: string | null;
+            /** Telefono */
+            telefono?: string | null;
+            /** Email */
+            email?: string | null;
+            /** Contacto Contabilidad Nombre */
+            contacto_contabilidad_nombre?: string | null;
+            /** Contacto Contabilidad Telefono */
+            contacto_contabilidad_telefono?: string | null;
+            /** Contacto Contabilidad Email */
+            contacto_contabilidad_email?: string | null;
+            /** Contrato Numero */
+            contrato_numero?: string | null;
+            /** Fecha Contrato */
+            fecha_contrato?: string | null;
+            /** Notas */
+            notas?: string | null;
             /** Account Manager Id */
             account_manager_id?: string | null;
         };
