@@ -439,6 +439,26 @@ export interface paths {
         patch: operations["move_stage_api_v1_opportunities__opportunity_id__stage_patch"];
         trace?: never;
     };
+    "/api/v1/clients/by-prospect/{prospect_id}/services": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Services By Prospect
+         * @description Servicios contratados del cliente asociado a un prospecto (para auto-facturar).
+         */
+        get: operations["services_by_prospect_api_v1_clients_by_prospect__prospect_id__services_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients": {
         parameters: {
             query?: never;
@@ -732,6 +752,26 @@ export interface paths {
         put?: never;
         /** Send Email */
         post: operations["send_email_api_v1_emails_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/senders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Senders
+         * @description Remitentes disponibles (mismo dominio verificado en Resend).
+         */
+        get: operations["list_senders_api_v1_emails_senders_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1092,6 +1132,8 @@ export interface components {
             estado?: string | null;
             /** Actividad Ciiu */
             actividad_ciiu?: string | null;
+            /** From Email */
+            from_email?: string | null;
             /**
              * Skip Sent
              * @default true
@@ -1099,7 +1141,7 @@ export interface components {
             skip_sent: boolean;
             /**
              * Limit
-             * @default 500
+             * @default 3000
              */
             limit: number;
         };
@@ -1309,6 +1351,8 @@ export interface components {
             variables?: {
                 [key: string]: unknown;
             };
+            /** From Email */
+            from_email?: string | null;
             /** Prospect Id */
             prospect_id?: string | null;
             /** Opportunity Id */
@@ -3377,6 +3421,37 @@ export interface operations {
             };
         };
     };
+    services_by_prospect_api_v1_clients_by_prospect__prospect_id__services_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientServiceRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_clients_api_v1_clients_get: {
         parameters: {
             query?: {
@@ -4133,6 +4208,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_senders_api_v1_emails_senders_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
                 };
             };
         };

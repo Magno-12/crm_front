@@ -11,6 +11,11 @@ export async function listTemplates(): Promise<EmailTemplateRead[]> {
   return data;
 }
 
+export async function listSenders(): Promise<string[]> {
+  const { data } = await api.get<string[]>('/emails/senders');
+  return data;
+}
+
 export async function createTemplate(body: EmailTemplateCreate): Promise<EmailTemplateRead> {
   const { data } = await api.post<EmailTemplateRead>('/emails/templates', body);
   return data;
@@ -35,7 +40,12 @@ export async function getAudienceCount(
 }
 
 export async function sendCampaign(
-  body: CampaignFilters & { template_id: string; skip_sent?: boolean; limit?: number },
+  body: CampaignFilters & {
+    template_id: string;
+    skip_sent?: boolean;
+    from_email?: string;
+    limit?: number;
+  },
 ): Promise<{ queued: number; message: string }> {
   const { data } = await api.post<{ queued: number; message: string }>('/emails/campaign', body);
   return data;

@@ -28,6 +28,7 @@ import { EmptyState, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import {
   getAudienceCount,
+  listSenders,
   listTemplates,
   sendCampaign,
   sendEmail,
@@ -159,6 +160,8 @@ function CampaignDialog({
   const [estado, setEstado] = useState('all');
   const [ciiu, setCiiu] = useState('');
   const [skipSent, setSkipSent] = useState(true);
+  const [sender, setSender] = useState('');
+  const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
   const debouncedCiiu = useDebounce(ciiu, 400);
 
   const filters = {
@@ -179,7 +182,13 @@ function CampaignDialog({
   });
 
   const mut = useMutation({
-    mutationFn: () => sendCampaign({ template_id: templateId, skip_sent: skipSent, ...filters }),
+    mutationFn: () =>
+      sendCampaign({
+        template_id: templateId,
+        skip_sent: skipSent,
+        from_email: sender || undefined,
+        ...filters,
+      }),
     onSuccess: (res) => {
       toast.success(res.message);
       onOpenChange(false);
@@ -211,6 +220,23 @@ function CampaignDialog({
               </SelectContent>
             </Select>
           </div>
+          {senders.data && senders.data.length > 1 && (
+            <div>
+              <Label className="mb-1.5 block">Enviar desde</Label>
+              <Select value={sender} onValueChange={setSender}>
+                <SelectTrigger>
+                  <SelectValue placeholder={senders.data[0]} />
+                </SelectTrigger>
+                <SelectContent>
+                  {senders.data.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="mb-1.5 block">Segmento</Label>
@@ -308,6 +334,8 @@ function ComposerDialog({
     resolver: zodResolver(composerSchema),
     defaultValues: { template_id: '', recipients: '' },
   });
+  const [sender, setSender] = useState('');
+  const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
   const mut = useMutation({
     mutationFn: (v: ComposerInput) =>
       sendEmail({
@@ -316,6 +344,7 @@ function ComposerDialog({
           .split(/[\s,;]+/)
           .map((r) => r.trim())
           .filter(Boolean),
+        from_email: sender || undefined,
         variables: {},
       }),
     onSuccess: (res) => {
@@ -361,6 +390,23 @@ function ComposerDialog({
               </p>
             )}
           </div>
+          {senders.data && senders.data.length > 1 && (
+            <div>
+              <Label className="mb-1.5 block">Enviar desde</Label>
+              <Select value={sender} onValueChange={setSender}>
+                <SelectTrigger>
+                  <SelectValue placeholder={senders.data[0]} />
+                </SelectTrigger>
+                <SelectContent>
+                  {senders.data.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label htmlFor="recipients" className="mb-1.5 block">
               Destinatarios
