@@ -111,3 +111,20 @@ export async function lookupRues(nit: string): Promise<RuesLookup | null> {
   const { data } = await api.get<RuesLookup | null>('/rues/lookup', { params: { nit } });
   return data;
 }
+
+export interface EmailSendRow {
+  id: string;
+  recipient_email: string;
+  status: string;
+  opens: number;
+  clicks: number;
+  opened_at: string | null;
+  sent_at: string | null;
+  created_at: string;
+}
+
+/** Correos enviados a un prospecto con su estado de apertura (tracking Resend). */
+export async function emailSendsByProspect(prospectId: string): Promise<EmailSendRow[]> {
+  const { data } = await api.get<EmailSendRow[]>(`/emails/by-prospect/${prospectId}`);
+  return data;
+}

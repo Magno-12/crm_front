@@ -758,6 +758,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend Webhook
+         * @description Recibe eventos de Resend (aperturas/clics). Protegido por ?token=.
+         */
+        post: operations["resend_webhook_api_v1_emails_webhook_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/by-prospect/{prospect_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sends By Prospect
+         * @description Correos enviados a un prospecto, con su estado de apertura (tracking).
+         */
+        get: operations["sends_by_prospect_api_v1_emails_by_prospect__prospect_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/senders": {
         parameters: {
             query?: never;
@@ -1330,6 +1370,14 @@ export interface components {
             listmonk_id: number | null;
             /** Error */
             error: string | null;
+            /** Opens */
+            opens: number;
+            /** Clicks */
+            clicks: number;
+            /** Opened At */
+            opened_at: string | null;
+            /** Clicked At */
+            clicked_at: string | null;
             /** Sent At */
             sent_at: string | null;
             /**
@@ -4199,6 +4247,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmailSendResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_webhook_api_v1_emails_webhook_post: {
+        parameters: {
+            query?: {
+                token?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: boolean;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sends_by_prospect_api_v1_emails_by_prospect__prospect_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailSendRead"][];
                 };
             };
             /** @description Validation Error */

@@ -20,6 +20,7 @@ import {
 import { FullPageSpinner, ErrorState, EmptyState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
+import { EmailTrackingSection } from '@/features/prospects/components/EmailTrackingSection';
 import { useQuery } from '@tanstack/react-query';
 import {
   useProspect,
@@ -175,6 +176,7 @@ export function ProspectDetailPage() {
 
         <div className="space-y-6 lg:col-span-2">
           <FollowUpTimeline prospectId={prospect.id} />
+          <EmailTrackingSection prospectId={prospect.id} />
         </div>
       </div>
 
