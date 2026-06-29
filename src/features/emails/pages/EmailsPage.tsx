@@ -319,7 +319,12 @@ function ComposerDialog({
         variables: {},
       }),
     onSuccess: (res) => {
-      toast.success(`Enviados: ${res.sent}, fallidos: ${res.failed}`);
+      if (res.failed > 0) {
+        const err = res.results.find((r) => r.status === 'failed')?.error;
+        toast.error(`No se pudo enviar (${res.failed}). ${err ?? 'Revisa el SMTP.'}`);
+        return;
+      }
+      toast.success(`Enviado a ${res.sent} destinatario(s).`);
       onOpenChange(false);
       form.reset();
     },
