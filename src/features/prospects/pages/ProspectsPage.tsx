@@ -84,8 +84,8 @@ export function ProspectsPage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Prospectos</h1>
-          <p className="text-sm text-muted-foreground">Gestiona tu base comercial.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Base de datos mercadeo</h1>
+          <p className="text-sm text-muted-foreground">Gestiona tu base comercial de prospectos.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Can code="prospects.export">

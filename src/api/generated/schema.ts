@@ -738,6 +738,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/transport-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Transport Status
+         * @description Diagnóstico del transporte de correo (ListMonk / SMTP).
+         */
+        get: operations["transport_status_api_v1_emails_transport_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/audience": {
         parameters: {
             query?: never;
@@ -1072,6 +1092,11 @@ export interface components {
             estado?: string | null;
             /** Actividad Ciiu */
             actividad_ciiu?: string | null;
+            /**
+             * Skip Sent
+             * @default true
+             */
+            skip_sent: boolean;
             /**
              * Limit
              * @default 500
@@ -1828,7 +1853,7 @@ export interface components {
          * ProspectStatus
          * @enum {string}
          */
-        ProspectStatus: "nuevo" | "contactado" | "interesado" | "en_negociacion" | "propuesta_enviada" | "pendiente_respuesta" | "ganado" | "perdido" | "fidelizado";
+        ProspectStatus: "nuevo" | "contactado" | "fidelizado" | "no_fidelizado";
         /** ProspectUpdate */
         ProspectUpdate: {
             /** Razon Social */
@@ -4076,12 +4101,36 @@ export interface operations {
             };
         };
     };
+    transport_status_api_v1_emails_transport_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     audience_count_api_v1_emails_audience_get: {
         parameters: {
             query?: {
                 segmento?: string | null;
                 estado?: string | null;
                 actividad_ciiu?: string | null;
+                template_id?: string | null;
+                skip_sent?: boolean;
             };
             header?: never;
             path?: never;

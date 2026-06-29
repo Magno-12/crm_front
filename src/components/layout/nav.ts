@@ -29,14 +29,14 @@ export interface NavSection {
 export const NAV_SECTIONS: NavSection[] = [
   {
     items: [
-      { label: 'Dashboard', to: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
-      { label: 'Prospectos', to: '/prospects', icon: Users, permission: 'prospects.view' },
+      { label: 'Base de datos mercadeo', to: '/prospects', icon: Users, permission: 'prospects.view' },
+      { label: 'Correos', to: '/emails', icon: Mail, permission: 'emails.send' },
       { label: 'Seguimiento', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
       { label: 'Clientes', to: '/clients', icon: Briefcase, permission: 'clients.view' },
       { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },
       { label: 'Obligaciones', to: '/tax', icon: Receipt, permission: 'tax.view' },
       { label: 'Alertas', to: '/alerts', icon: BellRing, permission: 'dashboard.view' },
-      { label: 'Correos', to: '/emails', icon: Mail, permission: 'emails.send' },
+      { label: 'Dashboard', to: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
     ],
   },
   {

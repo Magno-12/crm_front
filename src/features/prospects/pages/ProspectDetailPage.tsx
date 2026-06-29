@@ -20,7 +20,6 @@ import {
 import { FullPageSpinner, ErrorState, EmptyState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
-import { OpportunitiesSection } from '@/features/prospects/components/OpportunitiesSection';
 import { useQuery } from '@tanstack/react-query';
 import {
   useProspect,
@@ -166,7 +165,7 @@ export function ProspectDetailPage() {
               <Button
                 className="mt-2 w-full"
                 onClick={onConvert}
-                disabled={convert.isPending || prospect.estado === 'ganado'}
+                disabled={convert.isPending}
               >
                 <UserCheck className="h-4 w-4" /> Convertir en cliente
               </Button>
@@ -176,7 +175,6 @@ export function ProspectDetailPage() {
 
         <div className="space-y-6 lg:col-span-2">
           <FollowUpTimeline prospectId={prospect.id} />
-          <OpportunitiesSection prospectId={prospect.id} />
         </div>
       </div>
 
