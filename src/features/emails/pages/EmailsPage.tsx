@@ -264,8 +264,8 @@ function CampaignDialog({
             Audiencia con correo:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> destinatario(s)
             {skipSent && templateId ? ' nuevos' : ''}.
-            {count > 500 && (
-              <span className="text-muted-foreground"> Se enviará a los primeros 500.</span>
+            {count > 3000 && (
+              <span className="text-muted-foreground"> Se enviará a los primeros 3000.</span>
             )}
           </div>
         </div>
@@ -281,7 +281,7 @@ function CampaignDialog({
             }}
             disabled={mut.isPending}
           >
-            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, 500)}
+            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, 3000)}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -37,6 +37,14 @@ export async function listClientServices(id: string): Promise<ClientServiceRead[
   return data;
 }
 
+/** Servicios contratados del cliente asociado a un prospecto (para auto-facturar). */
+export async function servicesByProspect(prospectId: string): Promise<ClientServiceRead[]> {
+  const { data } = await api.get<ClientServiceRead[]>(
+    `/clients/by-prospect/${prospectId}/services`,
+  );
+  return data;
+}
+
 export async function addClientService(
   id: string,
   body: ClientServiceCreate,

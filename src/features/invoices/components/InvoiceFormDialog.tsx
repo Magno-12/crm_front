@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import {
@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ProspectCombobox } from '@/features/invoices/components/ProspectCombobox';
 import { createInvoice, openInvoicePdf } from '@/features/invoices/api/invoices.api';
+import { servicesByProspect } from '@/features/clients/api/clients.api';
+import { listServices } from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP } from '@/lib/utils';
 
@@ -53,6 +55,26 @@ export function InvoiceFormDialog({
     },
   });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
+
+  const prospectId = form.watch('prospect_id');
+  const catalog = useQuery({ queryKey: ['services'], queryFn: () => listServices(true) });
+  const clientSvc = useQuery({
+    queryKey: ['client-services-by-prospect', prospectId],
+    queryFn: () => servicesByProspect(prospectId),
+    enabled: open && !!prospectId,
+  });
+
+  // Al elegir un cliente fidelizado, precarga sus servicios contratados (concepto + valor).
+  useEffect(() => {
+    if (!clientSvc.data || clientSvc.data.length === 0) return;
+    const rows = clientSvc.data.map((cs) => ({
+      description: catalog.data?.find((s) => s.id === cs.service_id)?.name ?? 'Servicio contratado',
+      quantity: 1,
+      unit_price: Number(cs.valor_mensual),
+    }));
+    form.setValue('items', rows);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientSvc.data, catalog.data]);
 
   const items = form.watch('items');
   const taxRate = Number(form.watch('tax_rate')) || 0;
@@ -109,18 +131,23 @@ export function InvoiceFormDialog({
         <DialogHeader>
           <DialogTitle>Nueva factura</DialogTitle>
           <DialogDescription>
-            Selecciona el cliente/prospecto y agrega los servicios a facturar.
+            Elige el cliente fidelizado; sus servicios se cargan automáticamente.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Prospecto */}
           <div>
-            <Label className="mb-1.5 block">Cliente (prospecto)</Label>
+            <Label className="mb-1.5 block">Cliente fidelizado</Label>
             <ProspectCombobox
               value={form.watch('prospect_id')}
               onChange={(id) => form.setValue('prospect_id', id)}
             />
+            {clientSvc.data && clientSvc.data.length > 0 && (
+              <p className="mt-1 text-xs text-primary">
+                Se cargaron {clientSvc.data.length} servicio(s) contratado(s).
+              </p>
+            )}
           </div>
 
           {/* Ítems */}
