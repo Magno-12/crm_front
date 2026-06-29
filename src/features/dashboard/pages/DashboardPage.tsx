@@ -18,20 +18,19 @@ import {
   UserPlus,
   Percent,
   Wallet,
-  TrendingUp,
+  MailOpen,
   Users,
   Briefcase,
-  Target,
   Receipt,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardGridSkeleton } from '@/components/common/table-skeleton';
 import { ErrorState, EmptyState } from '@/components/common/states';
 import { KpiCard } from '@/features/dashboard/components/KpiCard';
 import {
-  getConversion,
+  getEmailEngagement,
   getKpis,
-  getPipeline,
   getProspectsByCity,
   getRevenueByService,
   getRevenueByActivity,
@@ -39,8 +38,7 @@ import {
   getTopClients,
   getTrend,
 } from '@/features/dashboard/api/dashboard.api';
-import { formatCOP, formatCompact } from '@/lib/utils';
-import type { NamedValue } from '@/types/api';
+import { formatCOP, formatCompact, formatDate } from '@/lib/utils';
 
 const PIE_COLORS = ['#0e9aa7', '#22b8cf', '#4263eb', '#7048e8', '#e64980', '#f59f00'];
 
@@ -48,12 +46,12 @@ const KPI_ICON: Record<string, JSX.Element> = {
   new_prospects_month: <UserPlus />,
   conversion_rate: <Percent />,
   monthly_revenue: <Wallet />,
-  weighted_pipeline: <TrendingUp />,
+  email_open_rate: <MailOpen />,
 };
 
 function kpiValue(key: string, value: number): string {
-  if (key === 'conversion_rate') return `${value}%`;
-  if (key === 'monthly_revenue' || key === 'weighted_pipeline') return formatCOP(value);
+  if (key === 'conversion_rate' || key === 'email_open_rate') return `${value}%`;
+  if (key === 'monthly_revenue') return formatCOP(value);
   return String(value);
 }
 
@@ -61,8 +59,10 @@ export function DashboardPage() {
   const kpis = useQuery({ queryKey: ['dashboard', 'kpis'], queryFn: getKpis });
   const summary = useQuery({ queryKey: ['dashboard', 'summary'], queryFn: getSummary });
   const trend = useQuery({ queryKey: ['dashboard', 'trend'], queryFn: getTrend });
-  const pipeline = useQuery({ queryKey: ['dashboard', 'pipeline'], queryFn: getPipeline });
-  const conversion = useQuery({ queryKey: ['dashboard', 'conversion'], queryFn: getConversion });
+  const engagement = useQuery({
+    queryKey: ['dashboard', 'engagement'],
+    queryFn: getEmailEngagement,
+  });
   const revenue = useQuery({ queryKey: ['dashboard', 'revenue'], queryFn: getRevenueByService });
   const cities = useQuery({ queryKey: ['dashboard', 'cities'], queryFn: getProspectsByCity });
   const byActivity = useQuery({
@@ -78,7 +78,7 @@ export function DashboardPage() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">Dashboard gerencial</h1>
         <p className="text-sm text-muted-foreground">
-          Visión consolidada del embudo comercial, la conversión y la facturación.
+          Visión consolidada de prospectos, facturación y aperturas de correo.
         </p>
       </header>
 
@@ -114,9 +114,9 @@ export function DashboardPage() {
           value={summary.data ? String(summary.data.active_clients) : '—'}
         />
         <StatChip
-          icon={<Target />}
-          label="Oportunidades abiertas"
-          value={summary.data ? String(summary.data.open_opportunities) : '—'}
+          icon={<MailOpen />}
+          label="Correos abiertos"
+          value={summary.data ? String(summary.data.emails_opened) : '—'}
         />
         <StatChip
           icon={<Receipt />}
@@ -174,42 +174,52 @@ export function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Embudo + conversión */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Embudo de oportunidades</CardTitle>
-            <CardDescription>Cantidad y valor mensual por etapa del pipeline.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartGuard query={pipeline}>
-              <Funnel data={pipeline.data ?? []} />
-            </ChartGuard>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Conversión por asesor</CardTitle>
-            <CardDescription>Prospectos gestionados y cuántos se ganaron.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-72">
-            <ChartGuard query={conversion}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={conversion.data} layout="vertical" margin={{ left: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                  <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11 }} />
-                  <YAxis type="category" dataKey="advisor" width={96} tick={{ fontSize: 11 }} />
-                  <Tooltip cursor={{ fill: 'hsl(var(--muted))' }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="prospects" name="Prospectos" radius={[0, 6, 6, 0]} fill="#94a3b8" />
-                  <Bar dataKey="won" name="Ganados" radius={[0, 6, 6, 0]} fill="#0e9aa7" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartGuard>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Aperturas de correo (tracking Resend) */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Aperturas de correo</CardTitle>
+          <CardDescription>
+            Quién está abriendo las campañas — útil para priorizar el seguimiento.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <MiniStat label="Enviados" value={String(engagement.data?.sent ?? 0)} />
+            <MiniStat label="Abiertos" value={String(engagement.data?.opened ?? 0)} />
+            <MiniStat label="Clics" value={String(engagement.data?.clicked ?? 0)} />
+            <MiniStat label="% Apertura" value={`${engagement.data?.open_rate ?? 0}%`} accent />
+          </div>
+          {engagement.data && engagement.data.openers.length > 0 ? (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                Últimos que abrieron
+              </p>
+              <ul className="divide-y rounded-md border">
+                {engagement.data.openers.map((o, i) => (
+                  <li key={i} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                    <span className="flex-1 truncate font-medium">{o.razon_social}</span>
+                    <span className="truncate text-xs text-muted-foreground">{o.email}</span>
+                    <span className="text-xs text-muted-foreground">{formatDate(o.opened_at)}</span>
+                    {o.prospect_id && (
+                      <Link
+                        to={`/prospects/${o.prospect_id}`}
+                        className="text-xs font-medium text-primary"
+                      >
+                        Ver ficha
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <EmptyState
+              title="Aún sin aperturas"
+              description="Cuando envíes campañas con tracking activo, verás aquí quién las abre."
+            />
+          )}
+        </CardContent>
+      </Card>
 
       {/* Facturación + ciudades */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -338,42 +348,11 @@ function StatChip({
   );
 }
 
-const STAGE_LABEL: Record<string, string> = {
-  calificacion: 'Calificación',
-  propuesta: 'Propuesta',
-  negociacion: 'Negociación',
-  cierre: 'Cierre',
-  ganada: 'Ganada',
-  perdida: 'Perdida',
-};
-
-interface FunnelRow extends NamedValue {
-  amount?: number;
-}
-
-function Funnel({ data }: { data: FunnelRow[] }) {
-  const max = Math.max(1, ...data.map((d) => d.value));
+function MiniStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="space-y-2.5">
-      {data.map((row) => {
-        const pct = Math.round((row.value / max) * 100);
-        return (
-          <div key={row.name} className="space-y-1">
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">{STAGE_LABEL[row.name] ?? row.name}</span>
-              <span className="text-muted-foreground">
-                {row.value} · {formatCOP(row.amount ?? 0)}
-              </span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all"
-                style={{ width: `${Math.max(pct, row.value > 0 ? 6 : 0)}%` }}
-              />
-            </div>
-          </div>
-        );
-      })}
+    <div className="rounded-lg bg-muted/50 p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`text-xl font-bold ${accent ? 'text-primary' : ''}`}>{value}</p>
     </div>
   );
 }

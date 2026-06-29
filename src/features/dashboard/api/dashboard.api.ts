@@ -1,15 +1,22 @@
 import { api } from '@/api/client';
-import type {
-  ConversionRow,
-  DashboardSummary,
-  KpisResponse,
-  NamedValue,
-  TrendPoint,
-} from '@/types/api';
+import type { DashboardSummary, KpisResponse, NamedValue, TrendPoint } from '@/types/api';
 
 interface ChartResponse<T> {
   title: string;
   data: T[];
+}
+
+export interface EmailEngagement {
+  sent: number;
+  opened: number;
+  clicked: number;
+  open_rate: number;
+  openers: {
+    email: string;
+    razon_social: string;
+    opened_at: string | null;
+    prospect_id: string | null;
+  }[];
 }
 
 export async function getKpis(): Promise<KpisResponse> {
@@ -27,14 +34,9 @@ export async function getTrend(): Promise<TrendPoint[]> {
   return data.data;
 }
 
-export async function getPipeline(): Promise<NamedValue[]> {
-  const { data } = await api.get<ChartResponse<NamedValue>>('/dashboard/charts/pipeline');
-  return data.data;
-}
-
-export async function getConversion(): Promise<ConversionRow[]> {
-  const { data } = await api.get<ChartResponse<ConversionRow>>('/dashboard/charts/conversion');
-  return data.data;
+export async function getEmailEngagement(): Promise<EmailEngagement> {
+  const { data } = await api.get<EmailEngagement>('/dashboard/email-engagement');
+  return data;
 }
 
 export async function getRevenueByService(): Promise<NamedValue[]> {

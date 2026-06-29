@@ -78,17 +78,10 @@ export interface NamedValue {
   amount?: number;
 }
 
-export interface ConversionRow {
-  advisor: string;
-  prospects: number;
-  won: number;
-  conversion_rate: number;
-}
-
 export interface DashboardSummary {
   total_prospects: number;
   active_clients: number;
-  open_opportunities: number;
+  emails_opened: number;
   lost_prospects: number;
   avg_ticket: number;
 }
