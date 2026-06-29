@@ -27,13 +27,15 @@ export interface CampaignFilters {
   actividad_ciiu?: string;
 }
 
-export async function getAudienceCount(filters: CampaignFilters): Promise<number> {
+export async function getAudienceCount(
+  filters: CampaignFilters & { template_id?: string; skip_sent?: boolean },
+): Promise<number> {
   const { data } = await api.get<{ count: number }>('/emails/audience', { params: filters });
   return data.count;
 }
 
 export async function sendCampaign(
-  body: CampaignFilters & { template_id: string; limit?: number },
+  body: CampaignFilters & { template_id: string; skip_sent?: boolean; limit?: number },
 ): Promise<{ queued: number; message: string }> {
   const { data } = await api.post<{ queued: number; message: string }>('/emails/campaign', body);
   return data;

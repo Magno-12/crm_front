@@ -158,6 +158,7 @@ function CampaignDialog({
   const [segmento, setSegmento] = useState('all');
   const [estado, setEstado] = useState('all');
   const [ciiu, setCiiu] = useState('');
+  const [skipSent, setSkipSent] = useState(true);
   const debouncedCiiu = useDebounce(ciiu, 400);
 
   const filters = {
@@ -165,15 +166,20 @@ function CampaignDialog({
     estado: estado === 'all' ? undefined : estado,
     actividad_ciiu: debouncedCiiu || undefined,
   };
+  const audienceParams = {
+    ...filters,
+    template_id: templateId || undefined,
+    skip_sent: skipSent,
+  };
 
   const audience = useQuery({
-    queryKey: ['email-audience', filters],
-    queryFn: () => getAudienceCount(filters),
+    queryKey: ['email-audience', audienceParams],
+    queryFn: () => getAudienceCount(audienceParams),
     enabled: open,
   });
 
   const mut = useMutation({
-    mutationFn: () => sendCampaign({ template_id: templateId, ...filters }),
+    mutationFn: () => sendCampaign({ template_id: templateId, skip_sent: skipSent, ...filters }),
     onSuccess: (res) => {
       toast.success(res.message);
       onOpenChange(false);
@@ -244,9 +250,20 @@ function CampaignDialog({
             <Input placeholder="Ej. 8610" value={ciiu} onChange={(e) => setCiiu(e.target.value)} />
           </div>
 
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={skipSent}
+              onChange={(e) => setSkipSent(e.target.checked)}
+              className="h-4 w-4 rounded border-input accent-primary"
+            />
+            No reenviar a quienes ya recibieron esta plantilla
+          </label>
+
           <div className="rounded-md border bg-muted/30 p-3 text-sm">
             Audiencia con correo:{' '}
-            <span className="font-semibold">{audience.isLoading ? '…' : count}</span> prospecto(s).
+            <span className="font-semibold">{audience.isLoading ? '…' : count}</span> destinatario(s)
+            {skipSent && templateId ? ' nuevos' : ''}.
             {count > 500 && (
               <span className="text-muted-foreground"> Se enviará a los primeros 500.</span>
             )}
@@ -296,7 +313,7 @@ function ComposerDialog({
       sendEmail({
         template_id: v.template_id,
         recipients: v.recipients
-          .split(',')
+          .split(/[\s,;]+/)
           .map((r) => r.trim())
           .filter(Boolean),
         variables: {},
@@ -341,13 +358,18 @@ function ComposerDialog({
           </div>
           <div>
             <Label htmlFor="recipients" className="mb-1.5 block">
-              Destinatarios (separados por coma)
+              Destinatarios
             </Label>
-            <Input
+            <textarea
               id="recipients"
-              placeholder="cliente@empresa.co, otro@empresa.co"
+              rows={4}
+              className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder={'cliente@empresa.co, otro@empresa.co\no uno por línea (no tienen que ser prospectos)'}
               {...form.register('recipients')}
             />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cualquier correo, separados por coma, espacio o salto de línea. No necesitan ser prospectos.
+            </p>
             {form.formState.errors.recipients && (
               <p className="mt-1 text-sm text-destructive">
                 {form.formState.errors.recipients.message}
