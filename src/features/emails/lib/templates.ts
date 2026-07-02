@@ -153,9 +153,160 @@ export interface EmailDesign {
   name: string;
   description: string;
   render: (f: TemplateFields) => string;
+  /** Textos por defecto que se cargan al elegir el diseño. */
+  defaults?: Partial<TemplateFields>;
 }
 
+// ---- Marca Proyectamos (para las plantillas replicadas de los volantes) ----
+const P_NAVY = '#2e3a5e';
+const P_GREEN = '#8cc63f';
+const P_ORANGE = '#ee6b2f';
+const P_RED = '#e02323';
+
+function proyLogo(): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" align="right"><tr>
+    <td style="padding-right:8px;font-size:26px;line-height:1;">📊</td>
+    <td style="text-align:left;">
+      <div style="color:${P_NAVY};font-size:20px;font-weight:bold;letter-spacing:.5px;line-height:1;">PROYECTAMOS</div>
+      <div style="color:#64748b;font-size:11px;letter-spacing:.5px;">Asesoría Integral S.A.S.</div>
+    </td>
+  </tr></table>`;
+}
+
+function proyBullets(text: string): string {
+  const items = text.split('\n').map((l) => l.trim()).filter(Boolean);
+  const cell = (it: string) =>
+    `<td valign="top" width="50%" style="padding:6px 10px;">
+      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+        <td valign="top" style="padding-right:8px;color:${P_GREEN};font-size:16px;line-height:1.3;">●</td>
+        <td style="color:#334155;font-size:14px;line-height:1.5;">${it}</td>
+      </tr></table>
+    </td>`;
+  let rows = '';
+  for (let i = 0; i < items.length; i += 2) {
+    rows += `<tr>${cell(items[i]!)}${items[i + 1] ? cell(items[i + 1]!) : '<td></td>'}</tr>`;
+  }
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%">${rows}</table>`;
+}
+
+function proyFooter(): string {
+  return `
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:20px;">
+      <tr><td style="padding:16px 32px 4px;">
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+          <td style="padding-right:20px;color:${P_NAVY};font-size:13px;">✉ info@proyectamosasesoria.net</td>
+          <td style="color:${P_NAVY};font-size:13px;">✉ contactenos@proyectamosasesoria.net</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="background:${P_NAVY};padding:14px 32px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
+          <td style="color:#ffffff;font-size:15px;font-weight:bold;">📱 322 653 75 37</td>
+          <td style="color:#ffffff;font-size:15px;font-weight:bold;text-align:center;">📞 317 440 39 54</td>
+          <td style="color:#ffffff;font-size:15px;font-weight:bold;text-align:right;">☎ (602) 889 36 47</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="background:${P_GREEN};padding:12px 32px;text-align:center;color:${P_NAVY};font-size:14px;font-weight:bold;">
+        Confíe en nosotros, su tranquilidad es nuestra prioridad.
+      </td></tr>
+      <tr><td style="padding:14px 32px;text-align:center;">
+        <span style="display:inline-block;background:${P_ORANGE};border-radius:8px;padding:10px 22px;color:#ffffff;font-size:13px;font-weight:bold;">
+          Tarifas ajustadas a SU PRESUPUESTO · ¡juntos ENCONTRAREMOS la mejor opción!
+        </span>
+      </td></tr>
+    </table>`;
+}
+
+function proyShell(inner: string, pre: string): string {
+  return `${preheader(pre)}<div style="background:#eef2f6;padding:24px 12px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" width="620" align="center" style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
+      <tr><td style="padding:18px 32px 10px;">${proyLogo()}</td></tr>
+      ${inner}
+      ${proyFooter()}
+    </table>
+  </div>`;
+}
+
+const ICA_YEARS = ['2020', '2021', '2022', '2023', '2024', '2025']
+  .map(
+    (y) =>
+      `<span style="display:inline-block;background:${P_GREEN};color:${P_NAVY};font-size:14px;font-weight:bold;padding:3px 12px;border-radius:999px;margin:2px 3px;">${y}</span>`,
+  )
+  .join('');
+
 export const DESIGNS: EmailDesign[] = [
+  {
+    id: 'proy-ica',
+    name: 'Proyectamos · ICA',
+    description: 'Volante Industria y Comercio (ICA) con la marca Proyectamos.',
+    defaults: {
+      tagline: 'IMPUESTO MUNICIPAL',
+      preheader: 'ICA: si la Alcaldía lo requirió, regularice y reduzca sanciones.',
+      title: 'INDUSTRIA Y COMERCIO - ICA',
+      subtitle: 'SI HA SIDO REQUERIDO POR LA ALCALDÍA POR LOS AÑOS',
+      highlight:
+        'Si recibió un requerimiento de la Alcaldía, el tiempo corre a su favor si actúa ahora. Presentar las declaraciones pendientes reduce significativamente sanciones e intereses de mora.',
+      points:
+        'Revisamos su situación tributaria municipal sin costo\nCalculamos impuesto, sanciones e intereses de cada período\nPreparamos y presentamos todas sus declaraciones de ICA\nLo acompañamos ante la Alcaldía para regularizar su situación',
+    },
+    render: (f) =>
+      proyShell(
+        `<tr><td style="padding:8px 28px 0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:${P_NAVY};border-radius:14px;"><tr><td style="padding:22px 26px;">
+            <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
+            <h1 style="margin:6px 0 4px;color:#ffffff;font-size:30px;font-weight:bold;line-height:1.1;">${f.title}</h1>
+            <div style="color:${P_GREEN};font-size:16px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
+            <div style="margin-top:10px;">${ICA_YEARS}</div>
+          </td></tr></table>
+        </td></tr>
+        <tr><td style="padding:16px 28px 6px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
+            <td valign="top" style="padding-right:10px;font-size:22px;line-height:1.2;">⚠️</td>
+            <td style="color:#334155;font-size:14px;line-height:1.6;">${f.highlight}</td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="padding:8px 28px 4px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:14px 18px;">
+            <div style="color:${P_NAVY};font-size:16px;font-weight:bold;margin-bottom:4px;">¿Qué hacemos por usted?</div>
+            ${proyBullets(f.points)}
+          </td></tr></table>
+        </td></tr>`,
+        f.preheader,
+      ),
+  },
+  {
+    id: 'proy-renta',
+    name: 'Proyectamos · Renta',
+    description: 'Volante Declaración de Renta (personas obligadas) con la marca Proyectamos.',
+    defaults: {
+      tagline: 'PERSONA NATURAL',
+      preheader: 'Declaración de renta 2026: verifique si está obligado y evite sanciones.',
+      title: 'DECLARACIÓN DE RENTA - PERSONAS OBLIGADAS',
+      subtitle: 'A PARTIR DEL 12 DE AGOSTO HASTA EL 26 DE OCTUBRE DE 2026',
+      highlight: 'Evita que te sancionen',
+      body: 'Si durante el año 2025 usted tuvo ingresos, consumos o consignaciones superiores a $69.718.600 (1.400 UVT), o un patrimonio bruto superior a $224.095.500 (4.500 UVT), es probable que esté obligado a declarar renta.',
+    },
+    render: (f) =>
+      proyShell(
+        `<tr><td style="padding:4px 28px 0;">
+          ${f.highlight ? `<span style="display:inline-block;background:${P_ORANGE};color:#ffffff;font-size:15px;font-weight:bold;padding:6px 16px;border-radius:8px;">${f.highlight} !</span>` : ''}
+        </td></tr>
+        <tr><td style="padding:12px 28px 0;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:${P_NAVY};border-radius:14px;"><tr><td style="padding:22px 26px;">
+            <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
+            <h1 style="margin:6px 0 6px;color:#ffffff;font-size:26px;font-weight:bold;line-height:1.15;">${f.title}</h1>
+            <div style="color:${P_GREEN};font-size:15px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
+          </td></tr></table>
+        </td></tr>
+        <tr><td style="padding:16px 28px 6px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:16px 20px;color:#334155;font-size:15px;line-height:1.7;">
+            ${f.body
+              .replace(/\$([\d.]+)/g, `<span style="color:${P_RED};font-weight:bold;">$$$1</span>`)
+              .replace(/\(([\d.]+ UVT)\)/g, `<span style="color:${P_RED};font-weight:bold;">($1)</span>`)}
+          </td></tr></table>
+        </td></tr>`,
+        f.preheader,
+      ),
+  },
   {
     id: 'corporativo',
     name: 'Corporativo',

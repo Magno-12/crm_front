@@ -35,7 +35,10 @@ export function TemplateBuilderDialog({
   const [designId, setDesignId] = useState(DESIGNS[0]!.id);
   const [name, setName] = useState('');
   const [subject, setSubject] = useState('Información de su firma contable');
-  const [fields, setFields] = useState<TemplateFields>(DEFAULT_FIELDS);
+  const [fields, setFields] = useState<TemplateFields>({
+    ...DEFAULT_FIELDS,
+    ...(DESIGNS[0]!.defaults ?? {}),
+  });
   const [mode, setMode] = useState<'design' | 'html'>('design');
   const [customHtml, setCustomHtml] = useState(
     '<div style="font-family:Arial,sans-serif;padding:24px;">\n  <h1>Tu título</h1>\n  <p>Pega aquí tu HTML. Puedes usar $razon_social, $nit, $ciudad.</p>\n</div>',
@@ -114,7 +117,10 @@ export function TemplateBuilderDialog({
                   <button
                     key={d.id}
                     type="button"
-                    onClick={() => setDesignId(d.id)}
+                    onClick={() => {
+                      setDesignId(d.id);
+                      if (d.defaults) setFields({ ...DEFAULT_FIELDS, ...d.defaults });
+                    }}
                     className={cn(
                       'relative overflow-hidden rounded-lg border text-left transition',
                       designId === d.id
