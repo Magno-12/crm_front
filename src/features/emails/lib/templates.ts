@@ -166,18 +166,29 @@ const P_RED = '#e02323';
 // Imágenes de marca alojadas en Cloudinary (los correos requieren URLs públicas).
 const CLD = 'https://res.cloudinary.com/pcnyzhql/image/upload';
 const LOGO_URL = `${CLD}/f_auto,q_auto,w_440/proyectamos/logo.png`;
-const HERO_ICA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1128,h_440/proyectamos/hero_ica.jpg`;
-const HERO_RENTA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1128,h_460/proyectamos/hero_renta.jpg`;
+const HERO_ICA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1240,h_600/proyectamos/hero_ica.jpg`;
+const HERO_RENTA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1240,h_600/proyectamos/hero_renta.jpg`;
 
-function proyLogo(): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" align="right"><tr><td>
-    <img src="${LOGO_URL}" width="210" alt="Proyectamos Asesoría Integral S.A.S." style="display:block;width:210px;max-width:100%;height:auto;border:0;" />
-  </td></tr></table>`;
+// Chip blanco con el logo (visible sobre cualquier foto), esquina superior derecha.
+function proyLogoChip(): string {
+  return `<img src="${LOGO_URL}" width="160" alt="Proyectamos Asesoría Integral S.A.S." style="display:inline-block;background:#ffffff;border-radius:8px;padding:5px 9px;border:0;" />`;
 }
 
-function proyHero(url: string): string {
-  return `<tr><td style="padding:10px 28px 2px;">
-    <img src="${url}" width="564" alt="" style="display:block;width:100%;max-width:564px;height:auto;border-radius:12px;border:0;" />
+// Bloque superior a sangre: la foto cubre toda la parte de arriba; el logo va
+// montado arriba a la derecha y la banda azul del título se apoya sobre la foto.
+// Usa fondo con imagen (con fallback navy) + VML para que también funcione en Outlook.
+function proyHeroBg(url: string, height: number, inner: string): string {
+  return `<tr><td style="padding:0;">
+    <!--[if gte mso 9]>
+    <v:image xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" src="${url}" style="width:620px;height:${height}px;" />
+    <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="false" stroke="false" style="position:absolute;width:620px;height:${height}px;"><v:textbox inset="0,0,0,0">
+    <![endif]-->
+    <div>
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%" background="${url}" bgcolor="${P_NAVY}" style="background:${P_NAVY} url('${url}') center/cover no-repeat;border-collapse:collapse;">
+        ${inner}
+      </table>
+    </div>
+    <!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
   </td></tr>`;
 }
 
@@ -227,7 +238,6 @@ function proyFooter(): string {
 function proyShell(inner: string, pre: string): string {
   return `${preheader(pre)}<div style="background:#eef2f6;padding:24px 12px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
     <table role="presentation" cellpadding="0" cellspacing="0" width="620" align="center" style="max-width:620px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
-      <tr><td style="padding:18px 32px 10px;">${proyLogo()}</td></tr>
       ${inner}
       ${proyFooter()}
     </table>
@@ -258,15 +268,20 @@ export const DESIGNS: EmailDesign[] = [
     },
     render: (f) =>
       proyShell(
-        `${proyHero(HERO_ICA_URL)}
-        <tr><td style="padding:12px 28px 0;">
-          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:${P_NAVY};border-radius:14px;"><tr><td style="padding:22px 26px;">
-            <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
-            <h1 style="margin:6px 0 4px;color:#ffffff;font-size:30px;font-weight:bold;line-height:1.1;">${f.title}</h1>
-            <div style="color:${P_GREEN};font-size:16px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
-            <div style="margin-top:10px;">${ICA_YEARS}</div>
-          </td></tr></table>
-        </td></tr>
+        `${proyHeroBg(
+          HERO_ICA_URL,
+          320,
+          `<tr><td style="padding:16px 22px 0;text-align:right;">${proyLogoChip()}</td></tr>
+           <tr><td style="height:96px;font-size:0;line-height:0;">&nbsp;</td></tr>
+           <tr><td valign="bottom" style="padding:0;">
+             <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td style="background:${P_NAVY};padding:18px 26px;">
+               <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
+               <h1 style="margin:6px 0 4px;color:#ffffff;font-size:28px;font-weight:bold;line-height:1.12;">${f.title}</h1>
+               <div style="color:${P_GREEN};font-size:15px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
+               <div style="margin-top:10px;">${ICA_YEARS}</div>
+             </td></tr></table>
+           </td></tr>`,
+        )}
         <tr><td style="padding:16px 28px 6px;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
             <td valign="top" style="padding-right:10px;font-size:22px;line-height:1.2;">⚠️</td>
@@ -296,17 +311,26 @@ export const DESIGNS: EmailDesign[] = [
     },
     render: (f) =>
       proyShell(
-        `${proyHero(HERO_RENTA_URL)}
-        <tr><td style="padding:8px 28px 0;">
-          ${f.highlight ? `<span style="display:inline-block;background:${P_ORANGE};color:#ffffff;font-size:15px;font-weight:bold;padding:6px 16px;border-radius:8px;">${f.highlight} !</span>` : ''}
-        </td></tr>
-        <tr><td style="padding:12px 28px 0;">
-          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:${P_NAVY};border-radius:14px;"><tr><td style="padding:22px 26px;">
-            <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
-            <h1 style="margin:6px 0 6px;color:#ffffff;font-size:26px;font-weight:bold;line-height:1.15;">${f.title}</h1>
-            <div style="color:${P_GREEN};font-size:15px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
-          </td></tr></table>
-        </td></tr>
+        `${proyHeroBg(
+          HERO_RENTA_URL,
+          320,
+          `<tr><td style="padding:16px 22px 0;text-align:right;">${proyLogoChip()}</td></tr>
+           <tr><td style="height:60px;font-size:0;line-height:0;">&nbsp;</td></tr>
+           ${
+             f.highlight
+               ? `<tr><td style="padding:0 24px 8px;">
+                    <span style="display:inline-block;background:${P_ORANGE};color:#ffffff;font-size:15px;font-weight:bold;padding:6px 16px;border-radius:8px;">${f.highlight} !</span>
+                  </td></tr>`
+               : ''
+           }
+           <tr><td valign="bottom" style="padding:0;">
+             <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td style="background:${P_NAVY};padding:18px 26px;">
+               <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
+               <h1 style="margin:6px 0 6px;color:#ffffff;font-size:25px;font-weight:bold;line-height:1.15;">${f.title}</h1>
+               <div style="color:${P_GREEN};font-size:15px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
+             </td></tr></table>
+           </td></tr>`,
+        )}
         <tr><td style="padding:16px 28px 6px;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:16px 20px;color:#334155;font-size:15px;line-height:1.7;">
             ${f.body
