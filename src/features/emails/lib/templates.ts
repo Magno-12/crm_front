@@ -163,14 +163,22 @@ const P_GREEN = '#8cc63f';
 const P_ORANGE = '#ee6b2f';
 const P_RED = '#e02323';
 
+// Imágenes de marca alojadas en Cloudinary (los correos requieren URLs públicas).
+const CLD = 'https://res.cloudinary.com/pcnyzhql/image/upload';
+const LOGO_URL = `${CLD}/f_auto,q_auto,w_440/proyectamos/logo.png`;
+const HERO_ICA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1128,h_440/proyectamos/hero_ica.jpg`;
+const HERO_RENTA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1128,h_460/proyectamos/hero_renta.jpg`;
+
 function proyLogo(): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" align="right"><tr>
-    <td style="padding-right:8px;font-size:26px;line-height:1;">📊</td>
-    <td style="text-align:left;">
-      <div style="color:${P_NAVY};font-size:20px;font-weight:bold;letter-spacing:.5px;line-height:1;">PROYECTAMOS</div>
-      <div style="color:#64748b;font-size:11px;letter-spacing:.5px;">Asesoría Integral S.A.S.</div>
-    </td>
-  </tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" align="right"><tr><td>
+    <img src="${LOGO_URL}" width="210" alt="Proyectamos Asesoría Integral S.A.S." style="display:block;width:210px;max-width:100%;height:auto;border:0;" />
+  </td></tr></table>`;
+}
+
+function proyHero(url: string): string {
+  return `<tr><td style="padding:10px 28px 2px;">
+    <img src="${url}" width="564" alt="" style="display:block;width:100%;max-width:564px;height:auto;border-radius:12px;border:0;" />
+  </td></tr>`;
 }
 
 function proyBullets(text: string): string {
@@ -250,7 +258,8 @@ export const DESIGNS: EmailDesign[] = [
     },
     render: (f) =>
       proyShell(
-        `<tr><td style="padding:8px 28px 0;">
+        `${proyHero(HERO_ICA_URL)}
+        <tr><td style="padding:12px 28px 0;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:${P_NAVY};border-radius:14px;"><tr><td style="padding:22px 26px;">
             <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
             <h1 style="margin:6px 0 4px;color:#ffffff;font-size:30px;font-weight:bold;line-height:1.1;">${f.title}</h1>
@@ -287,7 +296,8 @@ export const DESIGNS: EmailDesign[] = [
     },
     render: (f) =>
       proyShell(
-        `<tr><td style="padding:4px 28px 0;">
+        `${proyHero(HERO_RENTA_URL)}
+        <tr><td style="padding:8px 28px 0;">
           ${f.highlight ? `<span style="display:inline-block;background:${P_ORANGE};color:#ffffff;font-size:15px;font-weight:bold;padding:6px 16px;border-radius:8px;">${f.highlight} !</span>` : ''}
         </td></tr>
         <tr><td style="padding:12px 28px 0;">
