@@ -195,10 +195,10 @@ function proyHeroBg(url: string, height: number, inner: string): string {
 function proyBullets(text: string): string {
   const items = text.split('\n').map((l) => l.trim()).filter(Boolean);
   const cell = (it: string) =>
-    `<td valign="top" width="50%" style="padding:6px 10px;">
-      <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td valign="top" style="padding-right:8px;color:${P_GREEN};font-size:16px;line-height:1.3;">●</td>
-        <td style="color:#334155;font-size:14px;line-height:1.5;">${it}</td>
+    `<td valign="top" width="50%" style="padding:7px 12px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" align="center"><tr>
+        <td valign="top" style="padding-right:8px;color:${P_GREEN};font-size:16px;line-height:1.4;">●</td>
+        <td style="color:#334155;font-size:14px;line-height:1.5;text-align:left;">${it}</td>
       </tr></table>
     </td>`;
   let rows = '';
@@ -211,24 +211,25 @@ function proyBullets(text: string): string {
 function proyFooter(): string {
   return `
     <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:20px;">
-      <tr><td style="padding:16px 32px 4px;">
-        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-          <td style="padding-right:20px;color:${P_NAVY};font-size:13px;">✉ info@proyectamosasesoria.net</td>
-          <td style="color:${P_NAVY};font-size:13px;">✉ contactenos@proyectamosasesoria.net</td>
+      <tr><td align="center" style="padding:18px 28px 8px;text-align:center;">
+        <table role="presentation" cellpadding="0" cellspacing="0" align="center"><tr>
+          <td align="center" style="padding:0 14px;color:${P_NAVY};font-size:13px;">✉ info@proyectamosasesoria.net</td>
+          <td style="color:${P_GREEN};font-size:14px;font-weight:bold;">·</td>
+          <td align="center" style="padding:0 14px;color:${P_NAVY};font-size:13px;">✉ contactenos@proyectamosasesoria.net</td>
         </tr></table>
       </td></tr>
-      <tr><td style="background:${P_NAVY};padding:14px 32px;">
+      <tr><td style="background:${P_NAVY};padding:14px 28px;">
         <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
-          <td style="color:#ffffff;font-size:15px;font-weight:bold;">📱 322 653 75 37</td>
-          <td style="color:#ffffff;font-size:15px;font-weight:bold;text-align:center;">📞 317 440 39 54</td>
-          <td style="color:#ffffff;font-size:15px;font-weight:bold;text-align:right;">☎ (602) 889 36 47</td>
+          <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">📱 322 653 75 37</td>
+          <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">📞 317 440 39 54</td>
+          <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">☎ (602) 889 36 47</td>
         </tr></table>
       </td></tr>
-      <tr><td style="background:${P_GREEN};padding:12px 32px;text-align:center;color:${P_NAVY};font-size:14px;font-weight:bold;">
+      <tr><td style="background:${P_GREEN};padding:13px 28px;text-align:center;color:${P_NAVY};font-size:14px;font-weight:bold;">
         Confíe en nosotros, su tranquilidad es nuestra prioridad.
       </td></tr>
-      <tr><td style="padding:14px 32px;text-align:center;">
-        <span style="display:inline-block;background:${P_ORANGE};border-radius:8px;padding:10px 22px;color:#ffffff;font-size:13px;font-weight:bold;">
+      <tr><td align="center" style="padding:16px 28px;text-align:center;">
+        <span style="display:inline-block;background:${P_ORANGE};border-radius:8px;padding:11px 24px;color:#ffffff;font-size:13px;font-weight:bold;">
           Tarifas ajustadas a SU PRESUPUESTO · ¡juntos ENCONTRAREMOS la mejor opción!
         </span>
       </td></tr>
@@ -274,23 +275,23 @@ export const DESIGNS: EmailDesign[] = [
           `<tr><td style="padding:16px 22px 0;text-align:right;">${proyLogoChip()}</td></tr>
            <tr><td style="height:96px;font-size:0;line-height:0;">&nbsp;</td></tr>
            <tr><td valign="bottom" style="padding:0;">
-             <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td style="background:${P_NAVY};padding:18px 26px;">
+             <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td style="background:${P_NAVY};padding:20px 28px;text-align:center;">
                <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
                <h1 style="margin:6px 0 4px;color:#ffffff;font-size:28px;font-weight:bold;line-height:1.12;">${f.title}</h1>
                <div style="color:${P_GREEN};font-size:15px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
-               <div style="margin-top:10px;">${ICA_YEARS}</div>
+               <div style="margin-top:12px;">${ICA_YEARS}</div>
              </td></tr></table>
            </td></tr>`,
         )}
-        <tr><td style="padding:16px 28px 6px;">
+        <tr><td style="padding:18px 28px 6px;">
           <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
-            <td valign="top" style="padding-right:10px;font-size:22px;line-height:1.2;">⚠️</td>
-            <td style="color:#334155;font-size:14px;line-height:1.6;">${f.highlight}</td>
+            <td valign="top" style="padding-right:10px;font-size:20px;line-height:1.3;">⚠️</td>
+            <td style="color:#334155;font-size:14px;line-height:1.65;">${f.highlight}</td>
           </tr></table>
         </td></tr>
-        <tr><td style="padding:8px 28px 4px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:14px 18px;">
-            <div style="color:${P_NAVY};font-size:16px;font-weight:bold;margin-bottom:4px;">¿Qué hacemos por usted?</div>
+        <tr><td style="padding:10px 28px 6px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:16px 20px;text-align:center;">
+            <div style="color:${P_NAVY};font-size:16px;font-weight:bold;margin-bottom:8px;text-align:center;">¿Qué hacemos por usted?</div>
             ${proyBullets(f.points)}
           </td></tr></table>
         </td></tr>`,
@@ -315,24 +316,24 @@ export const DESIGNS: EmailDesign[] = [
           HERO_RENTA_URL,
           320,
           `<tr><td style="padding:16px 22px 0;text-align:right;">${proyLogoChip()}</td></tr>
-           <tr><td style="height:60px;font-size:0;line-height:0;">&nbsp;</td></tr>
+           <tr><td style="height:64px;font-size:0;line-height:0;">&nbsp;</td></tr>
            ${
              f.highlight
-               ? `<tr><td style="padding:0 24px 8px;">
-                    <span style="display:inline-block;background:${P_ORANGE};color:#ffffff;font-size:15px;font-weight:bold;padding:6px 16px;border-radius:8px;">${f.highlight} !</span>
+               ? `<tr><td align="center" style="padding:0 28px 10px;text-align:center;">
+                    <span style="display:inline-block;background:${P_ORANGE};color:#ffffff;font-size:15px;font-weight:bold;padding:7px 18px;border-radius:8px;">${f.highlight} !</span>
                   </td></tr>`
                : ''
            }
            <tr><td valign="bottom" style="padding:0;">
-             <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td style="background:${P_NAVY};padding:18px 26px;">
+             <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr><td style="background:${P_NAVY};padding:20px 28px;text-align:center;">
                <div style="color:#9aa7c2;font-size:14px;font-weight:bold;letter-spacing:1.5px;">${f.tagline}</div>
                <h1 style="margin:6px 0 6px;color:#ffffff;font-size:25px;font-weight:bold;line-height:1.15;">${f.title}</h1>
                <div style="color:${P_GREEN};font-size:15px;font-weight:bold;line-height:1.3;">${f.subtitle}</div>
              </td></tr></table>
            </td></tr>`,
         )}
-        <tr><td style="padding:16px 28px 6px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:16px 20px;color:#334155;font-size:15px;line-height:1.7;">
+        <tr><td style="padding:18px 28px 6px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border:2px solid ${P_GREEN};border-radius:14px;"><tr><td style="padding:18px 22px;color:#334155;font-size:15px;line-height:1.75;text-align:center;">
             ${f.body
               .replace(/\$([\d.]+)/g, `<span style="color:${P_RED};font-weight:bold;">$$$1</span>`)
               .replace(/\(([\d.]+ UVT)\)/g, `<span style="color:${P_RED};font-weight:bold;">($1)</span>`)}
