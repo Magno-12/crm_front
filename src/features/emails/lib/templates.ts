@@ -477,10 +477,14 @@ export function withSampleData(html: string): string {
   return html.replace(/\$(\w+)/g, (m, key: string) => SAMPLE[key] ?? m);
 }
 
-/** Detecta las variables $token usadas en el HTML. */
+/**
+ * Detecta las variables $token usadas en el HTML.
+ * El token debe empezar por letra o guion bajo (igual que string.Template en
+ * Python), para no confundir montos como $69.718.600 con una variable.
+ */
 export function detectVariables(html: string): string[] {
   const found = new Set<string>();
-  for (const match of html.matchAll(/\$(\w+)/g)) {
+  for (const match of html.matchAll(/\$([A-Za-z_]\w*)/g)) {
     if (match[1]) found.add(match[1]);
   }
   return [...found];
