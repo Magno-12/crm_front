@@ -166,8 +166,8 @@ const P_RED = '#e02323';
 // Imágenes de marca alojadas en Cloudinary (los correos requieren URLs públicas).
 const CLD = 'https://res.cloudinary.com/pcnyzhql/image/upload';
 const LOGO_URL = `${CLD}/f_auto,q_auto,w_440/proyectamos/logo.png`;
-const HERO_ICA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1240,h_600/proyectamos/hero_ica.jpg`;
-const HERO_RENTA_URL = `${CLD}/f_auto,q_auto,c_fill,g_auto,w_1240,h_600/proyectamos/hero_renta.jpg`;
+const HERO_ICA_URL = `${CLD}/f_auto,q_auto:good,c_fill,g_auto,w_1360,h_620,e_sharpen:60/proyectamos/hero_ica.jpg`;
+const HERO_RENTA_URL = `${CLD}/f_auto,q_auto:good,c_fill,g_auto:faces,w_1360,h_620,e_sharpen:60/proyectamos/hero_renta.jpg`;
 
 // Chip blanco con el logo (visible sobre cualquier foto), esquina superior derecha.
 function proyLogoChip(): string {
@@ -210,30 +210,28 @@ function proyBullets(text: string): string {
 
 function proyFooter(): string {
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-top:20px;">
-      <tr><td align="center" style="padding:18px 28px 8px;text-align:center;">
-        <table role="presentation" cellpadding="0" cellspacing="0" align="center"><tr>
-          <td align="center" style="padding:0 14px;color:${P_NAVY};font-size:13px;">✉ info@proyectamosasesoria.net</td>
-          <td style="color:${P_GREEN};font-size:14px;font-weight:bold;">·</td>
-          <td align="center" style="padding:0 14px;color:${P_NAVY};font-size:13px;">✉ contactenos@proyectamosasesoria.net</td>
-        </tr></table>
-      </td></tr>
-      <tr><td style="background:${P_NAVY};padding:14px 28px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
-          <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">📱 322 653 75 37</td>
-          <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">📞 317 440 39 54</td>
-          <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">☎ (602) 889 36 47</td>
-        </tr></table>
-      </td></tr>
-      <tr><td style="background:${P_GREEN};padding:13px 28px;text-align:center;color:${P_NAVY};font-size:14px;font-weight:bold;">
-        Confíe en nosotros, su tranquilidad es nuestra prioridad.
-      </td></tr>
-      <tr><td align="center" style="padding:16px 28px;text-align:center;">
-        <span style="display:inline-block;background:${P_ORANGE};border-radius:8px;padding:11px 24px;color:#ffffff;font-size:13px;font-weight:bold;">
-          Tarifas ajustadas a SU PRESUPUESTO · ¡juntos ENCONTRAREMOS la mejor opción!
-        </span>
-      </td></tr>
-    </table>`;
+    <tr><td align="center" style="padding:20px 28px 10px;text-align:center;">
+      <table role="presentation" cellpadding="0" cellspacing="0" align="center"><tr>
+        <td align="center" style="padding:0 14px;color:${P_NAVY};font-size:13px;">✉ info@proyectamosasesoria.net</td>
+        <td style="color:${P_GREEN};font-size:14px;font-weight:bold;">·</td>
+        <td align="center" style="padding:0 14px;color:${P_NAVY};font-size:13px;">✉ contactenos@proyectamosasesoria.net</td>
+      </tr></table>
+    </td></tr>
+    <tr><td style="background:${P_NAVY};padding:14px 28px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" width="100%"><tr>
+        <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">📱 322 653 75 37</td>
+        <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">📞 317 440 39 54</td>
+        <td width="33.33%" align="center" style="color:#ffffff;font-size:14px;font-weight:bold;text-align:center;">☎ (602) 889 36 47</td>
+      </tr></table>
+    </td></tr>
+    <tr><td style="background:${P_GREEN};padding:13px 28px;text-align:center;color:${P_NAVY};font-size:14px;font-weight:bold;">
+      Confíe en nosotros, su tranquilidad es nuestra prioridad.
+    </td></tr>
+    <tr><td align="center" style="padding:16px 28px;text-align:center;">
+      <span style="display:inline-block;background:${P_ORANGE};border-radius:8px;padding:11px 24px;color:#ffffff;font-size:13px;font-weight:bold;">
+        Tarifas ajustadas a SU PRESUPUESTO · ¡juntos ENCONTRAREMOS la mejor opción!
+      </span>
+    </td></tr>`;
 }
 
 function proyShell(inner: string, pre: string): string {
