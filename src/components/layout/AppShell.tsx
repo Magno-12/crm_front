@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { MobileNav } from './MobileNav';
+import { HelpFab } from '@/components/help/HelpFab';
 
 const STORAGE_KEY = 'sidebar-collapsed';
 
@@ -31,6 +32,7 @@ export function AppShell() {
           </div>
         </main>
       </div>
+      <HelpFab />
     </div>
   );
 }
