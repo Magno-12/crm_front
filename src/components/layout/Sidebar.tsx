@@ -21,15 +21,19 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
         collapsed ? 'w-16' : 'w-60',
       )}
     >
-      <div className="flex h-16 items-center gap-2.5 border-b px-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-glow">
-          <span className="text-base font-bold">C</span>
-        </div>
-        {!collapsed && (
-          <div className="flex flex-col leading-tight">
-            <span className="truncate text-sm font-semibold">CRM Contable</span>
-            <span className="truncate text-[11px] text-muted-foreground">y Tributario</span>
-          </div>
+      <div className="flex h-16 items-center gap-2 border-b px-3">
+        {collapsed ? (
+          <img
+            src="/logo-mark.png"
+            alt="Proyectamos"
+            className="mx-auto h-9 w-9 shrink-0 object-contain"
+          />
+        ) : (
+          <img
+            src="/logo-proyectamos.png"
+            alt="Proyectamos Asesoría Integral S.A.S."
+            className="h-10 w-auto max-w-full object-contain"
+          />
         )}
       </div>
 

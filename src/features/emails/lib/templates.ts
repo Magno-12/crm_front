@@ -312,9 +312,9 @@ export const DESIGNS: EmailDesign[] = [
       proyShell(
         `${proyHeroBg(
           HERO_RENTA_URL,
-          320,
+          410,
           `<tr><td style="padding:16px 22px 0;text-align:right;">${proyLogoChip()}</td></tr>
-           <tr><td style="height:64px;font-size:0;line-height:0;">&nbsp;</td></tr>
+           <tr><td style="height:150px;font-size:0;line-height:0;">&nbsp;</td></tr>
            ${
              f.highlight
                ? `<tr><td align="center" style="padding:0 28px 10px;text-align:center;">
