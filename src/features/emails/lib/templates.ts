@@ -167,7 +167,7 @@ const P_RED = '#e02323';
 const CLD = 'https://res.cloudinary.com/pcnyzhql/image/upload';
 const LOGO_URL = `${CLD}/f_auto,q_auto,w_440/proyectamos/logo.png`;
 const HERO_ICA_URL = `${CLD}/f_auto,q_auto:good,c_fill,g_auto,w_1360,h_620,e_sharpen:60/proyectamos/hero_ica.jpg`;
-const HERO_RENTA_URL = `${CLD}/f_auto,q_auto:good,c_fill,g_auto:faces,w_1360,h_620,e_sharpen:60/proyectamos/hero_renta.jpg`;
+const HERO_RENTA_URL = `${CLD}/f_auto,q_auto:best,c_fill,g_auto:faces,w_1360,h_620,e_improve,e_saturation:25,e_contrast:14,e_sharpen:90/proyectamos/hero_renta.jpg`;
 
 // Chip blanco con el logo (visible sobre cualquier foto), esquina superior derecha.
 function proyLogoChip(): string {
