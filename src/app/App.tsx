@@ -34,6 +34,9 @@ const ClientDetailPage = lazy(() =>
 const EmailsPage = lazy(() =>
   import('@/features/emails/pages/EmailsPage').then((m) => ({ default: m.EmailsPage })),
 );
+const AperturasPage = lazy(() =>
+  import('@/features/emails/pages/AperturasPage').then((m) => ({ default: m.AperturasPage })),
+);
 const InvoicesPage = lazy(() =>
   import('@/features/invoices/pages/InvoicesPage').then((m) => ({ default: m.InvoicesPage })),
 );
@@ -157,6 +160,14 @@ export function App() {
             element={
               <ProtectedRoute requires="emails.send">
                 <EmailsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/aperturas"
+            element={
+              <ProtectedRoute requires="emails.send">
+                <AperturasPage />
               </ProtectedRoute>
             }
           />

@@ -175,8 +175,8 @@ export function ProspectDetailPage() {
         </Card>
 
         <div className="space-y-6 lg:col-span-2">
-          <FollowUpTimeline prospectId={prospect.id} />
           <EmailTrackingSection prospectId={prospect.id} />
+          <FollowUpTimeline prospectId={prospect.id} />
         </div>
       </div>
 

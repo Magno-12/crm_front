@@ -31,3 +31,15 @@ export function formatDate(iso: string | null | undefined): string {
     day: 'numeric',
   });
 }
+
+/** Fecha y hora (para aperturas y respuestas de correo). */
+export function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('es-CO', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}

@@ -5,6 +5,7 @@ import {
   Briefcase,
   FileText,
   Mail,
+  MailOpen,
   Settings,
   ShieldCheck,
   ScrollText,
@@ -31,6 +32,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Base de datos mercadeo', to: '/prospects', icon: Users, permission: 'prospects.view' },
       { label: 'Envío de correos', to: '/emails', icon: Mail, permission: 'emails.send' },
+      { label: 'Apertura de correos', to: '/aperturas', icon: MailOpen, permission: 'emails.send' },
       { label: 'Seguimiento', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
       { label: 'Clientes', to: '/clients', icon: Briefcase, permission: 'clients.view' },
       { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },

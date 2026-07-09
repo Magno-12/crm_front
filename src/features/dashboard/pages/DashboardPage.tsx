@@ -23,13 +23,11 @@ import {
   Briefcase,
   Receipt,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardGridSkeleton } from '@/components/common/table-skeleton';
 import { ErrorState, EmptyState } from '@/components/common/states';
 import { KpiCard } from '@/features/dashboard/components/KpiCard';
 import {
-  getEmailEngagement,
   getKpis,
   getProspectsByCity,
   getRevenueByService,
@@ -38,7 +36,7 @@ import {
   getTopClients,
   getTrend,
 } from '@/features/dashboard/api/dashboard.api';
-import { formatCOP, formatCompact, formatDate } from '@/lib/utils';
+import { formatCOP, formatCompact } from '@/lib/utils';
 
 const PIE_COLORS = ['#0e9aa7', '#22b8cf', '#4263eb', '#7048e8', '#e64980', '#f59f00'];
 
@@ -59,10 +57,6 @@ export function DashboardPage() {
   const kpis = useQuery({ queryKey: ['dashboard', 'kpis'], queryFn: getKpis });
   const summary = useQuery({ queryKey: ['dashboard', 'summary'], queryFn: getSummary });
   const trend = useQuery({ queryKey: ['dashboard', 'trend'], queryFn: getTrend });
-  const engagement = useQuery({
-    queryKey: ['dashboard', 'engagement'],
-    queryFn: getEmailEngagement,
-  });
   const revenue = useQuery({ queryKey: ['dashboard', 'revenue'], queryFn: getRevenueByService });
   const cities = useQuery({ queryKey: ['dashboard', 'cities'], queryFn: getProspectsByCity });
   const byActivity = useQuery({
@@ -171,53 +165,6 @@ export function DashboardPage() {
               </AreaChart>
             </ResponsiveContainer>
           </ChartGuard>
-        </CardContent>
-      </Card>
-
-      {/* Aperturas de correo (tracking Resend) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Aperturas de correo</CardTitle>
-          <CardDescription>
-            Quién está abriendo las campañas — útil para priorizar el seguimiento.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <MiniStat label="Enviados" value={String(engagement.data?.sent ?? 0)} />
-            <MiniStat label="Abiertos" value={String(engagement.data?.opened ?? 0)} />
-            <MiniStat label="Clics" value={String(engagement.data?.clicked ?? 0)} />
-            <MiniStat label="% Apertura" value={`${engagement.data?.open_rate ?? 0}%`} accent />
-          </div>
-          {engagement.data && engagement.data.openers.length > 0 ? (
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                Últimos que abrieron
-              </p>
-              <ul className="divide-y rounded-md border">
-                {engagement.data.openers.map((o, i) => (
-                  <li key={i} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                    <span className="flex-1 truncate font-medium">{o.razon_social}</span>
-                    <span className="truncate text-xs text-muted-foreground">{o.email}</span>
-                    <span className="text-xs text-muted-foreground">{formatDate(o.opened_at)}</span>
-                    {o.prospect_id && (
-                      <Link
-                        to={`/prospects/${o.prospect_id}`}
-                        className="text-xs font-medium text-primary"
-                      >
-                        Corregir
-                      </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <EmptyState
-              title="Aún sin aperturas"
-              description="Cuando envíes campañas con tracking activo, verás aquí quién las abre."
-            />
-          )}
         </CardContent>
       </Card>
 
@@ -344,15 +291,6 @@ function StatChip({
         <p className="truncate text-xs text-muted-foreground">{label}</p>
         <p className="truncate text-lg font-bold leading-tight">{value}</p>
       </div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="rounded-lg bg-muted/50 p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-xl font-bold ${accent ? 'text-primary' : ''}`}>{value}</p>
     </div>
   );
 }
