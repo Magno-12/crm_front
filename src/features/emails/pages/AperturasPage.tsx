@@ -1,31 +1,117 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MailOpen, MessageSquare, Send, MousePointerClick } from 'lucide-react';
+import { MailOpen, MessageSquare, Send, MousePointerClick, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/states';
 import { formatDateTime } from '@/lib/utils';
-import { getOpenings, getResponses, type OpeningRow } from '@/features/emails/api/emails.api';
+import {
+  getOpenings,
+  getResponses,
+  getCampaigns,
+  type OpeningRow,
+} from '@/features/emails/api/emails.api';
+import { getEmailEngagement } from '@/features/dashboard/api/dashboard.api';
 import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
+
+function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div className="rounded-lg bg-muted/40 p-3 text-center">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className={`text-2xl font-semibold ${accent ? 'text-primary' : ''}`}>{value}</p>
+    </div>
+  );
+}
 
 export function AperturasPage() {
   const openings = useQuery({ queryKey: ['email-openings'], queryFn: () => getOpenings(1) });
   const responses = useQuery({ queryKey: ['email-responses'], queryFn: () => getResponses(1) });
+  const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
+  const engagement = useQuery({ queryKey: ['email-engagement'], queryFn: getEmailEngagement });
   const [compose, setCompose] = useState<OpeningRow | null>(null);
 
   const opens = openings.data;
   const resp = responses.data;
+  const eng = engagement.data;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Apertura de correos</h1>
         <p className="text-sm text-muted-foreground">
-          Todos los correos que sus clientes abrieron, y las respuestas que llegan.
+          Resultados de las campañas: quién abrió, porcentajes y respuestas.
         </p>
       </div>
+
+      {/* Resumen (porcentajes) */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <Stat label="Enviados" value={String(eng?.sent ?? 0)} />
+        <Stat label="Abiertos" value={String(eng?.opened ?? 0)} />
+        <Stat label="Clics" value={String(eng?.clicked ?? 0)} />
+        <Stat label="% Apertura" value={`${eng?.open_rate ?? 0}%`} accent />
+      </div>
+
+      {/* Historial de campañas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <History className="h-4 w-4" /> Historial de campañas
+            {campaigns.data && (
+              <Badge variant="secondary" className="ml-1">
+                {campaigns.data.total}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!campaigns.data || campaigns.data.items.length === 0 ? (
+            <EmptyState
+              title="Aún no hay campañas"
+              description="Cuando envíes una campaña, aquí verás su historial: inicio, fin y resultados."
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs uppercase text-muted-foreground">
+                    <th className="py-2 pr-3 font-medium">Campaña</th>
+                    <th className="py-2 pr-3 font-medium">Inicio</th>
+                    <th className="py-2 pr-3 font-medium">Fin</th>
+                    <th className="py-2 pr-3 font-medium">Audiencia</th>
+                    <th className="py-2 pr-3 font-medium">Enviados</th>
+                    <th className="py-2 pr-3 font-medium">Abiertos</th>
+                    <th className="py-2 font-medium">% Apertura</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.data.items.map((c) => (
+                    <tr key={c.id} className="border-b last:border-0">
+                      <td className="max-w-[220px] truncate py-2 pr-3 font-medium">{c.name}</td>
+                      <td className="py-2 pr-3 text-muted-foreground">
+                        {formatDateTime(c.started_at)}
+                      </td>
+                      <td className="py-2 pr-3 text-muted-foreground">
+                        {c.finished_at ? formatDateTime(c.finished_at) : 'En curso'}
+                      </td>
+                      <td className="py-2 pr-3">{c.audience}</td>
+                      <td className="py-2 pr-3">
+                        {c.sent}
+                        {c.failed > 0 && (
+                          <span className="ml-1 text-xs text-destructive">({c.failed} fallidos)</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-3">{c.opened}</td>
+                      <td className="py-2 font-medium text-primary">{c.open_rate}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Correos abiertos */}
       <Card>

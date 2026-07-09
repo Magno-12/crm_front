@@ -107,6 +107,28 @@ export async function resendEmail(sendId: string): Promise<void> {
   await api.post(`/emails/resend/${sendId}`);
 }
 
+export interface CampaignHistoryRow {
+  id: string;
+  name: string;
+  segmento: string | null;
+  estado: string | null;
+  audience: number;
+  sent: number;
+  failed: number;
+  opened: number;
+  open_rate: number;
+  quota_reached: boolean;
+  started_at: string;
+  finished_at: string | null;
+}
+
+export async function getCampaigns(page = 1): Promise<Paged<CampaignHistoryRow>> {
+  const { data } = await api.get<Paged<CampaignHistoryRow>>('/emails/campaigns', {
+    params: { page, page_size: 50 },
+  });
+  return data;
+}
+
 export interface SendMessageBody {
   to_email: string;
   subject: string;
