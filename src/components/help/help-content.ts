@@ -173,7 +173,8 @@ export const HELP_TOPICS: HelpTopic[] = [
         heading: 'Historial de campañas',
         items: [
           'Cada campaña queda registrada con su fecha de inicio y de fin.',
-          'Ves audiencia, enviados, abiertos y % de apertura de cada una.',
+          'Ves audiencia, enviados, abiertos, % apertura, clics y respuestas de cada una.',
+          'Haz clic en una campaña para ver el detalle: quién abrió, quién hizo clic y quién respondió (con el texto).',
           'Cada envío es una campaña independiente (la nueva empieza limpia).',
         ],
       },
