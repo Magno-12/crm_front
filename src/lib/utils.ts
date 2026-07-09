@@ -43,3 +43,9 @@ export function formatDateTime(iso: string | null | undefined): string {
     minute: '2-digit',
   });
 }
+
+/** Muestra solo la fecha si viene sin hora (YYYY-MM-DD); si no, fecha y hora. */
+export function formatDateOrTime(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  return iso.length === 10 ? formatDate(iso) : formatDateTime(iso);
+}

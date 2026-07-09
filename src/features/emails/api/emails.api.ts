@@ -45,6 +45,8 @@ export async function sendCampaign(
     skip_sent?: boolean;
     from_email?: string;
     limit?: number;
+    start_date?: string | null;
+    end_date?: string | null;
   },
 ): Promise<{ queued: number; message: string }> {
   const { data } = await api.post<{ queued: number; message: string }>('/emails/campaign', body);
@@ -123,6 +125,8 @@ export interface CampaignHistoryRow {
   quota_reached: boolean;
   started_at: string;
   finished_at: string | null;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 export interface CampaignRecipient {
@@ -151,6 +155,14 @@ export async function getCampaigns(page = 1): Promise<Paged<CampaignHistoryRow>>
 
 export async function getCampaignDetail(id: string): Promise<CampaignDetail> {
   const { data } = await api.get<CampaignDetail>(`/emails/campaigns/${id}`);
+  return data;
+}
+
+export async function updateCampaignDates(
+  id: string,
+  dates: { start_date: string | null; end_date: string | null },
+): Promise<CampaignDetail> {
+  const { data } = await api.patch<CampaignDetail>(`/emails/campaigns/${id}/dates`, dates);
   return data;
 }
 

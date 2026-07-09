@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/states';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, formatDateOrTime } from '@/lib/utils';
 import {
   getOpenings,
   getResponses,
@@ -101,10 +101,10 @@ export function AperturasPage() {
                         {c.name}
                       </td>
                       <td className="py-2 pr-3 text-muted-foreground">
-                        {formatDateTime(c.started_at)}
+                        {formatDateOrTime(c.started_at)}
                       </td>
                       <td className="py-2 pr-3 text-muted-foreground">
-                        {c.finished_at ? formatDateTime(c.finished_at) : 'En curso'}
+                        {c.finished_at ? formatDateOrTime(c.finished_at) : 'En curso'}
                       </td>
                       <td className="py-2 pr-3">{c.audience}</td>
                       <td className="py-2 pr-3">

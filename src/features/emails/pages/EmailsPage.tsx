@@ -161,6 +161,8 @@ function CampaignDialog({
   const [ciiu, setCiiu] = useState('');
   const [skipSent, setSkipSent] = useState(true);
   const [sender, setSender] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
   const debouncedCiiu = useDebounce(ciiu, 400);
 
@@ -187,6 +189,8 @@ function CampaignDialog({
         template_id: templateId,
         skip_sent: skipSent,
         from_email: sender || undefined,
+        start_date: startDate || null,
+        end_date: endDate || null,
         ...filters,
       }),
     onSuccess: (res) => {
@@ -275,6 +279,20 @@ function CampaignDialog({
             <Label className="mb-1.5 block">Actividad CIIU (opcional)</Label>
             <Input placeholder="Ej. 8610" value={ciiu} onChange={(e) => setCiiu(e.target.value)} />
           </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-1.5 block">Fecha de inicio (opcional)</Label>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <Label className="mb-1.5 block">Fecha de fin (opcional)</Label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+          <p className="-mt-2 text-xs text-muted-foreground">
+            Si las dejas vacías, se registran solas (inicio al enviar, fin al terminar).
+          </p>
 
           <label className="flex items-center gap-2 text-sm">
             <input

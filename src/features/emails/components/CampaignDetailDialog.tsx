@@ -1,5 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -8,8 +10,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { getCampaignDetail } from '@/features/emails/api/emails.api';
-import { formatDateTime } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { getCampaignDetail, updateCampaignDates } from '@/features/emails/api/emails.api';
+import { apiErrorMessage } from '@/api/client';
+import { formatDateOrTime } from '@/lib/utils';
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
@@ -27,6 +33,7 @@ export function CampaignDetailDialog({
   campaignId: string | null;
   onOpenChange: (o: boolean) => void;
 }) {
+  const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['campaign-detail', campaignId],
     queryFn: () => getCampaignDetail(campaignId!),
@@ -34,6 +41,24 @@ export function CampaignDetailDialog({
   });
 
   const c = data?.campaign;
+  const [start, setStart] = useState('');
+  const [end, setEnd] = useState('');
+
+  useEffect(() => {
+    setStart(c?.start_date ?? '');
+    setEnd(c?.end_date ?? '');
+  }, [c?.start_date, c?.end_date]);
+
+  const saveDates = useMutation({
+    mutationFn: () =>
+      updateCampaignDates(campaignId!, { start_date: start || null, end_date: end || null }),
+    onSuccess: () => {
+      toast.success('Fechas actualizadas');
+      qc.invalidateQueries({ queryKey: ['campaign-detail', campaignId] });
+      qc.invalidateQueries({ queryKey: ['email-campaigns'] });
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   return (
     <Dialog open={campaignId !== null} onOpenChange={onOpenChange}>
@@ -42,7 +67,7 @@ export function CampaignDetailDialog({
           <DialogTitle>{c?.name ?? 'Campaña'}</DialogTitle>
           <DialogDescription>
             {c
-              ? `Inicio ${formatDateTime(c.started_at)} · ${c.finished_at ? `Fin ${formatDateTime(c.finished_at)}` : 'En curso'}`
+              ? `Inicio ${formatDateOrTime(c.started_at)} · ${c.finished_at ? `Fin ${formatDateOrTime(c.finished_at)}` : 'En curso'}`
               : 'Cargando…'}
           </DialogDescription>
         </DialogHeader>
@@ -56,6 +81,35 @@ export function CampaignDetailDialog({
               <Stat label="% Apertura" value={`${c.open_rate}%`} accent />
               <Stat label="Clics" value={String(c.clicked)} />
               <Stat label="Respuestas" value={String(c.responses)} accent />
+            </div>
+          )}
+
+          {c && (
+            <div className="flex flex-wrap items-end gap-3 rounded-lg border bg-muted/30 p-3">
+              <div>
+                <Label className="mb-1 block text-xs">Fecha de inicio (a mano)</Label>
+                <Input
+                  type="date"
+                  value={start}
+                  onChange={(e) => setStart(e.target.value)}
+                  className="h-9 w-40"
+                />
+              </div>
+              <div>
+                <Label className="mb-1 block text-xs">Fecha de fin (a mano)</Label>
+                <Input
+                  type="date"
+                  value={end}
+                  onChange={(e) => setEnd(e.target.value)}
+                  className="h-9 w-40"
+                />
+              </div>
+              <Button size="sm" disabled={saveDates.isPending} onClick={() => saveDates.mutate()}>
+                Guardar fechas
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Si las dejas vacías, se usan las automáticas (envío / fin real).
+              </p>
             </div>
           )}
 
@@ -99,10 +153,10 @@ export function CampaignDetailDialog({
                         )}
                       </td>
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
-                        {r.opened_at ? formatDateTime(r.opened_at) : '—'}
+                        {r.opened_at ? formatDateOrTime(r.opened_at) : '—'}
                       </td>
                       <td className="py-2 pr-3 text-xs text-muted-foreground">
-                        {r.clicked_at ? formatDateTime(r.clicked_at) : '—'}
+                        {r.clicked_at ? formatDateOrTime(r.clicked_at) : '—'}
                       </td>
                       <td className="py-2">
                         {r.responded ? (
