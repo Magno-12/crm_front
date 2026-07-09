@@ -30,7 +30,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     items: [
       { label: 'Base de datos mercadeo', to: '/prospects', icon: Users, permission: 'prospects.view' },
-      { label: 'Correos', to: '/emails', icon: Mail, permission: 'emails.send' },
+      { label: 'Envío de correos', to: '/emails', icon: Mail, permission: 'emails.send' },
       { label: 'Seguimiento', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
       { label: 'Clientes', to: '/clients', icon: Briefcase, permission: 'clients.view' },
       { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },

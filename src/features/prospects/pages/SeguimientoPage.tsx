@@ -81,7 +81,7 @@ function SeguimientoRow({ prospect }: { prospect: ProspectRead }) {
         </div>
         <Badge variant={meta.variant}>{meta.label}</Badge>
         <Button asChild variant="ghost" size="sm">
-          <Link to={`/prospects/${prospect.id}`}>Ver ficha</Link>
+          <Link to={`/prospects/${prospect.id}`}>Corregir</Link>
         </Button>
       </div>
       {open && <MiniTimeline prospectId={prospect.id} />}

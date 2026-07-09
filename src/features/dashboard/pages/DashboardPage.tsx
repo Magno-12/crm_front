@@ -205,7 +205,7 @@ export function DashboardPage() {
                         to={`/prospects/${o.prospect_id}`}
                         className="text-xs font-medium text-primary"
                       >
-                        Ver ficha
+                        Corregir
                       </Link>
                     )}
                   </li>
