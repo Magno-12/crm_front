@@ -1,5 +1,6 @@
-// Contenido de ayuda ("¿Cómo funciona?") por pantalla.
-// Texto sencillo y no técnico, pensado para quien usa el CRM día a día.
+// Contenido de ayuda ("¿Cómo funciona?") — guía completa y navegable.
+// Texto sencillo y no técnico. Cada tema puede además "matchear" una ruta para
+// mostrarse por defecto según la pantalla en la que esté el usuario.
 
 export interface HelpSection {
   heading: string;
@@ -7,316 +8,270 @@ export interface HelpSection {
 }
 
 export interface HelpTopic {
-  /** Título de la pantalla, se muestra en el encabezado del popup. */
+  id: string;
   title: string;
-  /** Frase corta que explica para qué sirve la pantalla. */
   intro: string;
   sections: HelpSection[];
-  /** Consejo final opcional. */
   tip?: string;
+  /** Devuelve true si este tema corresponde a la ruta actual. */
+  match?: (pathname: string) => boolean;
 }
 
-const GENERAL: HelpTopic = {
-  title: 'CRM Proyectamos',
-  intro: 'Este es su CRM contable y tributario. Aquí gestiona prospectos, clientes, correos, facturas y obligaciones.',
-  sections: [
-    {
-      heading: 'Cómo moverse',
-      items: [
-        'Use el menú de la izquierda para cambiar de pantalla.',
-        'El botón "¿Cómo funciona?" (abajo a la derecha) está en todas las pantallas y explica la que esté viendo.',
-        'Arriba a la derecha, en el ícono con su inicial, puede cerrar sesión.',
-      ],
-    },
-    {
-      heading: 'Orden recomendado',
-      items: [
-        'Base de datos mercadeo → busque y contacte prospectos.',
-        'Seguimiento → trabaje los que ya contactó hasta fidelizarlos.',
-        'Clientes y Facturas → registre el contrato y facture.',
-        'Correos → envíe campañas y mida aperturas.',
-      ],
-    },
-  ],
-  tip: 'Cada pantalla tiene su propia ayuda: abra este botón dentro de la pantalla que quiera entender.',
-};
-
-const TOPICS: Record<string, HelpTopic> = {
-  dashboard: {
+export const HELP_TOPICS: HelpTopic[] = [
+  {
+    id: 'general',
+    title: 'Todo el sistema',
+    intro: 'Visión general del CRM: para qué sirve cada parte y cómo se conecta todo.',
+    sections: [
+      {
+        heading: 'El recorrido normal',
+        items: [
+          'Base de datos mercadeo → busca y contacta prospectos.',
+          'Envío de correos → manda campañas con plantillas.',
+          'Apertura de correos → mira quién abrió, los porcentajes y las respuestas.',
+          'Seguimiento → trabaja a los contactados hasta fidelizarlos.',
+          'Clientes y Facturas → registra el contrato y factura.',
+        ],
+      },
+      {
+        heading: 'Cómo moverse',
+        items: [
+          'Menú de la izquierda para cambiar de pantalla.',
+          'Este botón "¿Cómo funciona?" está en todas las pantallas: por defecto explica la que ves, y en el menú de la izquierda del popup puedes leer cómo funciona cualquier otra.',
+          'Arriba a la derecha, en el ícono con su inicial, cierra sesión.',
+        ],
+      },
+    ],
+    tip: 'Todo está publicado en internet, con usuario y contraseña, y con permisos por rol.',
+  },
+  {
+    id: 'dashboard',
     title: 'Dashboard',
-    intro: 'Un resumen general del negocio: cómo van los prospectos, las ventas y los correos.',
+    intro: 'Un resumen general del negocio: prospectos, facturación y actividad.',
     sections: [
       {
         heading: 'Qué muestra',
         items: [
-          'Indicadores: prospectos nuevos, conversión, facturación y % de apertura de correos.',
-          'Gráficas: tendencia de prospectos, facturación, ciudades, actividades y top clientes.',
-          'Aperturas de correo: quiénes abrieron sus campañas.',
-        ],
-      },
-      {
-        heading: 'Cómo usarlo',
-        items: [
-          'Revíselo al iniciar el día para ver el estado general.',
-          'En "Aperturas de correo", haga clic en un nombre para ir a la ficha de ese prospecto.',
+          'Indicadores: prospectos nuevos, conversión y facturación.',
+          'Gráficas: tendencia, facturación por servicio, ciudades, actividades y top clientes.',
         ],
       },
     ],
+    tip: 'Las estadísticas de correo (aperturas y %) ahora están en "Apertura de correos".',
+    match: (p) => p === '/',
   },
-  prospects: {
+  {
+    id: 'prospects',
     title: 'Base de datos mercadeo',
-    intro: 'Aquí está toda la base de prospectos (posibles clientes) para buscar, filtrar y contactar.',
+    intro: 'Toda la base de prospectos (posibles clientes) para buscar, filtrar y contactar.',
     sections: [
       {
         heading: 'Buscar y filtrar',
         items: [
-          'Busque por nombre (razón social) o por NIT.',
-          'Filtre por actividad económica (CIIU), rango de ingresos y rango de patrimonio.',
-          'Segmente por tipo: personas naturales, jurídicas, alcaldías, ESE, otros.',
+          'Busca por nombre (razón social) o por NIT.',
+          'Filtra por actividad (CIIU), rango de ingresos y rango de patrimonio.',
+          'Segmenta por tipo: naturales, jurídicas, alcaldías, ESE, otros.',
         ],
       },
       {
         heading: 'Trabajar un prospecto',
         items: [
-          'Haga clic en un prospecto para abrir su ficha completa.',
-          'Al "Contactar", pasa automáticamente a la pantalla de Seguimiento.',
-          'Puede importar más prospectos desde un archivo de Excel.',
+          'Botón "Corregir" abre la ficha completa para editar y hacer seguimiento.',
+          'Al escribir el NIT, trae solo la razón social y la actividad.',
+          'Puedes importar más prospectos desde un archivo de Excel.',
         ],
       },
     ],
-    tip: 'Al escribir el NIT, el sistema trae solo la razón social y la actividad económica.',
+    match: (p) => p === '/prospects',
   },
-  prospectDetail: {
-    title: 'Ficha del prospecto',
-    intro: 'Toda la información de un prospecto y su historial de contacto en un solo lugar.',
+  {
+    id: 'prospectDetail',
+    title: 'Ficha (prospecto / cliente)',
+    intro: 'Toda la información de un prospecto o cliente, con dos recuadros clave.',
     sections: [
       {
-        heading: 'Datos que puede editar',
+        heading: 'Orden de los recuadros',
+        items: [
+          '1º Apertura de correos: qué campañas se le enviaron, si las abrió (fecha y hora), sus respuestas y un botón para escribirle.',
+          '2º Seguimiento: registra llamadas, correos, reuniones o notas, y ve el historial.',
+        ],
+      },
+      {
+        heading: 'Datos que puedes editar',
         items: [
           'Representante legal y su cédula.',
           'Persona de contacto (nombre, cargo, teléfono, correo).',
-          'Dirección, teléfonos, matrícula mercantil y actividad (CIIU).',
-        ],
-      },
-      {
-        heading: 'Seguimiento e historial',
-        items: [
-          'Registre interacciones: llamada, correo, reunión, WhatsApp, visita o nota.',
-          'Vea los correos enviados y cuáles fueron abiertos.',
-          'Cuando el prospecto se fideliza, se le invita a registrar el contrato/servicio.',
+          'Dirección, teléfonos, actividad (CIIU) y más.',
         ],
       },
     ],
+    tip: 'Cuando un prospecto responde un correo, la respuesta aparece sola en su recuadro de Apertura de correos.',
+    match: (p) => p.startsWith('/prospects/') || p.startsWith('/clients/'),
   },
-  seguimiento: {
+  {
+    id: 'seguimiento',
     title: 'Seguimiento',
-    intro: 'Solo los prospectos que ya contactó, para hacerles gestión hasta convertirlos en clientes.',
+    intro: 'Solo los prospectos que ya contactaste, para gestionarlos hasta convertirlos.',
     sections: [
       {
         heading: 'Cómo funciona',
         items: [
           'Aparecen únicamente los prospectos en estado "Contactado".',
-          'Abra cada uno para ver su mini-historial y registrar nuevas interacciones.',
           'Estados: Nuevo → Contactado → Fidelizado (o No fidelizado).',
-        ],
-      },
-      {
-        heading: 'Convertir en cliente',
-        items: [
-          'Al marcar un prospecto como "Fidelizado", regístrelo como cliente.',
-          'Ahí anota el servicio contratado y el valor del contrato.',
+          'Al marcar "Fidelizado", regístralo como cliente con su contrato y servicio.',
         ],
       },
     ],
+    match: (p) => p.startsWith('/seguimiento'),
   },
-  clients: {
-    title: 'Clientes',
-    intro: 'Los prospectos que ya se convirtieron en clientes, con sus datos de cobro y contrato.',
-    sections: [
-      {
-        heading: 'Qué guarda',
-        items: [
-          'Datos de cobro: dirección, teléfono y correo.',
-          'Contacto de contabilidad (nombre, teléfono, correo).',
-          'Número y fecha del contrato, y los servicios contratados con su valor.',
-        ],
-      },
-      {
-        heading: 'Cómo usarlo',
-        items: [
-          'Abra un cliente para ver o editar sus datos.',
-          'Desde aquí se generan las facturas con el servicio y valor ya cargados.',
-        ],
-      },
-    ],
-  },
-  clientDetail: {
-    title: 'Ficha del cliente',
-    intro: 'Toda la información de un cliente: datos de cobro, contrato y servicios.',
-    sections: [
-      {
-        heading: 'Qué puede hacer',
-        items: [
-          'Editar datos de cobro y el contacto de contabilidad.',
-          'Registrar el número y la fecha del contrato.',
-          'Ver y ajustar los servicios contratados y su valor.',
-        ],
-      },
-    ],
-  },
-  emails: {
-    title: 'Correos',
-    intro: 'Cree plantillas, envíe correos individuales o campañas masivas y mida quién los abre.',
+  {
+    id: 'emails',
+    title: 'Envío de correos',
+    intro: 'Crea plantillas y envía campañas masivas desde el dominio propio.',
     sections: [
       {
         heading: 'Plantillas',
         items: [
-          'Use "Nueva plantilla" y elija un diseño (incluye "Proyectamos · ICA" y "Proyectamos · Renta").',
-          'Edite textos, fechas, montos y viñetas; la vista previa cambia en vivo.',
-          'Personalice con $razon_social, $nit o $ciudad: se reemplazan por los datos de cada prospecto.',
-          'También puede pegar su propio HTML si ya tiene un diseño.',
+          'Ya vienen cargadas "Proyectamos · ICA", "Renta (volante)" y "Renta (carta)".',
+          'Puedes crear una nueva, editar textos/fechas/montos y ver la vista previa en vivo.',
+          'Personaliza con $razon_social, $nit o $ciudad: se llenan solos por cada prospecto.',
+          'También puedes pegar tu propio HTML.',
         ],
       },
       {
         heading: 'Enviar una campaña',
         items: [
-          'Elija plantilla, segmento (a quién) y desde qué cuenta sale.',
-          'Puede enviar a cualquier correo, sea o no prospecto.',
-          'Marque "no repetir" para no reenviar la misma campaña a quien ya la recibió.',
-          'Límite de hasta 3.000 correos por día.',
+          'Elige plantilla, segmento (a quién) y desde qué cuenta sale.',
+          'No se reenvía a quien ya recibió esa campaña (viene activado).',
+          'Si se agota la cuota diaria del proveedor, la campaña frena y se reanuda después sin perder trabajo.',
         ],
       },
       {
-        heading: 'Aperturas',
+        heading: 'Privacidad (Ley 1581)',
         items: [
-          'El sistema detecta quién abrió y quién hizo clic.',
-          'Lo ve aquí, en la ficha de cada prospecto y en el Dashboard.',
+          'Cada correo lleva al pie el aviso de privacidad y un botón "Cancelar suscripción".',
+          'Quien se da de baja queda excluido automáticamente de futuras campañas.',
+          'El pie enlaza la Política de Tratamiento de Datos (PDF).',
         ],
       },
     ],
-    tip: 'Las plantillas de ICA y Renta ya vienen cargadas y son 100% editables antes de enviar.',
+    tip: 'Para volumen alto (3.000/día) se requiere el plan pago del proveedor de correo (Resend).',
+    match: (p) => p.startsWith('/emails'),
   },
-  invoices: {
+  {
+    id: 'aperturas',
+    title: 'Apertura de correos',
+    intro: 'Los resultados de las campañas: quién abrió, porcentajes, historial y respuestas.',
+    sections: [
+      {
+        heading: 'Resumen (porcentajes)',
+        items: [
+          'Arriba ves Enviados, Abiertos, Clics y % de apertura.',
+        ],
+      },
+      {
+        heading: 'Historial de campañas',
+        items: [
+          'Cada campaña queda registrada con su fecha de inicio y de fin.',
+          'Ves audiencia, enviados, abiertos y % de apertura de cada una.',
+          'Cada envío es una campaña independiente (la nueva empieza limpia).',
+        ],
+      },
+      {
+        heading: 'Correos abiertos y respuestas',
+        items: [
+          'Lista de todos los abiertos con fecha y hora, y la columna "Campaña".',
+          'Respuestas de clientes: puedes leerlas sin salir del sistema.',
+          'Botón "Escribir": redactas un mensaje propio (asunto + texto) y lo envías; no reenvía lo mismo.',
+        ],
+      },
+    ],
+    tip: 'Las respuestas llegan solas: el CRM lee el buzón de correo cada pocos minutos y las registra.',
+    match: (p) => p.startsWith('/aperturas'),
+  },
+  {
+    id: 'clients',
+    title: 'Clientes',
+    intro: 'Los prospectos fidelizados, con sus datos de cobro, contrato y servicios.',
+    sections: [
+      {
+        heading: 'Qué muestra',
+        items: [
+          'Lista con una columna de "Valor del servicio" (suma de los servicios activos).',
+          'Ficha con datos de cobro, contacto de contabilidad, contrato y servicios.',
+          'La ficha también trae los recuadros de Apertura de correos y Seguimiento.',
+        ],
+      },
+    ],
+    match: (p) => p === '/clients',
+  },
+  {
+    id: 'invoices',
     title: 'Facturas',
-    intro: 'Genere facturas en PDF con buen diseño a partir de los datos del cliente.',
+    intro: 'Genera facturas en PDF con los datos del cliente.',
     sections: [
       {
         heading: 'Crear una factura',
         items: [
-          'Use "Nueva" y elija un cliente fidelizado.',
-          'El servicio y el valor se cargan automáticamente desde el cliente.',
-          'Genere el PDF listo para enviar.',
+          'Elige un cliente fidelizado: el ítem trae automáticamente su servicio y valor.',
+          'Ajusta IVA, vencimiento y observaciones.',
+          'Genera el PDF listo para enviar.',
         ],
       },
     ],
+    match: (p) => p.startsWith('/invoices'),
   },
-  tax: {
+  {
+    id: 'tax',
     title: 'Obligaciones tributarias',
-    intro: 'Controle los vencimientos tributarios de sus clientes con semáforos 🟢🟡🔴.',
+    intro: 'Controla los vencimientos con semáforos 🟢🟡🔴.',
     sections: [
       {
         heading: 'Cómo funciona',
         items: [
           'Cada obligación muestra un semáforo según qué tan cerca está el vencimiento.',
-          'El sistema sugiere la fecha según el Calendario DIAN 2026 y el último dígito del NIT.',
-        ],
-      },
-      {
-        heading: 'Qué hacer',
-        items: [
-          'Revise las que estén en amarillo o rojo para no pasarse de la fecha.',
-          'Registre las obligaciones de cada cliente para llevar el control.',
+          'Sugiere la fecha según el Calendario DIAN 2026 y el último dígito del NIT.',
         ],
       },
     ],
+    match: (p) => p.startsWith('/tax'),
   },
-  alerts: {
+  {
+    id: 'alerts',
     title: 'Alertas',
-    intro: 'Un panel con lo que requiere su atención: prospectos sin gestión y vencimientos próximos.',
+    intro: 'Lo que requiere atención: prospectos sin gestión y vencimientos próximos.',
     sections: [
-      {
-        heading: 'Qué encuentra',
-        items: [
-          'Prospectos contactados que llevan tiempo sin seguimiento.',
-          'Obligaciones tributarias próximas a vencer.',
-        ],
-      },
       {
         heading: 'Cómo usarlo',
-        items: ['Úselo como lista de pendientes y haga clic para ir a resolver cada punto.'],
-      },
-    ],
-  },
-  users: {
-    title: 'Usuarios',
-    intro: 'Administre quién puede entrar al sistema y con qué permisos.',
-    sections: [
-      {
-        heading: 'Qué puede hacer',
         items: [
-          'Crear usuarios y asignarles un rol.',
-          'Activar o desactivar el acceso.',
-          'El usuario nuevo debe cambiar su contraseña en el primer ingreso.',
+          'Úsalo como lista de pendientes del día.',
+          'Haz clic para ir a resolver cada punto.',
         ],
       },
     ],
+    match: (p) => p.startsWith('/alerts'),
   },
-  roles: {
-    title: 'Roles',
-    intro: 'Defina conjuntos de permisos y asígnelos a los usuarios.',
+  {
+    id: 'admin',
+    title: 'Administración',
+    intro: 'Usuarios, roles, auditoría y catálogo de servicios.',
     sections: [
       {
-        heading: 'Cómo funciona',
+        heading: 'Qué puedes hacer',
         items: [
-          'Cada rol agrupa permisos (qué puede ver y hacer).',
-          'Asigne el rol adecuado a cada usuario según su función.',
+          'Usuarios: crear personas y asignarles un rol; el nuevo cambia su clave al primer ingreso.',
+          'Roles: definir qué puede ver y hacer cada tipo de usuario.',
+          'Auditoría: ver quién hizo qué y cuándo.',
+          'Servicios: el catálogo de servicios (con su valor) que se usa en clientes y facturas.',
         ],
       },
     ],
+    match: (p) => p.startsWith('/admin'),
   },
-  audit: {
-    title: 'Auditoría',
-    intro: 'El registro de las acciones importantes hechas en el sistema.',
-    sections: [
-      {
-        heading: 'Para qué sirve',
-        items: [
-          'Ver quién hizo qué y cuándo.',
-          'Útil para control interno y seguimiento de cambios.',
-        ],
-      },
-    ],
-  },
-  services: {
-    title: 'Servicios',
-    intro: 'El catálogo de servicios que ofrece la firma y que se usan en clientes y facturas.',
-    sections: [
-      {
-        heading: 'Qué puede hacer',
-        items: [
-          'Crear y editar servicios con su valor por defecto.',
-          'Activar o desactivar los que ya no se ofrecen.',
-        ],
-      },
-    ],
-  },
-};
+];
 
-/** Devuelve la ayuda que corresponde a la ruta actual. */
-export function getHelpTopic(pathname: string): HelpTopic {
-  if (pathname === '/') return TOPICS.dashboard!;
-  if (pathname.startsWith('/prospects/')) return TOPICS.prospectDetail!;
-  if (pathname === '/prospects') return TOPICS.prospects!;
-  if (pathname.startsWith('/seguimiento')) return TOPICS.seguimiento!;
-  if (pathname.startsWith('/clients/')) return TOPICS.clientDetail!;
-  if (pathname === '/clients') return TOPICS.clients!;
-  if (pathname.startsWith('/emails')) return TOPICS.emails!;
-  if (pathname.startsWith('/invoices')) return TOPICS.invoices!;
-  if (pathname.startsWith('/tax')) return TOPICS.tax!;
-  if (pathname.startsWith('/alerts')) return TOPICS.alerts!;
-  if (pathname.startsWith('/admin/users')) return TOPICS.users!;
-  if (pathname.startsWith('/admin/roles')) return TOPICS.roles!;
-  if (pathname.startsWith('/admin/audit')) return TOPICS.audit!;
-  if (pathname.startsWith('/admin/services')) return TOPICS.services!;
-  return GENERAL;
+/** Id del tema que corresponde a la ruta actual (o 'general'). */
+export function currentTopicId(pathname: string): string {
+  const found = HELP_TOPICS.find((t) => t.match?.(pathname));
+  return found?.id ?? 'general';
 }
