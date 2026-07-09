@@ -169,8 +169,8 @@ export async function updateCampaignDates(
   return data;
 }
 
-export async function deleteCampaign(id: string): Promise<void> {
-  await api.delete(`/emails/campaigns/${id}`);
+export async function deleteTemplate(id: string): Promise<void> {
+  await api.delete(`/emails/templates/${id}`);
 }
 
 export interface SendMessageBody {

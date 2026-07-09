@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Mail, Plus, Send, Megaphone } from 'lucide-react';
+import { Mail, Plus, Send, Megaphone, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -27,6 +28,7 @@ import {
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import {
+  deleteTemplate,
   getAudienceCount,
   listSenders,
   listTemplates,
@@ -46,11 +48,23 @@ import { apiErrorMessage } from '@/api/client';
 import type { EmailTemplateRead } from '@/types/api';
 
 export function EmailsPage() {
+  const qc = useQueryClient();
   const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates });
   const [templateOpen, setTemplateOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplateRead | null>(null);
+  const [toDelete, setToDelete] = useState<EmailTemplateRead | null>(null);
+
+  const del = useMutation({
+    mutationFn: (id: string) => deleteTemplate(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['email-templates'] });
+      toast.success('Plantilla eliminada');
+      setToDelete(null);
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   return (
     <div className="space-y-6">
@@ -100,13 +114,30 @@ export function EmailsPage() {
               className="cursor-pointer transition hover:border-primary/50 hover:shadow-sm"
             >
               <CardHeader>
-                <CardTitle className="flex items-center justify-between text-base">
-                  {t.name}
-                  {t.is_active ? (
-                    <Badge variant="success">Activa</Badge>
-                  ) : (
-                    <Badge variant="secondary">Inactiva</Badge>
-                  )}
+                <CardTitle className="flex items-center justify-between gap-2 text-base">
+                  <span className="min-w-0 truncate">{t.name}</span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {t.is_active ? (
+                      <Badge variant="success">Activa</Badge>
+                    ) : (
+                      <Badge variant="secondary">Inactiva</Badge>
+                    )}
+                    <Can code="emails.templates.delete">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        aria-label="Eliminar plantilla"
+                        title="Eliminar plantilla"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setToDelete(t);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </Can>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -142,6 +173,37 @@ export function EmailsPage() {
         onOpenChange={setCampaignOpen}
         templates={templates.data ?? []}
       />
+
+      <Dialog open={!!toDelete} onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Eliminar plantilla?</DialogTitle>
+            <DialogDescription>
+              Se eliminará la plantilla{' '}
+              <span className="font-medium text-foreground">{toDelete?.name}</span>. El historial de
+              campañas y las aperturas se conservan. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setToDelete(null)} disabled={del.isPending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              className="gap-1"
+              disabled={del.isPending}
+              onClick={() => toDelete && del.mutate(toDelete.id)}
+            >
+              {del.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

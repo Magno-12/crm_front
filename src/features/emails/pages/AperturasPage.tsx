@@ -1,39 +1,16 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
-import {
-  MailOpen,
-  MessageSquare,
-  MousePointerClick,
-  History,
-  Send,
-  Trash2,
-  Loader2,
-} from 'lucide-react';
+import { MailOpen, MessageSquare, MousePointerClick, History, Send } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { EmptyState } from '@/components/common/states';
 import { formatDateTime, formatDateOrTime } from '@/lib/utils';
-import {
-  getOpenings,
-  getResponses,
-  getCampaigns,
-  deleteCampaign,
-} from '@/features/emails/api/emails.api';
+import { getOpenings, getResponses, getCampaigns } from '@/features/emails/api/emails.api';
 import { getEmailEngagement } from '@/features/dashboard/api/dashboard.api';
 import { CampaignDetailDialog } from '@/features/emails/components/CampaignDetailDialog';
 import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
-import { apiErrorMessage } from '@/api/client';
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
@@ -61,21 +38,6 @@ export function AperturasPage() {
     prospectId: string | null;
     subject: string | null;
   } | null>(null);
-  const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(null);
-
-  const qc = useQueryClient();
-  const del = useMutation({
-    mutationFn: (id: string) => deleteCampaign(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['email-campaigns'] });
-      qc.invalidateQueries({ queryKey: ['email-openings'] });
-      qc.invalidateQueries({ queryKey: ['email-engagement'] });
-      qc.invalidateQueries({ queryKey: ['email-responses'] });
-      toast.success('Campaña eliminada');
-      setToDelete(null);
-    },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
 
   const opens = openings.data;
   const resp = responses.data;
@@ -306,8 +268,7 @@ export function AperturasPage() {
                     <th className="py-2 pr-3 font-medium">Abiertos</th>
                     <th className="py-2 pr-3 font-medium">% Apertura</th>
                     <th className="py-2 pr-3 font-medium">Clics</th>
-                    <th className="py-2 pr-3 font-medium">Respuestas</th>
-                    <th className="py-2 font-medium"></th>
+                    <th className="py-2 font-medium">Respuestas</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -337,22 +298,7 @@ export function AperturasPage() {
                       <td className="py-2 pr-3">{c.opened}</td>
                       <td className="py-2 pr-3 font-medium text-primary">{c.open_rate}%</td>
                       <td className="py-2 pr-3">{c.clicked}</td>
-                      <td className="py-2 pr-3 font-medium">{c.responses}</td>
-                      <td className="py-2 text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          aria-label="Eliminar campaña"
-                          title="Eliminar campaña"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setToDelete({ id: c.id, name: c.name });
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
+                      <td className="py-2 font-medium">{c.responses}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -374,41 +320,6 @@ export function AperturasPage() {
         prospectId={compose?.prospectId ?? null}
         defaultSubject={compose?.subject ?? null}
       />
-
-      <Dialog open={!!toDelete} onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>¿Eliminar campaña?</DialogTitle>
-            <DialogDescription>
-              Se eliminará <span className="font-medium text-foreground">{toDelete?.name}</span> del
-              historial, junto con sus envíos y aperturas registrados. Las respuestas de clientes se
-              conservan. Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setToDelete(null)}
-              disabled={del.isPending}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              className="gap-1"
-              disabled={del.isPending}
-              onClick={() => toDelete && del.mutate(toDelete.id)}
-            >
-              {del.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
-              )}
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
