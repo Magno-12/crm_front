@@ -1,20 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MailOpen, MessageSquare, Send, MousePointerClick, History } from 'lucide-react';
+import { MailOpen, MessageSquare, MousePointerClick, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/states';
 import { formatDateTime, formatDateOrTime } from '@/lib/utils';
-import {
-  getOpenings,
-  getResponses,
-  getCampaigns,
-  type OpeningRow,
-} from '@/features/emails/api/emails.api';
+import { getOpenings, getResponses, getCampaigns } from '@/features/emails/api/emails.api';
 import { getEmailEngagement } from '@/features/dashboard/api/dashboard.api';
-import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
 import { CampaignDetailDialog } from '@/features/emails/components/CampaignDetailDialog';
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
@@ -31,7 +25,6 @@ export function AperturasPage() {
   const responses = useQuery({ queryKey: ['email-responses'], queryFn: () => getResponses(1) });
   const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
   const engagement = useQuery({ queryKey: ['email-engagement'], queryFn: getEmailEngagement });
-  const [compose, setCompose] = useState<OpeningRow | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
 
   const opens = openings.data;
@@ -48,11 +41,12 @@ export function AperturasPage() {
       </div>
 
       {/* Resumen (porcentajes) */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
         <Stat label="Enviados" value={String(eng?.sent ?? 0)} />
         <Stat label="Abiertos" value={String(eng?.opened ?? 0)} />
         <Stat label="Clics" value={String(eng?.clicked ?? 0)} />
         <Stat label="% Apertura" value={`${eng?.open_rate ?? 0}%`} accent />
+        <Stat label="Respuestas" value={String(resp?.total ?? 0)} accent />
       </div>
 
       {/* Historial de campañas */}
@@ -188,9 +182,13 @@ export function AperturasPage() {
                         )}
                       </td>
                       <td className="py-2">
-                        <Button size="sm" variant="outline" onClick={() => setCompose(o)}>
-                          <Send className="mr-1 h-3.5 w-3.5" /> Escribir
-                        </Button>
+                        {o.prospect_id ? (
+                          <Button asChild size="sm" variant="outline">
+                            <Link to={`/prospects/${o.prospect_id}`}>Ver ficha</Link>
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -247,14 +245,6 @@ export function AperturasPage() {
           )}
         </CardContent>
       </Card>
-
-      <SendMessageDialog
-        open={compose !== null}
-        onOpenChange={(o) => !o && setCompose(null)}
-        toEmail={compose?.recipient_email ?? ''}
-        prospectId={compose?.prospect_id}
-        defaultSubject={compose?.subject}
-      />
 
       <CampaignDetailDialog
         campaignId={detailId}

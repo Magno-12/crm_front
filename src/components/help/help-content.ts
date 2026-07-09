@@ -259,7 +259,8 @@ export const HELP_TOPICS: HelpTopic[] = [
         heading: 'Correos abiertos',
         items: [
           'Lista de todos los abiertos con fecha y hora y la columna "Campaña".',
-          'Botón "Escribir": rediges un mensaje propio (asunto + texto) a esa persona.',
+          'Botón "Ver ficha": abre la ficha de esa empresa.',
+          'Para escribirle/responderle, entra a su ficha: en el recuadro "Apertura de correos" está el botón "Escribir".',
         ],
       },
       {
@@ -267,6 +268,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         items: [
           'Llegan solas: el CRM lee el buzón cada pocos minutos y las registra.',
           'Puedes leer la respuesta ahí mismo, sin abrir el correo.',
+          'Solo muestra respuestas de correos que están en la base (emparejadas con un prospecto).',
           'También aparecen en la ficha de ese prospecto (recuadro Apertura de correos).',
         ],
       },
