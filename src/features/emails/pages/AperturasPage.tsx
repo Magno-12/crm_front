@@ -15,6 +15,7 @@ import {
 } from '@/features/emails/api/emails.api';
 import { getEmailEngagement } from '@/features/dashboard/api/dashboard.api';
 import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
+import { CampaignDetailDialog } from '@/features/emails/components/CampaignDetailDialog';
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
@@ -31,6 +32,7 @@ export function AperturasPage() {
   const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
   const engagement = useQuery({ queryKey: ['email-engagement'], queryFn: getEmailEngagement });
   const [compose, setCompose] = useState<OpeningRow | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const opens = openings.data;
   const resp = responses.data;
@@ -82,13 +84,22 @@ export function AperturasPage() {
                     <th className="py-2 pr-3 font-medium">Audiencia</th>
                     <th className="py-2 pr-3 font-medium">Enviados</th>
                     <th className="py-2 pr-3 font-medium">Abiertos</th>
-                    <th className="py-2 font-medium">% Apertura</th>
+                    <th className="py-2 pr-3 font-medium">% Apertura</th>
+                    <th className="py-2 pr-3 font-medium">Clics</th>
+                    <th className="py-2 font-medium">Respuestas</th>
                   </tr>
                 </thead>
                 <tbody>
                   {campaigns.data.items.map((c) => (
-                    <tr key={c.id} className="border-b last:border-0">
-                      <td className="max-w-[220px] truncate py-2 pr-3 font-medium">{c.name}</td>
+                    <tr
+                      key={c.id}
+                      className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
+                      onClick={() => setDetailId(c.id)}
+                      title="Ver detalle de la campaña"
+                    >
+                      <td className="max-w-[220px] truncate py-2 pr-3 font-medium text-primary">
+                        {c.name}
+                      </td>
                       <td className="py-2 pr-3 text-muted-foreground">
                         {formatDateTime(c.started_at)}
                       </td>
@@ -103,7 +114,9 @@ export function AperturasPage() {
                         )}
                       </td>
                       <td className="py-2 pr-3">{c.opened}</td>
-                      <td className="py-2 font-medium text-primary">{c.open_rate}%</td>
+                      <td className="py-2 pr-3 font-medium text-primary">{c.open_rate}%</td>
+                      <td className="py-2 pr-3">{c.clicked}</td>
+                      <td className="py-2 font-medium">{c.responses}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -241,6 +254,11 @@ export function AperturasPage() {
         toEmail={compose?.recipient_email ?? ''}
         prospectId={compose?.prospect_id}
         defaultSubject={compose?.subject}
+      />
+
+      <CampaignDetailDialog
+        campaignId={detailId}
+        onOpenChange={(o) => !o && setDetailId(null)}
       />
     </div>
   );

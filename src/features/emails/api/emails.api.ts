@@ -117,15 +117,40 @@ export interface CampaignHistoryRow {
   failed: number;
   opened: number;
   open_rate: number;
+  clicked: number;
+  click_rate: number;
+  responses: number;
   quota_reached: boolean;
   started_at: string;
   finished_at: string | null;
+}
+
+export interface CampaignRecipient {
+  prospect_id: string | null;
+  razon_social: string | null;
+  recipient_email: string;
+  status: string;
+  sent_at: string | null;
+  opened_at: string | null;
+  clicked_at: string | null;
+  responded: boolean;
+  response_snippet: string | null;
+}
+
+export interface CampaignDetail {
+  campaign: CampaignHistoryRow;
+  recipients: CampaignRecipient[];
 }
 
 export async function getCampaigns(page = 1): Promise<Paged<CampaignHistoryRow>> {
   const { data } = await api.get<Paged<CampaignHistoryRow>>('/emails/campaigns', {
     params: { page, page_size: 50 },
   });
+  return data;
+}
+
+export async function getCampaignDetail(id: string): Promise<CampaignDetail> {
+  const { data } = await api.get<CampaignDetail>(`/emails/campaigns/${id}`);
   return data;
 }
 
