@@ -11,7 +11,7 @@ import { EmptyState, ErrorState } from '@/components/common/states';
 import { TableSkeleton } from '@/components/common/table-skeleton';
 import { useDebounce } from '@/hooks/useDebounce';
 import { listClients } from '@/features/clients/api/clients.api';
-import { formatDate } from '@/lib/utils';
+import { formatCOP, formatDate } from '@/lib/utils';
 
 const STATUS_VARIANT: Record<string, 'success' | 'warning' | 'destructive'> = {
   activo: 'success',
@@ -67,6 +67,7 @@ export function ClientsPage() {
                 <TableHead>Razón social</TableHead>
                 <TableHead>NIT</TableHead>
                 <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Valor del servicio</TableHead>
                 <TableHead>Inicio</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
@@ -78,6 +79,11 @@ export function ClientsPage() {
                   <TableCell className="text-muted-foreground">{c.nit}</TableCell>
                   <TableCell>
                     <Badge variant={STATUS_VARIANT[c.status] ?? 'secondary'}>{c.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCOP(
+                      Number((c as { valor_servicio?: string | number }).valor_servicio ?? 0),
+                    )}
                   </TableCell>
                   <TableCell>{formatDate(c.start_date)}</TableCell>
                   <TableCell className="text-right">
