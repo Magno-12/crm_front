@@ -1,17 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { MailOpen, Mail, Send, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/states';
 import { emailSendsByProspect } from '@/features/prospects/api/prospects.api';
-import { getResponsesByProspect, resendEmail } from '@/features/emails/api/emails.api';
+import { getResponsesByProspect } from '@/features/emails/api/emails.api';
+import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
 import { formatDateTime } from '@/lib/utils';
-import { apiErrorMessage } from '@/api/client';
 
 export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
-  const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ['email-sends', prospectId],
     queryFn: () => emailSendsByProspect(prospectId),
@@ -20,19 +19,12 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
     queryKey: ['email-responses', prospectId],
     queryFn: () => getResponsesByProspect(prospectId),
   });
-
-  const resend = useMutation({
-    mutationFn: (id: string) => resendEmail(id),
-    onSuccess: () => {
-      toast.success('Correo reenviado');
-      qc.invalidateQueries({ queryKey: ['email-sends', prospectId] });
-    },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
+  const [composeTo, setComposeTo] = useState<string | null>(null);
 
   const opened = data?.filter((d) => d.opens > 0).length ?? 0;
 
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
@@ -73,10 +65,9 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={resend.isPending}
-                    onClick={() => resend.mutate(s.id)}
+                    onClick={() => setComposeTo(s.recipient_email)}
                   >
-                    <Send className="mr-1 h-3.5 w-3.5" /> Reenviar
+                    <Send className="mr-1 h-3.5 w-3.5" /> Escribir
                   </Button>
                 </li>
               ))}
@@ -107,5 +98,12 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
         )}
       </CardContent>
     </Card>
+    <SendMessageDialog
+      open={composeTo !== null}
+      onOpenChange={(o) => !o && setComposeTo(null)}
+      toEmail={composeTo ?? ''}
+      prospectId={prospectId}
+    />
+    </>
   );
 }

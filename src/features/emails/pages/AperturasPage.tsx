@@ -1,28 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
 import { MailOpen, MessageSquare, Send, MousePointerClick } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/states';
 import { formatDateTime } from '@/lib/utils';
-import { apiErrorMessage } from '@/api/client';
-import { getOpenings, getResponses, resendEmail } from '@/features/emails/api/emails.api';
+import { getOpenings, getResponses, type OpeningRow } from '@/features/emails/api/emails.api';
+import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
 
 export function AperturasPage() {
-  const qc = useQueryClient();
   const openings = useQuery({ queryKey: ['email-openings'], queryFn: () => getOpenings(1) });
   const responses = useQuery({ queryKey: ['email-responses'], queryFn: () => getResponses(1) });
-
-  const resend = useMutation({
-    mutationFn: (id: string) => resendEmail(id),
-    onSuccess: () => {
-      toast.success('Correo reenviado');
-      qc.invalidateQueries({ queryKey: ['email-openings'] });
-    },
-    onError: (e) => toast.error(apiErrorMessage(e)),
-  });
+  const [compose, setCompose] = useState<OpeningRow | null>(null);
 
   const opens = openings.data;
   const resp = responses.data;
@@ -60,7 +51,7 @@ export function AperturasPage() {
                 <thead>
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                     <th className="py-2 pr-3 font-medium">Empresa / correo</th>
-                    <th className="py-2 pr-3 font-medium">Asunto</th>
+                    <th className="py-2 pr-3 font-medium">Campaña</th>
                     <th className="py-2 pr-3 font-medium">Abierto (fecha y hora)</th>
                     <th className="py-2 pr-3 font-medium">Clic</th>
                     <th className="py-2 font-medium"></th>
@@ -83,7 +74,7 @@ export function AperturasPage() {
                         <div className="text-xs text-muted-foreground">{o.recipient_email}</div>
                       </td>
                       <td className="max-w-[220px] truncate py-2 pr-3 text-muted-foreground">
-                        {o.subject || '—'}
+                        {o.campana || o.subject || '—'}
                       </td>
                       <td className="py-2 pr-3 font-medium text-primary">
                         {formatDateTime(o.opened_at)}
@@ -98,13 +89,8 @@ export function AperturasPage() {
                         )}
                       </td>
                       <td className="py-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={resend.isPending}
-                          onClick={() => resend.mutate(o.id)}
-                        >
-                          <Send className="mr-1 h-3.5 w-3.5" /> Reenviar
+                        <Button size="sm" variant="outline" onClick={() => setCompose(o)}>
+                          <Send className="mr-1 h-3.5 w-3.5" /> Escribir
                         </Button>
                       </td>
                     </tr>
@@ -162,6 +148,14 @@ export function AperturasPage() {
           )}
         </CardContent>
       </Card>
+
+      <SendMessageDialog
+        open={compose !== null}
+        onOpenChange={(o) => !o && setCompose(null)}
+        toEmail={compose?.recipient_email ?? ''}
+        prospectId={compose?.prospect_id}
+        defaultSubject={compose?.subject}
+      />
     </div>
   );
 }

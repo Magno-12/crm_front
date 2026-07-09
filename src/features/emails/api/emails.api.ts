@@ -56,6 +56,7 @@ export interface OpeningRow {
   id: string;
   prospect_id: string | null;
   razon_social: string | null;
+  campana: string | null;
   recipient_email: string;
   subject: string | null;
   opened_at: string | null;
@@ -104,4 +105,16 @@ export async function getResponsesByProspect(prospectId: string): Promise<Respon
 
 export async function resendEmail(sendId: string): Promise<void> {
   await api.post(`/emails/resend/${sendId}`);
+}
+
+export interface SendMessageBody {
+  to_email: string;
+  subject: string;
+  body: string;
+  prospect_id?: string | null;
+  from_email?: string;
+}
+
+export async function sendMessage(body: SendMessageBody): Promise<void> {
+  await api.post('/emails/send-message', body);
 }
