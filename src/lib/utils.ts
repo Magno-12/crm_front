@@ -22,25 +22,57 @@ export function formatCompact(value: number): string {
   );
 }
 
-/** Formatea una fecha ISO a formato legible local. */
+/** Zona horaria de Colombia: mostramos todas las fechas/horas en hora local del país. */
+const CO_TZ = 'America/Bogota';
+
+/** True si la cadena es solo fecha (YYYY-MM-DD), sin componente de hora. */
+function isDateOnly(iso: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(iso);
+}
+
+/**
+ * Convierte una fecha-hora del backend a Date.
+ * El backend guarda instantes en UTC pero los serializa SIN zona ("2026-07-09T19:30:00").
+ * Si no trae offset ni «Z», lo tratamos como UTC para no correr la hora.
+ */
+function toDate(iso: string): Date {
+  const hasTz = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(iso);
+  return new Date(hasTz ? iso : `${iso}Z`);
+}
+
+/** Formatea una fecha ISO a formato legible (hora de Colombia). */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('es-CO', {
+  if (isDateOnly(iso)) {
+    // Fecha sin hora: formatear el día tal cual, sin corrimiento de zona.
+    const parts = iso.split('-');
+    const y = Number(parts[0]);
+    const m = Number(parts[1]);
+    const d = Number(parts[2]);
+    return new Date(y, m - 1, d).toLocaleDateString('es-CO', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  }
+  return toDate(iso).toLocaleDateString('es-CO', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone: CO_TZ,
   });
 }
 
-/** Fecha y hora (para aperturas y respuestas de correo). */
+/** Fecha y hora (para aperturas y respuestas de correo), en hora de Colombia. */
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return new Date(iso).toLocaleString('es-CO', {
+  return toDate(iso).toLocaleString('es-CO', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: CO_TZ,
   });
 }
 
