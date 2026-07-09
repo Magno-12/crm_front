@@ -169,6 +169,10 @@ export async function updateCampaignDates(
   return data;
 }
 
+export async function deleteCampaign(id: string): Promise<void> {
+  await api.delete(`/emails/campaigns/${id}`);
+}
+
 export interface SendMessageBody {
   to_email: string;
   subject: string;
