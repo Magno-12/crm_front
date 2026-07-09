@@ -21,8 +21,12 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 export function AperturasPage() {
+  const [includeUnmatched, setIncludeUnmatched] = useState(false);
   const openings = useQuery({ queryKey: ['email-openings'], queryFn: () => getOpenings(1) });
-  const responses = useQuery({ queryKey: ['email-responses'], queryFn: () => getResponses(1) });
+  const responses = useQuery({
+    queryKey: ['email-responses', includeUnmatched],
+    queryFn: () => getResponses(1, includeUnmatched),
+  });
   const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
   const engagement = useQuery({ queryKey: ['email-engagement'], queryFn: getEmailEngagement });
   const [detailId, setDetailId] = useState<string | null>(null);
@@ -202,14 +206,25 @@ export function AperturasPage() {
       {/* Respuestas de clientes */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MessageSquare className="h-4 w-4" /> Respuestas de clientes
-            {resp && (
-              <Badge variant="secondary" className="ml-1">
-                {resp.total}
-              </Badge>
-            )}
-          </CardTitle>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <MessageSquare className="h-4 w-4" /> Respuestas de clientes
+              {resp && (
+                <Badge variant="secondary" className="ml-1">
+                  {resp.total}
+                </Badge>
+              )}
+            </CardTitle>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={includeUnmatched}
+                onChange={(e) => setIncludeUnmatched(e.target.checked)}
+                className="h-4 w-4 rounded border-input accent-primary"
+              />
+              Incluir correos que no están en la base
+            </label>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {!resp || resp.items.length === 0 ? (
@@ -230,7 +245,12 @@ export function AperturasPage() {
                         {r.razon_social || r.from_email}
                       </Link>
                     ) : (
-                      <span className="text-sm font-medium">{r.razon_social || r.from_email}</span>
+                      <span className="flex items-center gap-2 text-sm font-medium">
+                        {r.from_email}
+                        <Badge variant="secondary" className="text-[10px]">
+                          no está en la base
+                        </Badge>
+                      </span>
                     )}
                     <span className="text-xs text-muted-foreground">
                       {formatDateTime(r.received_at)}

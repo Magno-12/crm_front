@@ -93,9 +93,12 @@ export async function getOpenings(page = 1): Promise<Paged<OpeningRow>> {
   return data;
 }
 
-export async function getResponses(page = 1): Promise<Paged<ResponseRow>> {
+export async function getResponses(
+  page = 1,
+  includeUnmatched = false,
+): Promise<Paged<ResponseRow>> {
   const { data } = await api.get<Paged<ResponseRow>>('/emails/responses', {
-    params: { page, page_size: 50 },
+    params: { page, page_size: 50, include_unmatched: includeUnmatched },
   });
   return data;
 }
