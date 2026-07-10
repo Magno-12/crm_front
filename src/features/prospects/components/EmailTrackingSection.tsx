@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { MailOpen, Mail, Send, MessageSquare, History } from 'lucide-react';
+import { MailOpen, Send, MessageSquare, History } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { EmptyState } from '@/components/common/states';
+import { EmptyState, ErrorState } from '@/components/common/states';
 import {
   getProspectTracking,
   getResponsesByProspect,
@@ -12,6 +12,16 @@ import {
 } from '@/features/emails/api/emails.api';
 import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
 import { formatDateTime } from '@/lib/utils';
+
+/** Una línea "Etiqueta — fecha" (o texto de vacío). */
+function StatusLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-2">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-medium">{value}</span>
+    </div>
+  );
+}
 
 function CampaignBlock({
   group,
@@ -26,54 +36,61 @@ function CampaignBlock({
     <div className={`rounded-md border ${muted ? 'bg-muted/30' : ''}`}>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2">
         <span className="truncate text-sm font-medium">{group.campaign_name}</span>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>
-            Enviado <span className="font-semibold text-foreground">{group.sent}</span>
-          </span>
-          <span>
-            Abierto <span className="font-semibold text-primary">{group.opened}</span>
-          </span>
-          <span>
-            Respondido <span className="font-semibold text-foreground">{group.responded}</span>
-          </span>
-        </div>
+        {group.finished && (
+          <Badge variant="secondary" className="text-[10px]">
+            Terminada
+          </Badge>
+        )}
       </div>
       <ul className="divide-y">
-        {group.sends.map((s) => (
-          <li key={s.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-            <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <div className="min-w-0 flex-1">
-              <div className="truncate">{s.recipient_email}</div>
-              <div className="text-xs text-muted-foreground">
-                {s.opens > 0
-                  ? `Abierto: ${formatDateTime(s.opened_at)}`
-                  : s.status === 'failed'
-                    ? `Intento: ${formatDateTime(s.date)}`
-                    : `Enviado: ${formatDateTime(s.date)}`}
-                {s.status === 'failed' && s.error ? ` · ${s.error}` : ''}
+        {group.sends.map((s) => {
+          const failed = s.status === 'failed';
+          return (
+            <li key={s.id} className="space-y-2 px-3 py-3 text-sm">
+              <div className="flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate font-medium">{s.recipient_email}</span>
+                {s.opens > 0 ? (
+                  <Badge variant="success">Abierto</Badge>
+                ) : failed ? (
+                  <Badge variant="destructive">Falló</Badge>
+                ) : (
+                  <Badge variant="secondary">Enviado</Badge>
+                )}
               </div>
-            </div>
-            {s.opens > 0 ? (
-              <Badge variant="success">Abierto</Badge>
-            ) : s.status === 'failed' ? (
-              <Badge variant="destructive">Falló</Badge>
-            ) : (
-              <Badge variant="secondary">Enviado</Badge>
-            )}
-            {!muted && (
-              <Button size="sm" variant="outline" onClick={() => onWrite(s.recipient_email)}>
-                <Send className="mr-1 h-3.5 w-3.5" /> Escribir
-              </Button>
-            )}
-          </li>
-        ))}
+              <div className="space-y-1 rounded-md bg-muted/40 px-3 py-2 text-xs">
+                <StatusLine
+                  label={failed ? 'Intento de envío' : 'Enviado'}
+                  value={formatDateTime(s.date)}
+                />
+                <StatusLine
+                  label="Abierto"
+                  value={s.opened_at ? formatDateTime(s.opened_at) : 'Sin abrir aún'}
+                />
+                <StatusLine
+                  label="Respondido"
+                  value={group.responded_at ? formatDateTime(group.responded_at) : 'Sin responder'}
+                />
+                {failed && s.error && (
+                  <div className="pt-1 text-destructive">Motivo: {s.error}</div>
+                )}
+              </div>
+              {!muted && (
+                <div className="flex justify-end">
+                  <Button size="sm" variant="outline" onClick={() => onWrite(s.recipient_email)}>
+                    <Send className="mr-1 h-3.5 w-3.5" /> Responder
+                  </Button>
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
 }
 
 export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
-  const { data } = useQuery({
+  const tracking = useQuery({
     queryKey: ['email-tracking', prospectId],
     queryFn: () => getProspectTracking(prospectId),
   });
@@ -84,6 +101,7 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
   const [composeTo, setComposeTo] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
 
+  const data = tracking.data;
   const active = data?.active ?? [];
   const history = data?.history ?? [];
   const hasAny = active.length > 0 || history.length > 0;
@@ -97,7 +115,11 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!hasAny ? (
+          {tracking.isLoading ? (
+            <p className="text-sm text-muted-foreground">Cargando correos…</p>
+          ) : tracking.isError ? (
+            <ErrorState error={tracking.error} onRetry={() => tracking.refetch()} />
+          ) : !hasAny ? (
             <EmptyState
               title="Sin correos enviados"
               description="Cuando le envíes campañas o correos, aquí verás la campaña, si los abrió y a qué hora."

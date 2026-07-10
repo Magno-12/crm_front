@@ -140,6 +140,7 @@ export interface ProspectCampaignGroup {
   sent: number;
   opened: number;
   responded: number;
+  responded_at: string | null;
   sends: ProspectSendItem[];
 }
 
