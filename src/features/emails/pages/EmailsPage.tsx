@@ -48,6 +48,9 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { apiErrorMessage } from '@/api/client';
 import type { EmailTemplateRead } from '@/types/api';
 
+// Techo por campaña (cupo mensual del plan Resend). Ya no hay límite diario.
+const CAMPAIGN_MAX = 50000;
+
 export function EmailsPage() {
   const qc = useQueryClient();
   const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates });
@@ -391,8 +394,11 @@ function CampaignDialog({
             Audiencia con correo:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> destinatario(s)
             {skipSent && templateId ? ' nuevos' : ''}.
-            {count > 3000 && (
-              <span className="text-muted-foreground"> Se enviará a los primeros 3000.</span>
+            {count > CAMPAIGN_MAX && (
+              <span className="text-muted-foreground">
+                {' '}
+                Se enviará a los primeros {CAMPAIGN_MAX.toLocaleString('es-CO')}.
+              </span>
             )}
           </div>
         </div>
@@ -408,7 +414,7 @@ function CampaignDialog({
             }}
             disabled={mut.isPending}
           >
-            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, 3000)}
+            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, CAMPAIGN_MAX)}
           </Button>
         </DialogFooter>
       </DialogContent>
