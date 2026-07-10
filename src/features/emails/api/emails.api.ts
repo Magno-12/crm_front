@@ -122,6 +122,37 @@ export async function getResponsesByProspect(prospectId: string): Promise<Respon
   return data;
 }
 
+export interface ProspectSendItem {
+  id: string;
+  recipient_email: string;
+  status: string;
+  sent_at: string | null;
+  opened_at: string | null;
+  opens: number;
+  error: string | null;
+  date: string;
+}
+
+export interface ProspectCampaignGroup {
+  campaign_id: string | null;
+  campaign_name: string;
+  finished: boolean;
+  sent: number;
+  opened: number;
+  responded: number;
+  sends: ProspectSendItem[];
+}
+
+export interface ProspectTracking {
+  active: ProspectCampaignGroup[];
+  history: ProspectCampaignGroup[];
+}
+
+export async function getProspectTracking(prospectId: string): Promise<ProspectTracking> {
+  const { data } = await api.get<ProspectTracking>(`/emails/prospect-tracking/${prospectId}`);
+  return data;
+}
+
 export async function resendEmail(sendId: string): Promise<void> {
   await api.post(`/emails/resend/${sendId}`);
 }

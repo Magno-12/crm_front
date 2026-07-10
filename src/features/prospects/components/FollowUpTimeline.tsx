@@ -22,17 +22,28 @@ import { apiErrorMessage } from '@/api/client';
 import { formatDate } from '@/lib/utils';
 import type { FollowUpType } from '@/types/api';
 
-const FOLLOWUP_TYPES: FollowUpType[] = [
-  'LLAMADA',
-  'CORREO',
-  'REUNION',
-  'VISITA',
-  'WHATSAPP',
-  'NOTA',
+// Opciones que puede elegir el usuario al registrar un seguimiento.
+const FOLLOWUP_TYPES: { value: FollowUpType; label: string }[] = [
+  { value: 'LLAMADA', label: 'Llamada' },
+  { value: 'CITA', label: 'Cita' },
+  { value: 'REUNION', label: 'Reunión' },
+  { value: 'OTROS', label: 'Otros' },
 ];
 
+// Etiquetas legibles para mostrar cualquier tipo (incluye los heredados).
+const TYPE_LABELS: Record<string, string> = {
+  LLAMADA: 'Llamada',
+  CITA: 'Cita',
+  REUNION: 'Reunión',
+  OTROS: 'Otros',
+  CORREO: 'Correo',
+  VISITA: 'Visita',
+  WHATSAPP: 'WhatsApp',
+  NOTA: 'Nota',
+};
+
 const followUpSchema = z.object({
-  type: z.enum(['LLAMADA', 'CORREO', 'REUNION', 'VISITA', 'WHATSAPP', 'NOTA']),
+  type: z.enum(['LLAMADA', 'CITA', 'REUNION', 'OTROS']),
   notes: z.string().min(1, 'Escribe una nota'),
   outcome: z.string().optional(),
 });
@@ -71,15 +82,15 @@ export function FollowUpTimeline({ prospectId }: { prospectId: string }) {
               <Label className="mb-1 block text-xs">Tipo</Label>
               <Select
                 value={form.watch('type')}
-                onValueChange={(v) => form.setValue('type', v as FollowUpType)}
+                onValueChange={(v) => form.setValue('type', v as FollowUpInput['type'])}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {FOLLOWUP_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -110,7 +121,7 @@ export function FollowUpTimeline({ prospectId }: { prospectId: string }) {
               <li key={f.id} className="relative">
                 <span className="absolute -left-[1.6rem] top-1 h-3 w-3 rounded-full border-2 border-background bg-primary" />
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{f.type}</Badge>
+                  <Badge variant="secondary">{TYPE_LABELS[f.type] ?? f.type}</Badge>
                   <span className="text-xs text-muted-foreground">{formatDate(f.created_at)}</span>
                 </div>
                 <p className="mt-1 text-sm">{f.notes}</p>

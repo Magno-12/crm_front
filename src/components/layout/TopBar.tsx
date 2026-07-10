@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { Menu, Moon, Sun, LogOut, User as UserIcon, Monitor } from 'lucide-react';
+import { Menu, Moon, Sun, LogOut, User as UserIcon, Monitor, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { formatDateTime } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,15 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
 
       <div className="flex-1" />
 
+      {user?.last_login_at && (
+        <span
+          className="hidden items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground sm:flex"
+          title="Fecha y hora de su ingreso a la plataforma"
+        >
+          <Clock className="h-3.5 w-3.5" /> Ingreso: {formatDateTime(user.last_login_at)}
+        </span>
+      )}
+
       <Button
         variant="ghost"
         size="icon"
@@ -82,6 +92,11 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
               <span className="truncate text-xs font-normal text-muted-foreground">
                 {user?.email}
               </span>
+              {user?.last_login_at && (
+                <span className="mt-1 flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                  <Clock className="h-3 w-3" /> Ingreso: {formatDateTime(user.last_login_at)}
+                </span>
+              )}
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

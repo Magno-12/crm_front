@@ -1494,7 +1494,7 @@ export interface components {
          * FollowUpType
          * @enum {string}
          */
-        FollowUpType: "LLAMADA" | "CORREO" | "REUNION" | "VISITA" | "WHATSAPP" | "NOTA";
+        FollowUpType: "LLAMADA" | "CITA" | "REUNION" | "OTROS" | "CORREO" | "VISITA" | "WHATSAPP" | "NOTA";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2312,6 +2312,8 @@ export interface components {
             permissions: string[];
             /** Must Change Password */
             must_change_password: boolean;
+            /** Last Login At */
+            last_login_at?: string | null;
         };
         /** UserRead */
         UserRead: {

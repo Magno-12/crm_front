@@ -124,7 +124,7 @@ export function DashboardPage() {
         <CardHeader>
           <CardTitle>Tendencia comercial</CardTitle>
           <CardDescription>
-            Prospectos nuevos frente a clientes ganados en los últimos 6 meses.
+            Prospectos nuevos, clientes ganados y aperturas de correo en los últimos 6 meses.
           </CardDescription>
         </CardHeader>
         <CardContent className="h-72">
@@ -139,6 +139,10 @@ export function DashboardPage() {
                   <linearGradient id="gGanados" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#22c55e" stopOpacity={0.3} />
                     <stop offset="100%" stopColor="#22c55e" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gAperturas" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#9dd84b" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#9dd84b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -161,6 +165,14 @@ export function DashboardPage() {
                   stroke="#22c55e"
                   strokeWidth={2}
                   fill="url(#gGanados)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="aperturas"
+                  name="Aperturas"
+                  stroke="#9dd84b"
+                  strokeWidth={2}
+                  fill="url(#gAperturas)"
                 />
               </AreaChart>
             </ResponsiveContainer>

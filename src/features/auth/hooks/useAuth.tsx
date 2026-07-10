@@ -54,12 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // Aunque falle la petición (p. ej. token vencido), cerramos la sesión local.
     try {
       await logoutRequest();
-    } finally {
-      setAccessToken(null);
-      setUser(null);
+    } catch {
+      /* se ignora: la sesión se cierra igual del lado del cliente */
     }
+    setAccessToken(null);
+    setUser(null);
   }, []);
 
   const refreshUser = useCallback(async () => {

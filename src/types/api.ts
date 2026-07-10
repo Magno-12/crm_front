@@ -90,4 +90,5 @@ export interface TrendPoint {
   name: string;
   nuevos: number;
   ganados: number;
+  aperturas: number;
 }
