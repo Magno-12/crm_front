@@ -48,8 +48,8 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { apiErrorMessage } from '@/api/client';
 import type { EmailTemplateRead } from '@/types/api';
 
-// Techo por campaña (cupo mensual del plan Resend). Ya no hay límite diario.
-const CAMPAIGN_MAX = 50000;
+// Límite de correos por día (todas las campañas).
+const CAMPAIGN_MAX = 3000;
 
 export function EmailsPage() {
   const qc = useQueryClient();
@@ -397,7 +397,8 @@ function CampaignDialog({
             {count > CAMPAIGN_MAX && (
               <span className="text-muted-foreground">
                 {' '}
-                Se enviará a los primeros {CAMPAIGN_MAX.toLocaleString('es-CO')}.
+                Hoy se enviarán {CAMPAIGN_MAX.toLocaleString('es-CO')} por el límite diario; el
+                resto continúa mañana.
               </span>
             )}
           </div>

@@ -1181,7 +1181,7 @@ export interface components {
             skip_sent: boolean;
             /**
              * Limit
-             * @default 50000
+             * @default 3000
              */
             limit: number;
         };
