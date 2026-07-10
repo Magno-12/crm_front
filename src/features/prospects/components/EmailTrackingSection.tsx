@@ -13,6 +13,20 @@ import {
 import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
 import { formatDateTime } from '@/lib/utils';
 
+/** Traduce el error de un envío fallido a algo legible. */
+function failureInfo(error: string | null): { quota: boolean; reason: string } {
+  const e = (error ?? '').toLowerCase();
+  if (e.includes('daily_quota') || e.includes('quota') || e.includes('429')) {
+    return {
+      quota: true,
+      reason:
+        'No salió porque se alcanzó el límite diario de envíos del proveedor (Resend). ' +
+        'El correo y el destinatario están bien; reinténtelo con «Responder».',
+    };
+  }
+  return { quota: false, reason: error ?? 'No se pudo enviar.' };
+}
+
 /** Una línea "Etiqueta — fecha" (o texto de vacío). */
 function StatusLine({ label, value }: { label: string; value: string }) {
   return (
@@ -45,12 +59,15 @@ function CampaignBlock({
       <ul className="divide-y">
         {group.sends.map((s) => {
           const failed = s.status === 'failed';
+          const fail = failed ? failureInfo(s.error) : null;
           return (
             <li key={s.id} className="space-y-2 px-3 py-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="min-w-0 truncate font-medium">{s.recipient_email}</span>
                 {s.opens > 0 ? (
                   <Badge variant="success">Abierto</Badge>
+                ) : fail?.quota ? (
+                  <Badge variant="warning">No enviado</Badge>
                 ) : failed ? (
                   <Badge variant="destructive">Falló</Badge>
                 ) : (
@@ -59,7 +76,9 @@ function CampaignBlock({
               </div>
               <div className="space-y-1 rounded-md bg-muted/40 px-3 py-2 text-xs">
                 <StatusLine
-                  label={failed ? 'Intento de envío' : 'Enviado'}
+                  label={
+                    failed ? (fail?.quota ? 'No enviado (límite diario)' : 'Intento de envío') : 'Enviado'
+                  }
                   value={formatDateTime(s.date)}
                 />
                 <StatusLine
@@ -70,8 +89,10 @@ function CampaignBlock({
                   label="Respondido"
                   value={group.responded_at ? formatDateTime(group.responded_at) : 'Sin responder'}
                 />
-                {failed && s.error && (
-                  <div className="pt-1 text-destructive">Motivo: {s.error}</div>
+                {fail && (
+                  <div className={`pt-1 ${fail.quota ? 'text-muted-foreground' : 'text-destructive'}`}>
+                    {fail.reason}
+                  </div>
                 )}
               </div>
               {!muted && (
