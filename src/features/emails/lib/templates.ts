@@ -470,6 +470,7 @@ const SAMPLE: Record<string, string> = {
   ciudad: 'Cali',
   representante_legal: 'Carlos Gómez',
   contacto_nombre: 'Ana Torres',
+  atencion: 'Ana Torres',
 };
 
 /** Reemplaza $tokens por ejemplos para mostrar la previsualización. */
