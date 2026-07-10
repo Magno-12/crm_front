@@ -137,15 +137,18 @@ export interface ProspectCampaignGroup {
   campaign_id: string | null;
   campaign_name: string;
   finished: boolean;
+  started_at: string | null;
+  finished_at: string | null;
   sent: number;
   opened: number;
+  no_enviados: number;
   responded: number;
   responded_at: string | null;
   sends: ProspectSendItem[];
 }
 
 export interface ProspectTracking {
-  active: ProspectCampaignGroup[];
+  current: ProspectCampaignGroup[];
   history: ProspectCampaignGroup[];
 }
 
@@ -165,12 +168,16 @@ export interface CampaignHistoryRow {
   estado: string | null;
   audience: number;
   sent: number;
+  sent_rate: number;
   failed: number;
+  no_enviados: number;
+  no_enviados_rate: number;
   opened: number;
   open_rate: number;
   clicked: number;
   click_rate: number;
   responses: number;
+  response_rate: number;
   quota_reached: boolean;
   started_at: string;
   finished_at: string | null;

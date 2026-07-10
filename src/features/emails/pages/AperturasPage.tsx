@@ -264,11 +264,11 @@ export function AperturasPage() {
                     <th className="py-2 pr-3 font-medium">Inicio</th>
                     <th className="py-2 pr-3 font-medium">Fin</th>
                     <th className="py-2 pr-3 font-medium">Audiencia</th>
-                    <th className="py-2 pr-3 font-medium">Enviados</th>
-                    <th className="py-2 pr-3 font-medium">Abiertos</th>
-                    <th className="py-2 pr-3 font-medium">% Apertura</th>
-                    <th className="py-2 pr-3 font-medium">Clics</th>
-                    <th className="py-2 font-medium">Respuestas</th>
+                    <th className="py-2 pr-3 font-medium">Enviados %</th>
+                    <th className="py-2 pr-3 font-medium">No enviados %</th>
+                    <th className="py-2 pr-3 font-medium">Abierto %</th>
+                    <th className="py-2 pr-3 font-medium">Respondidos %</th>
+                    <th className="py-2 font-medium"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -290,15 +290,25 @@ export function AperturasPage() {
                       </td>
                       <td className="py-2 pr-3">{c.audience}</td>
                       <td className="py-2 pr-3">
-                        {c.sent}
-                        {c.failed > 0 && (
-                          <span className="ml-1 text-xs text-destructive">({c.failed} fallidos)</span>
-                        )}
+                        {c.sent} <span className="text-xs text-muted-foreground">· {c.sent_rate}%</span>
                       </td>
-                      <td className="py-2 pr-3">{c.opened}</td>
-                      <td className="py-2 pr-3 font-medium text-primary">{c.open_rate}%</td>
-                      <td className="py-2 pr-3">{c.clicked}</td>
-                      <td className="py-2 font-medium">{c.responses}</td>
+                      <td className="py-2 pr-3">
+                        {c.no_enviados}{' '}
+                        <span className="text-xs text-muted-foreground">· {c.no_enviados_rate}%</span>
+                      </td>
+                      <td className="py-2 pr-3">
+                        {c.opened}{' '}
+                        <span className="text-xs font-medium text-primary">· {c.open_rate}%</span>
+                      </td>
+                      <td className="py-2 pr-3">
+                        {c.responses}{' '}
+                        <span className="text-xs text-muted-foreground">· {c.response_rate}%</span>
+                      </td>
+                      <td className="py-2 text-right">
+                        <span className="whitespace-nowrap text-xs font-medium text-primary">
+                          Ver campaña →
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

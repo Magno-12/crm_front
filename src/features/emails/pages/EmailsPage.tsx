@@ -377,7 +377,10 @@ function CampaignDialog({
             </div>
           </div>
           <p className="-mt-2 text-xs text-muted-foreground">
-            Si las dejas vacías, se registran solas (inicio al enviar, fin al terminar).
+            Estas fechas son <span className="font-medium">solo informativas</span> (el período de
+            la campaña que se muestra en el historial). No controlan el envío: los correos salen de
+            a {CAMPAIGN_MAX.toLocaleString('es-CO')} por día hasta cubrir la audiencia. Si las dejas
+            vacías, se registran solas (inicio al enviar, fin al terminar).
           </p>
 
           <label className="flex items-center gap-2 text-sm">
