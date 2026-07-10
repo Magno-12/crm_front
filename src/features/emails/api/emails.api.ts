@@ -21,6 +21,20 @@ export async function createTemplate(body: EmailTemplateCreate): Promise<EmailTe
   return data;
 }
 
+export async function updateTemplate(
+  id: string,
+  body: Partial<{
+    name: string;
+    subject: string;
+    body_html: string;
+    variables: string[];
+    is_active: boolean;
+  }>,
+): Promise<EmailTemplateRead> {
+  const { data } = await api.patch<EmailTemplateRead>(`/emails/templates/${id}`, body);
+  return data;
+}
+
 export async function sendEmail(body: EmailSendRequest): Promise<EmailSendResult> {
   const { data } = await api.post<EmailSendResult>('/emails/send', body);
   return data;

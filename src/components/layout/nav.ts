@@ -32,9 +32,9 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Base de datos mercadeo', to: '/prospects', icon: Users, permission: 'prospects.view' },
       { label: 'Envío de correos', to: '/emails', icon: Mail, permission: 'emails.send' },
-      { label: 'Apertura de correos', to: '/aperturas', icon: MailOpen, permission: 'emails.send' },
-      { label: 'Seguimiento', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
-      { label: 'Clientes', to: '/clients', icon: Briefcase, permission: 'clients.view' },
+      { label: 'Seguimiento de correo', to: '/aperturas', icon: MailOpen, permission: 'emails.send' },
+      { label: 'Seguimiento de prospecto', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
+      { label: 'Clientes fidelizados', to: '/clients', icon: Briefcase, permission: 'clients.view' },
       { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },
       { label: 'Obligaciones', to: '/tax', icon: Receipt, permission: 'tax.view' },
       { label: 'Alertas', to: '/alerts', icon: BellRing, permission: 'dashboard.view' },

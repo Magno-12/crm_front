@@ -31,8 +31,8 @@ export function ClientsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Clientes</h1>
-        <p className="text-sm text-muted-foreground">Clientes activos de la firma.</p>
+        <h1 className="text-2xl font-bold tracking-tight">Clientes fidelizados</h1>
+        <p className="text-sm text-muted-foreground">Clientes activos y fidelizados de la firma.</p>
       </header>
 
       <div className="relative max-w-md">

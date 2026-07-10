@@ -26,7 +26,7 @@ export function SeguimientoPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Seguimiento</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Seguimiento de prospecto</h1>
         <p className="text-sm text-muted-foreground">
           Prospectos contactados que están en gestión activa.
         </p>

@@ -50,9 +50,9 @@ export function AperturasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Apertura de correos</h1>
+        <h1 className="text-2xl font-semibold">Seguimiento de correo</h1>
         <p className="text-sm text-muted-foreground">
-          Resultados de las campañas: quién abrió, porcentajes y respuestas.
+          Resultados de las campañas: enviados, abiertos, respondidos y respuestas.
         </p>
       </div>
 

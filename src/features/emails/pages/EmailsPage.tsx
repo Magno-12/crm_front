@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Mail, Plus, Send, Megaphone, Trash2, Loader2 } from 'lucide-react';
+import { Mail, Plus, Send, Megaphone, Trash2, Loader2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,7 @@ import {
   sendEmail,
 } from '@/features/emails/api/emails.api';
 import { TemplateBuilderDialog } from '@/features/emails/components/TemplateBuilderDialog';
+import { TemplateEditDialog } from '@/features/emails/components/TemplateEditDialog';
 import { TemplatePreviewDialog } from '@/features/emails/components/TemplatePreviewDialog';
 import {
   PROSPECT_STATUSES,
@@ -54,6 +55,7 @@ export function EmailsPage() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplateRead | null>(null);
+  const [editTemplate, setEditTemplate] = useState<EmailTemplateRead | null>(null);
   const [toDelete, setToDelete] = useState<EmailTemplateRead | null>(null);
 
   const del = useMutation({
@@ -122,6 +124,21 @@ export function EmailsPage() {
                     ) : (
                       <Badge variant="secondary">Inactiva</Badge>
                     )}
+                    <Can code="emails.templates.edit">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        aria-label="Editar plantilla"
+                        title="Editar plantilla"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditTemplate(t);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Can>
                     <Can code="emails.templates.delete">
                       <Button
                         variant="ghost"
@@ -162,6 +179,10 @@ export function EmailsPage() {
       <TemplatePreviewDialog
         template={previewTemplate}
         onOpenChange={(o) => !o && setPreviewTemplate(null)}
+      />
+      <TemplateEditDialog
+        template={editTemplate}
+        onOpenChange={(o) => !o && setEditTemplate(null)}
       />
       <ComposerDialog
         open={composerOpen}
