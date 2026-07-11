@@ -75,10 +75,25 @@ export interface OpeningRow {
   campana: string | null;
   recipient_email: string;
   subject: string | null;
+  status: string;
+  sent_at: string | null;
   opened_at: string | null;
   clicked_at: string | null;
+  error: string | null;
   opens: number;
   clicks: number;
+}
+
+export type RecipientStatus = 'sent' | 'opened' | 'clicked' | 'no_enviados';
+
+export async function getRecipients(
+  status: RecipientStatus,
+  page = 1,
+): Promise<Paged<OpeningRow>> {
+  const { data } = await api.get<Paged<OpeningRow>>('/emails/recipients', {
+    params: { status, page, page_size: 50 },
+  });
+  return data;
 }
 
 export interface ResponseRow {

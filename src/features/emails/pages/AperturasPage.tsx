@@ -7,31 +7,74 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/common/states';
 import { formatDateTime, formatDateOrTime } from '@/lib/utils';
-import { getOpenings, getResponses, getCampaigns } from '@/features/emails/api/emails.api';
+import {
+  getResponses,
+  getCampaigns,
+  getRecipients,
+  type OpeningRow,
+  type RecipientStatus,
+} from '@/features/emails/api/emails.api';
 import { getEmailEngagement } from '@/features/dashboard/api/dashboard.api';
 import { CampaignDetailDialog } from '@/features/emails/components/CampaignDetailDialog';
 import { SendMessageDialog } from '@/features/emails/components/SendMessageDialog';
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+type FilterKey = 'enviados' | 'abiertos' | 'clics' | 'respondidos' | 'no_enviados';
+
+const SEND_STATUS: Record<Exclude<FilterKey, 'respondidos'>, RecipientStatus> = {
+  enviados: 'sent',
+  abiertos: 'opened',
+  clics: 'clicked',
+  no_enviados: 'no_enviados',
+};
+
+const FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'enviados', label: 'Enviados' },
+  { key: 'abiertos', label: 'Abiertos' },
+  { key: 'clics', label: 'Con clic' },
+  { key: 'respondidos', label: 'Respondidos' },
+  { key: 'no_enviados', label: 'No enviados' },
+];
+
+function Stat({
+  label,
+  value,
+  accent,
+  active,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  active?: boolean;
+  onClick?: () => void;
+}) {
   return (
-    <div className="rounded-lg bg-muted/40 p-3 text-center">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg border p-3 text-center transition ${
+        active ? 'border-primary bg-primary/10' : 'border-transparent bg-muted/40 hover:bg-muted'
+      }`}
+    >
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-2xl font-semibold ${accent ? 'text-primary' : ''}`}>{value}</p>
-    </div>
+    </button>
   );
 }
 
+/** Texto legible para un envío fallido. */
+function failReason(error: string | null): string {
+  const e = (error ?? '').toLowerCase();
+  if (e.includes('daily_quota') || e.includes('quota') || e.includes('429')) {
+    return 'No salió por el límite diario de envíos (se reintenta luego).';
+  }
+  return error ?? 'No se pudo enviar.';
+}
+
 export function AperturasPage() {
-  // Por defecto incluimos también los correos que no están en la base: así las
-  // respuestas de cualquier remitente (p. ej. cuentas personales) siempre aparecen.
+  const [filter, setFilter] = useState<FilterKey>('abiertos');
+  // Por defecto incluimos también los correos que no están en la base.
   const [includeUnmatched, setIncludeUnmatched] = useState(true);
-  const openings = useQuery({ queryKey: ['email-openings'], queryFn: () => getOpenings(1) });
-  const responses = useQuery({
-    queryKey: ['email-responses', includeUnmatched],
-    queryFn: () => getResponses(1, includeUnmatched),
-  });
-  const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
-  const engagement = useQuery({ queryKey: ['email-engagement'], queryFn: getEmailEngagement });
   const [detailId, setDetailId] = useState<string | null>(null);
   const [compose, setCompose] = useState<{
     email: string;
@@ -39,50 +82,185 @@ export function AperturasPage() {
     subject: string | null;
   } | null>(null);
 
-  const opens = openings.data;
+  const isResp = filter === 'respondidos';
+  const recipients = useQuery({
+    queryKey: ['email-recipients', filter],
+    queryFn: () => getRecipients(SEND_STATUS[filter as Exclude<FilterKey, 'respondidos'>]),
+    enabled: !isResp,
+  });
+  const responses = useQuery({
+    queryKey: ['email-responses', includeUnmatched],
+    queryFn: () => getResponses(1, includeUnmatched),
+  });
+  const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
+  const engagement = useQuery({ queryKey: ['email-engagement'], queryFn: getEmailEngagement });
+
   const resp = responses.data;
   const eng = engagement.data;
-
   const sent = eng?.sent ?? 0;
   const responded = resp?.total ?? 0;
   const respondedRate = sent ? Math.round((responded / sent) * 1000) / 10 : 0;
+
+  const listTotal = isResp ? (resp?.total ?? 0) : (recipients.data?.total ?? 0);
+  const rows: OpeningRow[] = recipients.data?.items ?? [];
+
+  const whenLabel =
+    filter === 'enviados'
+      ? 'Enviado'
+      : filter === 'clics'
+        ? 'Con clic'
+        : filter === 'no_enviados'
+          ? 'Motivo'
+          : 'Abierto';
+
+  const whenValue = (o: OpeningRow) => {
+    if (filter === 'no_enviados')
+      return <span className="text-xs text-destructive">{failReason(o.error)}</span>;
+    const d = filter === 'enviados' ? o.sent_at : filter === 'clics' ? o.clicked_at : o.opened_at;
+    return <span className="font-medium text-primary">{formatDateTime(d)}</span>;
+  };
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Seguimiento de correo</h1>
         <p className="text-sm text-muted-foreground">
-          Resultados de las campañas: enviados, abiertos, respondidos y respuestas.
+          Toque un recuadro o un filtro para ver quién recibió, abrió, respondió o no le llegó.
         </p>
       </div>
 
-      {/* Resumen: Enviados — Abiertos — Respondidos — % Abierto — % Respondido */}
+      {/* Resumen (clic para filtrar) */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        <Stat label="Enviados" value={String(sent)} />
-        <Stat label="Abiertos" value={String(eng?.opened ?? 0)} />
-        <Stat label="Respondidos" value={String(responded)} />
-        <Stat label="% Abierto" value={`${eng?.open_rate ?? 0}%`} accent />
-        <Stat label="% Respondido" value={`${respondedRate}%`} accent />
+        <Stat
+          label="Enviados"
+          value={String(sent)}
+          active={filter === 'enviados'}
+          onClick={() => setFilter('enviados')}
+        />
+        <Stat
+          label="Abiertos"
+          value={String(eng?.opened ?? 0)}
+          active={filter === 'abiertos'}
+          onClick={() => setFilter('abiertos')}
+        />
+        <Stat
+          label="Respondidos"
+          value={String(responded)}
+          active={filter === 'respondidos'}
+          onClick={() => setFilter('respondidos')}
+        />
+        <Stat
+          label="% Abierto"
+          value={`${eng?.open_rate ?? 0}%`}
+          accent
+          active={filter === 'abiertos'}
+          onClick={() => setFilter('abiertos')}
+        />
+        <Stat
+          label="% Respondido"
+          value={`${respondedRate}%`}
+          accent
+          active={filter === 'respondidos'}
+          onClick={() => setFilter('respondidos')}
+        />
       </div>
 
-      {/* Correos abiertos */}
+      {/* Filtro */}
+      <div className="flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <Button
+            key={f.key}
+            size="sm"
+            variant={filter === f.key ? 'default' : 'outline'}
+            onClick={() => setFilter(f.key)}
+          >
+            {f.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Lista filtrada */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MailOpen className="h-4 w-4" /> Correos abiertos
-            {opens && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              {isResp ? <MessageSquare className="h-4 w-4" /> : <MailOpen className="h-4 w-4" />}
+              {FILTERS.find((f) => f.key === filter)?.label}
               <Badge variant="secondary" className="ml-1">
-                {opens.total}
+                {listTotal}
               </Badge>
+            </CardTitle>
+            {isResp && (
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={includeUnmatched}
+                  onChange={(e) => setIncludeUnmatched(e.target.checked)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                Incluir correos que no están en la base
+              </label>
             )}
-          </CardTitle>
+          </div>
         </CardHeader>
-        <CardContent>
-          {!opens || opens.items.length === 0 ? (
-            <EmptyState
-              title="Aún no hay aperturas"
-              description="Cuando sus clientes abran los correos de las campañas, aquí los verá con fecha y hora."
-            />
+        <CardContent className="space-y-3">
+          {isResp ? (
+            !resp || resp.items.length === 0 ? (
+              <EmptyState
+                title="Sin respuestas aún"
+                description="Cuando un cliente responda un correo, aquí podrá leerlo sin salir del sistema."
+              />
+            ) : (
+              <ul className="divide-y rounded-md border">
+                {resp.items.map((r) => (
+                  <li key={r.id} className="space-y-1 px-3 py-3">
+                    <div className="flex items-center justify-between gap-2">
+                      {r.prospect_id ? (
+                        <Link
+                          to={`/prospects/${r.prospect_id}`}
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          {r.razon_social || r.from_email}
+                        </Link>
+                      ) : (
+                        <span className="flex items-center gap-2 text-sm font-medium">
+                          {r.from_email}
+                          <Badge variant="secondary" className="text-[10px]">
+                            no está en la base
+                          </Badge>
+                        </span>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {formatDateTime(r.received_at)}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1"
+                          onClick={() =>
+                            setCompose({
+                              email: r.from_email,
+                              prospectId: r.prospect_id,
+                              subject: r.subject,
+                            })
+                          }
+                        >
+                          <Send className="h-3.5 w-3.5" /> Responder
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">{r.from_email}</div>
+                    {r.subject && <div className="text-sm font-medium">{r.subject}</div>}
+                    {r.snippet && <p className="text-sm text-muted-foreground">{r.snippet}</p>}
+                  </li>
+                ))}
+              </ul>
+            )
+          ) : recipients.isLoading ? (
+            <p className="text-sm text-muted-foreground">Cargando…</p>
+          ) : rows.length === 0 ? (
+            <EmptyState title="Sin resultados" description="No hay correos en este estado." />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -90,13 +268,13 @@ export function AperturasPage() {
                   <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                     <th className="py-2 pr-3 font-medium">Empresa / correo</th>
                     <th className="py-2 pr-3 font-medium">Campaña</th>
-                    <th className="py-2 pr-3 font-medium">Abierto (fecha y hora)</th>
-                    <th className="py-2 pr-3 font-medium">Clic</th>
+                    <th className="py-2 pr-3 font-medium">{whenLabel}</th>
+                    {filter === 'abiertos' && <th className="py-2 pr-3 font-medium">Clic</th>}
                     <th className="py-2 font-medium"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {opens.items.map((o) => (
+                  {rows.map((o) => (
                     <tr key={o.id} className="border-b last:border-0">
                       <td className="py-2 pr-3">
                         {o.prospect_id ? (
@@ -114,18 +292,18 @@ export function AperturasPage() {
                       <td className="max-w-[220px] truncate py-2 pr-3 text-muted-foreground">
                         {o.campana || o.subject || '—'}
                       </td>
-                      <td className="py-2 pr-3 font-medium text-primary">
-                        {formatDateTime(o.opened_at)}
-                      </td>
-                      <td className="py-2 pr-3">
-                        {o.clicked_at ? (
-                          <Badge variant="success" className="gap-1">
-                            <MousePointerClick className="h-3 w-3" /> Sí
-                          </Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </td>
+                      <td className="py-2 pr-3">{whenValue(o)}</td>
+                      {filter === 'abiertos' && (
+                        <td className="py-2 pr-3">
+                          {o.clicked_at ? (
+                            <Badge variant="success" className="gap-1">
+                              <MousePointerClick className="h-3 w-3" /> Sí
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      )}
                       <td className="py-2">
                         <div className="flex items-center justify-end gap-2">
                           <Button
@@ -154,85 +332,6 @@ export function AperturasPage() {
                 </tbody>
               </table>
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Respuestas de clientes */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <MessageSquare className="h-4 w-4" /> Respuestas de clientes
-              {resp && (
-                <Badge variant="secondary" className="ml-1">
-                  {resp.total}
-                </Badge>
-              )}
-            </CardTitle>
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={includeUnmatched}
-                onChange={(e) => setIncludeUnmatched(e.target.checked)}
-                className="h-4 w-4 rounded border-input accent-primary"
-              />
-              Incluir correos que no están en la base
-            </label>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {!resp || resp.items.length === 0 ? (
-            <EmptyState
-              title="Sin respuestas aún"
-              description="Cuando un cliente responda un correo, aquí podrá leerlo sin salir del sistema."
-            />
-          ) : (
-            <ul className="divide-y rounded-md border">
-              {resp.items.map((r) => (
-                <li key={r.id} className="space-y-1 px-3 py-3">
-                  <div className="flex items-center justify-between gap-2">
-                    {r.prospect_id ? (
-                      <Link
-                        to={`/prospects/${r.prospect_id}`}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        {r.razon_social || r.from_email}
-                      </Link>
-                    ) : (
-                      <span className="flex items-center gap-2 text-sm font-medium">
-                        {r.from_email}
-                        <Badge variant="secondary" className="text-[10px]">
-                          no está en la base
-                        </Badge>
-                      </span>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTime(r.received_at)}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1"
-                        onClick={() =>
-                          setCompose({
-                            email: r.from_email,
-                            prospectId: r.prospect_id,
-                            subject: r.subject,
-                          })
-                        }
-                      >
-                        <Send className="h-3.5 w-3.5" /> Responder
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">{r.from_email}</div>
-                  {r.subject && <div className="text-sm font-medium">{r.subject}</div>}
-                  {r.snippet && <p className="text-sm text-muted-foreground">{r.snippet}</p>}
-                </li>
-              ))}
-            </ul>
           )}
         </CardContent>
       </Card>
@@ -318,10 +417,7 @@ export function AperturasPage() {
         </CardContent>
       </Card>
 
-      <CampaignDetailDialog
-        campaignId={detailId}
-        onOpenChange={(o) => !o && setDetailId(null)}
-      />
+      <CampaignDetailDialog campaignId={detailId} onOpenChange={(o) => !o && setDetailId(null)} />
 
       <SendMessageDialog
         open={!!compose}
