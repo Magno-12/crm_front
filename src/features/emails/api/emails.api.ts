@@ -88,10 +88,11 @@ export type RecipientStatus = 'sent' | 'opened' | 'clicked' | 'no_enviados';
 
 export async function getRecipients(
   status: RecipientStatus,
+  campaignId?: string | null,
   page = 1,
 ): Promise<Paged<OpeningRow>> {
   const { data } = await api.get<Paged<OpeningRow>>('/emails/recipients', {
-    params: { status, page, page_size: 50 },
+    params: { status, campaign_id: campaignId ?? undefined, page, page_size: 50 },
   });
   return data;
 }
@@ -125,9 +126,15 @@ export async function getOpenings(page = 1): Promise<Paged<OpeningRow>> {
 export async function getResponses(
   page = 1,
   includeUnmatched = false,
+  campaignId?: string | null,
 ): Promise<Paged<ResponseRow>> {
   const { data } = await api.get<Paged<ResponseRow>>('/emails/responses', {
-    params: { page, page_size: 50, include_unmatched: includeUnmatched },
+    params: {
+      page,
+      page_size: 50,
+      include_unmatched: includeUnmatched,
+      campaign_id: campaignId ?? undefined,
+    },
   });
   return data;
 }
