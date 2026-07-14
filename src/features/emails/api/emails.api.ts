@@ -205,6 +205,16 @@ export interface CampaignHistoryRow {
   finished_at: string | null;
   start_date: string | null;
   end_date: string | null;
+  send_date: string | null;
+  envios_count: number;
+}
+
+export interface CampaignEnvio {
+  date: string | null;
+  audience: number;
+  sent: number;
+  no_enviados: number;
+  opened: number;
 }
 
 export interface CampaignRecipient {
@@ -221,6 +231,7 @@ export interface CampaignRecipient {
 
 export interface CampaignDetail {
   campaign: CampaignHistoryRow;
+  envios: CampaignEnvio[];
   recipients: CampaignRecipient[];
 }
 

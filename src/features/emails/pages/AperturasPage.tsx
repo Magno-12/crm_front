@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MailOpen, MessageSquare, MousePointerClick, History, Send, ArrowLeft, Megaphone } from 'lucide-react';
+import { MailOpen, MessageSquare, MousePointerClick, Send, ArrowLeft, Megaphone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { formatDateTime, formatDateOrTime } from '@/lib/utils';
 import {
   getResponses,
   getCampaigns,
+  getCampaignDetail,
   getRecipients,
   type OpeningRow,
   type RecipientStatus,
@@ -104,6 +105,12 @@ function CampaignDetail({
     enabled: isResp,
   });
 
+  const detail = useQuery({
+    queryKey: ['email-campaign-detail', campaign.id],
+    queryFn: () => getCampaignDetail(campaign.id),
+  });
+  const envios = detail.data?.envios ?? [];
+
   const rows: OpeningRow[] = recipients.data?.items ?? [];
   const listTotal = isResp ? (responses.data?.total ?? 0) : (recipients.data?.total ?? 0);
 
@@ -122,13 +129,14 @@ function CampaignDetail({
     return <span className="font-medium text-primary">{formatDateTime(d)}</span>;
   };
 
-  const dates = `${formatDateOrTime(campaign.start_date ?? campaign.started_at)} — ${
-    campaign.end_date
-      ? formatDateOrTime(campaign.end_date)
-      : campaign.finished_at
-        ? formatDateOrTime(campaign.finished_at)
-        : 'En curso'
-  }`;
+  // Solo la fecha de envío por correo (no inicio/fin). Si hubo varios envíos,
+  // se muestran uno a uno en el bloque "Envíos".
+  const sendLabel =
+    campaign.envios_count > 1
+      ? `${campaign.envios_count} envíos por correo`
+      : campaign.send_date
+        ? `Enviada el ${formatDateOrTime(campaign.send_date)}`
+        : 'Aún sin envíos';
 
   return (
     <Card>
@@ -139,11 +147,42 @@ function CampaignDetail({
           </Button>
           <div>
             <CardTitle className="text-base">{campaign.name}</CardTitle>
-            <p className="text-xs text-muted-foreground">{dates}</p>
+            <p className="text-xs text-muted-foreground">{sendLabel}</p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Envíos: cada lote enviado con su día y cifras (una campaña puede tener varios) */}
+        {envios.length > 1 && (
+          <div className="rounded-lg border">
+            <div className="border-b px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
+              Envíos ({envios.length})
+            </div>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b text-left text-xs uppercase text-muted-foreground">
+                  <th className="px-3 py-2 font-medium">Fecha de envío</th>
+                  <th className="px-3 py-2 font-medium">Enviados</th>
+                  <th className="px-3 py-2 font-medium">Recibidos</th>
+                  <th className="px-3 py-2 font-medium">Abiertos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {envios.map((e, i) => (
+                  <tr key={i} className="border-b last:border-0">
+                    <td className="px-3 py-2 font-medium">
+                      {e.date ? formatDateOrTime(e.date) : '—'}
+                    </td>
+                    <td className="px-3 py-2">{e.audience}</td>
+                    <td className="px-3 py-2">{e.sent}</td>
+                    <td className="px-3 py-2 text-primary">{e.opened}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
         {/* Recuadros de la campaña (porcentajes sobre el total de enviados) */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
           <Recuadro label="Enviados" value={String(total)} sub="100%" />
@@ -385,12 +424,11 @@ export function AperturasPage() {
                     <div className="min-w-0">
                       <div className="truncate font-medium text-primary">{c.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        Inicio: {formatDateOrTime(c.start_date ?? c.started_at)} · Fin:{' '}
-                        {c.end_date
-                          ? formatDateOrTime(c.end_date)
-                          : c.finished_at
-                            ? formatDateOrTime(c.finished_at)
-                            : 'En curso'}
+                        {c.envios_count > 1
+                          ? `${c.envios_count} envíos · último ${formatDateOrTime(
+                              c.send_date ?? c.started_at,
+                            )}`
+                          : `Enviada el ${formatDateOrTime(c.send_date ?? c.started_at)}`}
                       </div>
                     </div>
                     <span className="whitespace-nowrap text-sm font-medium text-primary">
@@ -403,107 +441,6 @@ export function AperturasPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Historial de campañas (con las cifras de cada una) */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <History className="h-4 w-4" /> Historial de campañas
-            {campaigns.data && (
-              <Badge variant="secondary" className="ml-1">
-                {campaigns.data.total}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {items.length === 0 ? (
-            <EmptyState
-              title="Aún no hay campañas"
-              description="Cuando envíes una campaña, aquí verás su historial y resultados."
-            />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-xs uppercase text-muted-foreground">
-                    <th className="py-2 pr-3 font-medium">Campaña</th>
-                    <th className="py-2 pr-3 font-medium">Inicio</th>
-                    <th className="py-2 pr-3 font-medium">Fin</th>
-                    <th className="py-2 pr-3 font-medium">Enviados</th>
-                    <th className="py-2 pr-3 font-medium">Recibidos</th>
-                    <th className="py-2 pr-3 font-medium">No recibidos</th>
-                    <th className="py-2 pr-3 font-medium">Abiertos</th>
-                    <th className="py-2 pr-3 font-medium">Respondidos</th>
-                    <th className="py-2 pr-3 font-medium">Clics</th>
-                    <th className="py-2 font-medium"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((c) => (
-                    <tr
-                      key={c.id}
-                      className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
-                      onClick={() => setSelectedId(c.id)}
-                      title="Ver seguimiento de la campaña"
-                    >
-                      <td className="max-w-[200px] truncate py-2 pr-3 font-medium text-primary">
-                        {c.name}
-                      </td>
-                      <td className="py-2 pr-3 text-muted-foreground">
-                        {formatDateOrTime(c.start_date ?? c.started_at)}
-                      </td>
-                      <td className="py-2 pr-3 text-muted-foreground">
-                        {c.end_date
-                          ? formatDateOrTime(c.end_date)
-                          : c.finished_at
-                            ? formatDateOrTime(c.finished_at)
-                            : 'En curso'}
-                      </td>
-                      <td className="py-2 pr-3">{c.audience}</td>
-                      <td className="py-2 pr-3">
-                        {c.sent}{' '}
-                        <span className="text-xs text-muted-foreground">
-                          · {pct(c.sent, c.audience)}%
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3">
-                        {c.no_enviados}{' '}
-                        <span className="text-xs text-muted-foreground">
-                          · {pct(c.no_enviados, c.audience)}%
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3">
-                        {c.opened}{' '}
-                        <span className="text-xs font-medium text-primary">
-                          · {pct(c.opened, c.audience)}%
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3">
-                        {c.responses}{' '}
-                        <span className="text-xs text-muted-foreground">
-                          · {pct(c.responses, c.audience)}%
-                        </span>
-                      </td>
-                      <td className="py-2 pr-3">
-                        {c.clicked}{' '}
-                        <span className="text-xs text-muted-foreground">
-                          · {pct(c.clicked, c.audience)}%
-                        </span>
-                      </td>
-                      <td className="py-2 text-right">
-                        <span className="whitespace-nowrap text-xs font-medium text-primary">
-                          Ver campaña →
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
