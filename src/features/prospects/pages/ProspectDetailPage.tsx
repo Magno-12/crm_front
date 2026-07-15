@@ -9,7 +9,6 @@ import { FullPageSpinner, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
 import { EmailTrackingSection } from '@/features/prospects/components/EmailTrackingSection';
-import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeline';
 import { useQuery } from '@tanstack/react-query';
 import { useProspect, useConvertToClient } from '@/features/prospects/hooks/useProspects';
 import { searchCiiu } from '@/features/prospects/api/prospects.api';
@@ -144,7 +143,6 @@ export function ProspectDetailPage() {
 
         <div className="space-y-6 lg:col-span-2">
           <EmailTrackingSection prospectId={prospect.id} />
-          <FollowUpTimeline prospectId={prospect.id} />
         </div>
       </div>
 
