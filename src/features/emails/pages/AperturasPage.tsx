@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MailOpen, MessageSquare, MousePointerClick, Send, ArrowLeft, Megaphone } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,8 +31,8 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'recibidos', label: 'Recibidos' },
   { key: 'no_recibidos', label: 'No recibidos' },
   { key: 'abiertos', label: 'Abiertos' },
-  { key: 'clics', label: 'Con clic' },
   { key: 'respondidos', label: 'Respondidos' },
+  { key: 'clics', label: 'Con clic' },
 ];
 
 const pct = (n: number, total: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
@@ -94,14 +94,23 @@ function CampaignDetail({
 
   const total = campaign.audience;
   const isResp = filter === 'respondidos';
-  const recipients = useQuery({
+  const recipients = useInfiniteQuery({
     queryKey: ['email-recipients', campaign.id, filter],
-    queryFn: () => getRecipients(SEND_STATUS[filter as Exclude<FilterKey, 'respondidos'>], campaign.id),
+    queryFn: ({ pageParam }) =>
+      getRecipients(
+        SEND_STATUS[filter as Exclude<FilterKey, 'respondidos'>],
+        campaign.id,
+        pageParam,
+      ),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.has_next ? last.page + 1 : undefined),
     enabled: !isResp,
   });
-  const responses = useQuery({
+  const responses = useInfiniteQuery({
     queryKey: ['email-responses', campaign.id, includeUnmatched],
-    queryFn: () => getResponses(1, includeUnmatched, campaign.id),
+    queryFn: ({ pageParam }) => getResponses(pageParam, includeUnmatched, campaign.id),
+    initialPageParam: 1,
+    getNextPageParam: (last) => (last.has_next ? last.page + 1 : undefined),
     enabled: isResp,
   });
 
@@ -111,8 +120,11 @@ function CampaignDetail({
   });
   const envios = detail.data?.envios ?? [];
 
-  const rows: OpeningRow[] = recipients.data?.items ?? [];
-  const listTotal = isResp ? (responses.data?.total ?? 0) : (recipients.data?.total ?? 0);
+  const rows: OpeningRow[] = recipients.data?.pages.flatMap((p) => p.items) ?? [];
+  const responseItems = responses.data?.pages.flatMap((p) => p.items) ?? [];
+  const listTotal = isResp
+    ? (responses.data?.pages[0]?.total ?? 0)
+    : (recipients.data?.pages[0]?.total ?? 0);
 
   const whenLabel =
     filter === 'recibidos'
@@ -153,7 +165,7 @@ function CampaignDetail({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Envíos: cada lote enviado con su día y cifras (una campaña puede tener varios) */}
-        {envios.length > 1 && (
+        {envios.length > 0 && (
           <div className="rounded-lg border">
             <div className="border-b px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
               Envíos ({envios.length})
@@ -258,11 +270,12 @@ function CampaignDetail({
         </div>
 
         {isResp ? (
-          !responses.data || responses.data.items.length === 0 ? (
+          responseItems.length === 0 ? (
             <EmptyState title="Sin respuestas" description="Nadie ha respondido esta campaña aún." />
           ) : (
+            <>
             <ul className="divide-y rounded-md border">
-              {responses.data.items.map((r) => (
+              {responseItems.map((r) => (
                 <li key={r.id} className="space-y-1 px-3 py-3">
                   <div className="flex items-center justify-between gap-2">
                     {r.prospect_id ? (
@@ -306,6 +319,19 @@ function CampaignDetail({
                 </li>
               ))}
             </ul>
+            {responses.hasNextPage && (
+              <div className="mt-3 text-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={responses.isFetchingNextPage}
+                  onClick={() => responses.fetchNextPage()}
+                >
+                  {responses.isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                </Button>
+              </div>
+            )}
+            </>
           )
         ) : recipients.isLoading ? (
           <p className="text-sm text-muted-foreground">Cargando…</p>
@@ -361,6 +387,18 @@ function CampaignDetail({
                 ))}
               </tbody>
             </table>
+            {recipients.hasNextPage && (
+              <div className="mt-3 text-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={recipients.isFetchingNextPage}
+                  onClick={() => recipients.fetchNextPage()}
+                >
+                  {recipients.isFetchingNextPage ? 'Cargando…' : 'Cargar más'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
