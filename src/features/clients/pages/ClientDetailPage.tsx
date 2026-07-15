@@ -28,6 +28,7 @@ import {
 } from '@/features/clients/api/clients.api';
 import { ClientEditDialog } from '@/features/clients/components/ClientEditDialog';
 import { EmailTrackingSection } from '@/features/prospects/components/EmailTrackingSection';
+import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeline';
 import { listServices } from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP, formatDate } from '@/lib/utils';
@@ -189,7 +190,12 @@ export function ClientDetailPage() {
         </CardContent>
       </Card>
 
-      {client.prospect_id && <EmailTrackingSection prospectId={client.prospect_id} />}
+      {client.prospect_id && (
+        <>
+          <EmailTrackingSection prospectId={client.prospect_id} />
+          <FollowUpTimeline prospectId={client.prospect_id} />
+        </>
+      )}
 
       <ClientEditDialog client={client} open={editing} onOpenChange={setEditing} />
     </div>
