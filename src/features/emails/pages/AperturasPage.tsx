@@ -141,14 +141,17 @@ function CampaignDetail({
     return <span className="font-medium text-primary">{formatDateTime(d)}</span>;
   };
 
-  // Solo la fecha de envío por correo (no inicio/fin). Si hubo varios envíos,
-  // se muestran uno a uno en el bloque "Envíos".
+  // Solo la fecha de envío por correo (no inicio/fin). Los envíos se agrupan por
+  // día real; la cabecera cuadra con el bloque "Envíos".
+  const lastEnvio = envios[envios.length - 1];
   const sendLabel =
-    campaign.envios_count > 1
-      ? `${campaign.envios_count} envíos por correo`
-      : campaign.send_date
-        ? `Enviada el ${formatDateOrTime(campaign.send_date)}`
-        : 'Aún sin envíos';
+    envios.length > 1
+      ? `${envios.length} envíos por correo`
+      : lastEnvio
+        ? `Enviada el ${formatDateOrTime(lastEnvio.date)}`
+        : campaign.send_date
+          ? `Enviada el ${formatDateOrTime(campaign.send_date)}`
+          : 'Aún sin envíos';
 
   return (
     <Card>
