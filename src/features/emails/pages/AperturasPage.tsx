@@ -1,17 +1,37 @@
 import { useState } from 'react';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { MailOpen, MessageSquare, MousePointerClick, Send, ArrowLeft, Megaphone } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  MailOpen,
+  MessageSquare,
+  MousePointerClick,
+  Send,
+  ArrowLeft,
+  Megaphone,
+  Trash2,
+  Loader2,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { EmptyState } from '@/components/common/states';
+import { apiErrorMessage } from '@/api/client';
 import { formatDateTime, formatDateOrTime } from '@/lib/utils';
 import {
   getResponses,
   getCampaigns,
   getCampaignDetail,
   getRecipients,
+  deleteCampaign,
   type OpeningRow,
   type RecipientStatus,
   type CampaignHistoryRow,
@@ -419,7 +439,20 @@ function CampaignDetail({
 
 export function AperturasPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [toDelete, setToDelete] = useState<CampaignHistoryRow | null>(null);
+  const qc = useQueryClient();
   const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
+
+  const del = useMutation({
+    mutationFn: (id: string) => deleteCampaign(id),
+    onSuccess: (res) => {
+      toast.success(`Campaña "${res.name}" eliminada (${res.sends_deleted} correos).`);
+      qc.invalidateQueries({ queryKey: ['email-campaigns'] });
+      setToDelete(null);
+      setSelectedId(null);
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   const items = campaigns.data?.items ?? [];
   const selected = items.find((c) => c.id === selectedId) ?? null;
@@ -472,9 +505,24 @@ export function AperturasPage() {
                           : `Enviada el ${formatDateOrTime(c.send_date ?? c.started_at)}`}
                       </div>
                     </div>
-                    <span className="whitespace-nowrap text-sm font-medium text-primary">
-                      Ver campaña →
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="whitespace-nowrap text-sm font-medium text-primary">
+                        Ver campaña →
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        aria-label="Eliminar campaña"
+                        title="Eliminar campaña"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setToDelete(c);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -482,6 +530,41 @@ export function AperturasPage() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog
+        open={!!toDelete}
+        onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Eliminar campaña?</DialogTitle>
+            <DialogDescription>
+              Se eliminará la campaña{' '}
+              <span className="font-medium text-foreground">{toDelete?.name}</span> con todos sus
+              envíos y su trazabilidad (recibidos, aperturas y clics). Las respuestas de clientes se
+              conservan. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setToDelete(null)} disabled={del.isPending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              className="gap-1"
+              disabled={del.isPending}
+              onClick={() => toDelete && del.mutate(toDelete.id)}
+            >
+              {del.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

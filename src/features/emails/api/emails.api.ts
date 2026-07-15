@@ -255,6 +255,18 @@ export async function updateCampaignDates(
   return data;
 }
 
+export interface CampaignDeleted {
+  name: string;
+  campaigns_deleted: number;
+  sends_deleted: number;
+  responses_unlinked: number;
+}
+
+export async function deleteCampaign(id: string): Promise<CampaignDeleted> {
+  const { data } = await api.delete<CampaignDeleted>(`/emails/campaigns/${id}`);
+  return data;
+}
+
 export async function deleteTemplate(id: string): Promise<void> {
   await api.delete(`/emails/templates/${id}`);
 }
