@@ -271,12 +271,19 @@ export async function deleteTemplate(id: string): Promise<void> {
   await api.delete(`/emails/templates/${id}`);
 }
 
+export interface EmailAttachment {
+  filename: string;
+  content: string; // base64
+  content_type?: string | null;
+}
+
 export interface SendMessageBody {
   to_email: string;
   subject: string;
   body: string;
   prospect_id?: string | null;
   from_email?: string;
+  attachments?: EmailAttachment[];
 }
 
 export async function sendMessage(body: SendMessageBody): Promise<void> {

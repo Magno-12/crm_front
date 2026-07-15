@@ -498,11 +498,13 @@ export function AperturasPage() {
                     <div className="min-w-0">
                       <div className="truncate font-medium text-primary">{c.name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {c.envios_count > 1
-                          ? `${c.envios_count} envíos · último ${formatDateOrTime(
-                              c.send_date ?? c.started_at,
+                        {c.start_date && c.end_date
+                          ? `Del ${formatDateOrTime(c.start_date)} al ${formatDateOrTime(
+                              c.end_date,
                             )}`
-                          : `Enviada el ${formatDateOrTime(c.send_date ?? c.started_at)}`}
+                          : c.send_date
+                            ? `Enviada el ${formatDateOrTime(c.send_date)}`
+                            : 'Sin fecha definida'}
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
