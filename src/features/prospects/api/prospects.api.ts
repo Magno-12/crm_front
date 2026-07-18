@@ -45,6 +45,12 @@ export async function updateProspect(id: string, body: ProspectUpdate): Promise<
   return data;
 }
 
+/** Bloquea o desbloquea el envío de correos a este prospecto (baja manual). */
+export async function setEmailOptOut(id: string, optOut: boolean): Promise<ProspectRead> {
+  const { data } = await api.patch<ProspectRead>(`/prospects/${id}`, { email_opt_out: optOut });
+  return data;
+}
+
 export async function deleteProspect(id: string): Promise<void> {
   await api.delete(`/prospects/${id}`);
 }

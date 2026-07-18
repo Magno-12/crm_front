@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Moon, Sun, LogOut, User as UserIcon, Monitor, Clock } from 'lucide-react';
+import { Menu, Moon, Sun, LogOut, User as UserIcon, Monitor, Clock, CalendarClock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatDateTime } from '@/lib/utils';
 import {
@@ -15,6 +16,33 @@ import { useTheme } from '@/hooks/useTheme';
 
 interface TopBarProps {
   onOpenMobileNav: () => void;
+}
+
+/** Fecha y hora actual del sistema (hora de Colombia), actualizada cada segundo. */
+function LiveClock() {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const text = now.toLocaleString('es-CO', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZone: 'America/Bogota',
+  });
+  return (
+    <span
+      className="hidden items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary md:flex"
+      title="Fecha y hora actual del sistema"
+    >
+      <CalendarClock className="h-3.5 w-3.5" /> {text}
+    </span>
+  );
 }
 
 export function TopBar({ onOpenMobileNav }: TopBarProps) {
@@ -48,6 +76,8 @@ export function TopBar({ onOpenMobileNav }: TopBarProps) {
       </Button>
 
       <div className="flex-1" />
+
+      <LiveClock />
 
       {user?.last_login_at && (
         <span

@@ -293,7 +293,7 @@ export function ProspectsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button asChild variant="ghost" size="sm">
-                        <Link to={`/prospects/${p.id}`}>Ver</Link>
+                        <Link to={`/prospects/${p.id}`}>Ver ficha</Link>
                       </Button>
                     </TableCell>
                   </TableRow>

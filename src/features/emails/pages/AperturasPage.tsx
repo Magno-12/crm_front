@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   MailOpen,
@@ -11,10 +11,13 @@ import {
   Megaphone,
   Trash2,
   Loader2,
+  Pencil,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +26,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { EmptyState } from '@/components/common/states';
+import { Can } from '@/components/auth/Can';
 import { apiErrorMessage } from '@/api/client';
 import { formatDateTime, formatDateOrTime } from '@/lib/utils';
 import {
@@ -32,6 +43,10 @@ import {
   getCampaignDetail,
   getRecipients,
   deleteCampaign,
+  updateCampaignDates,
+  listTemplates,
+  getAudienceCount,
+  sendCampaign,
   type OpeningRow,
   type RecipientStatus,
   type CampaignHistoryRow,
@@ -96,6 +111,207 @@ function failReason(error: string | null): string {
   return error ?? 'No se pudo enviar.';
 }
 
+/** Editar una campaña: nombre y fechas de inicio/fin. */
+function CampaignEditDialog({
+  campaign,
+  onOpenChange,
+}: {
+  campaign: CampaignHistoryRow | null;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const qc = useQueryClient();
+  const [name, setName] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+
+  if (campaign && campaign.id !== loadedId) {
+    setName(campaign.name);
+    setStartDate(campaign.start_date?.slice(0, 10) ?? '');
+    setEndDate(campaign.end_date?.slice(0, 10) ?? '');
+    setLoadedId(campaign.id);
+  }
+
+  const mut = useMutation({
+    mutationFn: () =>
+      updateCampaignDates(campaign!.id, {
+        start_date: startDate || null,
+        end_date: endDate || null,
+        name: name.trim() || null,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['email-campaigns'] });
+      qc.invalidateQueries({ queryKey: ['email-campaign-detail'] });
+      toast.success('Campaña actualizada');
+      onOpenChange(false);
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
+  return (
+    <Dialog open={!!campaign} onOpenChange={(o) => !o && !mut.isPending && onOpenChange(false)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Editar campaña</DialogTitle>
+          <DialogDescription>
+            Cambia el nombre o las fechas del período de la campaña.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label className="mb-1.5 block">Nombre de la campaña</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-1.5 block">Fecha de inicio</Label>
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label className="mb-1.5 block">Fecha de fin</Label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={mut.isPending}>
+            Cancelar
+          </Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="gap-1">
+            {mut.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Pencil className="h-4 w-4" />
+            )}
+            Guardar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/** Re-campaña: nuevo envío dirigido solo a quienes abrieron o hicieron clic. */
+function RecampaignDialog({
+  campaign,
+  open,
+  onOpenChange,
+}: {
+  campaign: CampaignHistoryRow;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+}) {
+  const [templateId, setTemplateId] = useState('');
+  const [filter, setFilter] = useState<'opened' | 'clicked'>('opened');
+  const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates, enabled: open });
+
+  const audience = useQuery({
+    queryKey: ['email-audience-recampaign', campaign.id, filter, templateId],
+    queryFn: () =>
+      getAudienceCount({
+        source_campaign_id: campaign.id,
+        source_filter: filter,
+        template_id: templateId || undefined,
+        skip_sent: !!templateId,
+      }),
+    enabled: open,
+  });
+
+  const mut = useMutation({
+    mutationFn: () =>
+      sendCampaign({
+        template_id: templateId,
+        source_campaign_id: campaign.id,
+        source_filter: filter,
+        skip_sent: true,
+      }),
+    onSuccess: (res) => {
+      toast.success(res.message);
+      onOpenChange(false);
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
+  const count = audience.data ?? 0;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && !mut.isPending && onOpenChange(false)}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Re-campaña de seguimiento</DialogTitle>
+          <DialogDescription>
+            Envía una nueva campaña solo a quienes mostraron interés en{' '}
+            <span className="font-medium text-foreground">{campaign.name}</span>.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <Label className="mb-1.5 block">Dirigida a</Label>
+            <Select value={filter} onValueChange={(v) => setFilter(v as 'opened' | 'clicked')}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="opened">
+                  Quienes abrieron el correo ({campaign.opened})
+                </SelectItem>
+                <SelectItem value="clicked">
+                  Quienes hicieron clic ({campaign.clicked})
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="mb-1.5 block">Plantilla del nuevo correo</Label>
+            <Select value={templateId} onValueChange={setTemplateId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecciona una plantilla" />
+              </SelectTrigger>
+              <SelectContent>
+                {templates.data?.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            Destinatarios:{' '}
+            <span className="font-semibold">{audience.isLoading ? '…' : count}</span> con correo
+            {templateId ? ' (sin repetir la plantilla elegida)' : ''}.
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={mut.isPending}>
+            Cancelar
+          </Button>
+          <Button
+            className="gap-1"
+            disabled={mut.isPending}
+            onClick={() => {
+              if (!templateId) return toast.error('Selecciona una plantilla');
+              if (count === 0) return toast.error('No hay destinatarios');
+              mut.mutate();
+            }}
+          >
+            {mut.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Megaphone className="h-4 w-4" />
+            )}
+            Enviar a {count}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Detalle de una campaña: recuadros + filtro + lista de correos (sin Reenviar). */
 function CampaignDetail({
   campaign,
@@ -106,6 +322,7 @@ function CampaignDetail({
 }) {
   const [filter, setFilter] = useState<FilterKey>('recibidos');
   const [includeUnmatched, setIncludeUnmatched] = useState(true);
+  const [recampaignOpen, setRecampaignOpen] = useState(false);
   const [compose, setCompose] = useState<{
     email: string;
     prospectId: string | null;
@@ -180,16 +397,24 @@ function CampaignDetail({
           <Button variant="ghost" size="sm" className="gap-1" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" /> Campañas
           </Button>
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-base">{campaign.name}</CardTitle>
             <p className="text-xs text-muted-foreground">{sendLabel}</p>
           </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1"
+            onClick={() => setRecampaignOpen(true)}
+          >
+            <Megaphone className="h-4 w-4" /> Re-campaña a interesados
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Envíos: cada lote enviado con su día y cifras (una campaña puede tener varios) */}
         {envios.length > 0 && (
-          <div className="rounded-lg border">
+          <div className="overflow-x-auto rounded-lg border">
             <div className="border-b px-3 py-2 text-xs font-medium uppercase text-muted-foreground">
               Envíos ({envios.length})
             </div>
@@ -199,7 +424,10 @@ function CampaignDetail({
                   <th className="px-3 py-2 font-medium">Fecha de envío</th>
                   <th className="px-3 py-2 font-medium">Enviados</th>
                   <th className="px-3 py-2 font-medium">Recibidos</th>
+                  <th className="px-3 py-2 font-medium">No recibidos</th>
                   <th className="px-3 py-2 font-medium">Abiertos</th>
+                  <th className="px-3 py-2 font-medium">Respondidos</th>
+                  <th className="px-3 py-2 font-medium">Clics</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,7 +438,10 @@ function CampaignDetail({
                     </td>
                     <td className="px-3 py-2">{e.audience}</td>
                     <td className="px-3 py-2">{e.sent}</td>
+                    <td className="px-3 py-2">{e.no_enviados}</td>
                     <td className="px-3 py-2 text-primary">{e.opened}</td>
+                    <td className="px-3 py-2 text-primary">{e.responded}</td>
+                    <td className="px-3 py-2">{e.clicked}</td>
                   </tr>
                 ))}
               </tbody>
@@ -433,13 +664,22 @@ function CampaignDetail({
         prospectId={compose?.prospectId ?? null}
         defaultSubject={compose?.subject ?? null}
       />
+      <RecampaignDialog
+        campaign={campaign}
+        open={recampaignOpen}
+        onOpenChange={setRecampaignOpen}
+      />
     </Card>
   );
 }
 
 export function AperturasPage() {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // La campaña seleccionada vive en la URL (?campana=): al entrar a una ficha y
+  // volver atrás, se regresa a esta misma campaña y no al inicio.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedId = searchParams.get('campana');
   const [toDelete, setToDelete] = useState<CampaignHistoryRow | null>(null);
+  const [toEdit, setToEdit] = useState<CampaignHistoryRow | null>(null);
   const qc = useQueryClient();
   const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
 
@@ -449,7 +689,7 @@ export function AperturasPage() {
       toast.success(`Campaña "${res.name}" eliminada (${res.sends_deleted} correos).`);
       qc.invalidateQueries({ queryKey: ['email-campaigns'] });
       setToDelete(null);
-      setSelectedId(null);
+      setSearchParams({}, { replace: true });
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -467,7 +707,7 @@ export function AperturasPage() {
       </div>
 
       {selected ? (
-        <CampaignDetail campaign={selected} onBack={() => setSelectedId(null)} />
+        <CampaignDetail campaign={selected} onBack={() => setSearchParams({})} />
       ) : (
         /* Mercadeo de campañas: elige una para ver su seguimiento */
         <Card>
@@ -493,7 +733,7 @@ export function AperturasPage() {
                   <li
                     key={c.id}
                     className="flex cursor-pointer flex-wrap items-center justify-between gap-2 px-3 py-3 hover:bg-muted/40"
-                    onClick={() => setSelectedId(c.id)}
+                    onClick={() => setSearchParams({ campana: c.id })}
                   >
                     <div className="min-w-0">
                       <div className="truncate font-medium text-primary">{c.name}</div>
@@ -511,19 +751,37 @@ export function AperturasPage() {
                       <span className="whitespace-nowrap text-sm font-medium text-primary">
                         Ver campaña →
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        aria-label="Eliminar campaña"
-                        title="Eliminar campaña"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setToDelete(c);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <Can code="emails.send">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          aria-label="Editar campaña"
+                          title="Editar campaña (nombre y fechas)"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setToEdit(c);
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </Can>
+                      {/* Eliminar: solo administradores (mismo permiso que en plantillas) */}
+                      <Can code="emails.templates.delete">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          aria-label="Eliminar campaña"
+                          title="Eliminar campaña"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setToDelete(c);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </Can>
                     </div>
                   </li>
                 ))}
@@ -532,6 +790,8 @@ export function AperturasPage() {
           </CardContent>
         </Card>
       )}
+
+      <CampaignEditDialog campaign={toEdit} onOpenChange={(o) => !o && setToEdit(null)} />
 
       <Dialog
         open={!!toDelete}

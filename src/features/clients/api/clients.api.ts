@@ -32,8 +32,12 @@ export async function updateClient(id: string, body: ClientUpdate): Promise<Clie
   return data;
 }
 
-export async function listClientServices(id: string): Promise<ClientServiceRead[]> {
-  const { data } = await api.get<ClientServiceRead[]>(`/clients/${id}/services`);
+export async function listClientServices(
+  id: string,
+): Promise<(ClientServiceRead & ContractFields)[]> {
+  const { data } = await api.get<(ClientServiceRead & ContractFields)[]>(
+    `/clients/${id}/services`,
+  );
   return data;
 }
 
@@ -45,10 +49,41 @@ export async function servicesByProspect(prospectId: string): Promise<ClientServ
   return data;
 }
 
+/** Campos del contrato por servicio (aún no están en los tipos generados). */
+export interface ContractFields {
+  contrato_numero?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+}
+
 export async function addClientService(
   id: string,
-  body: ClientServiceCreate,
-): Promise<ClientServiceRead> {
-  const { data } = await api.post<ClientServiceRead>(`/clients/${id}/services`, body);
+  body: ClientServiceCreate & ContractFields,
+): Promise<ClientServiceRead & ContractFields> {
+  const { data } = await api.post<ClientServiceRead & ContractFields>(
+    `/clients/${id}/services`,
+    body,
+  );
+  return data;
+}
+
+export async function updateClientService(
+  clientId: string,
+  serviceRowId: string,
+  body: Partial<ClientServiceCreate> & ContractFields,
+): Promise<ClientServiceRead & ContractFields> {
+  const { data } = await api.patch<ClientServiceRead & ContractFields>(
+    `/clients/${clientId}/services/${serviceRowId}`,
+    body,
+  );
+  return data;
+}
+
+/** Descarga el contrato del servicio en PDF (plantilla estándar con datos del cliente). */
+export async function downloadContract(clientId: string, serviceRowId: string): Promise<Blob> {
+  const { data } = await api.get<Blob>(
+    `/clients/${clientId}/services/${serviceRowId}/contract`,
+    { responseType: 'blob' },
+  );
   return data;
 }

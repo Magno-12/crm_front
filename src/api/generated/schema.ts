@@ -513,6 +513,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/{client_id}/services/{client_service_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Client Service
+         * @description Edita un servicio contratado (contrato, fechas, valor, estado).
+         */
+        patch: operations["update_client_service_api_v1_clients__client_id__services__client_service_id__patch"];
+        trace?: never;
+    };
+    "/api/v1/clients/{client_id}/services/{client_service_id}/contract": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Contract
+         * @description Genera y descarga el contrato del servicio en PDF (plantilla estándar).
+         */
+        get: operations["download_contract_api_v1_clients__client_id__services__client_service_id__contract_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/invoices": {
         parameters: {
             query?: never;
@@ -778,6 +818,207 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Campaigns
+         * @description Historial de campañas con inicio, fin y resultados.
+         */
+        get: operations["list_campaigns_api_v1_emails_campaigns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/campaigns/{campaign_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Campaign Detail
+         * @description Detalle de una campaña: quién abrió, hizo clic y respondió.
+         */
+        get: operations["campaign_detail_api_v1_emails_campaigns__campaign_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Campaign
+         * @description Elimina una campaña completa (sus envíos y tracking). Conserva las respuestas.
+         */
+        delete: operations["delete_campaign_api_v1_emails_campaigns__campaign_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/campaigns/{campaign_id}/dates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Campaign Dates
+         * @description Fija a mano la fecha de inicio y/o fin de la campaña (y su nombre, opcional).
+         */
+        patch: operations["update_campaign_dates_api_v1_emails_campaigns__campaign_id__dates_patch"];
+        trace?: never;
+    };
+    "/api/v1/emails/openings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Openings
+         * @description Todos los correos abiertos, con fecha y hora.
+         */
+        get: operations["list_openings_api_v1_emails_openings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Recipients
+         * @description Destinatarios por estado (y opcionalmente por campaña).
+         */
+        get: operations["list_recipients_api_v1_emails_recipients_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Responses
+         * @description Respuestas recibidas de prospectos (o todas, con include_unmatched).
+         */
+        get: operations["list_responses_api_v1_emails_responses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/responses/by-prospect/{prospect_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Responses By Prospect */
+        get: operations["responses_by_prospect_api_v1_emails_responses_by_prospect__prospect_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/resend/{send_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend
+         * @description Reenvía un correo ya enviado (misma plantilla y destinatario).
+         */
+        post: operations["resend_api_v1_emails_resend__send_id__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/send-message": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Message
+         * @description Envía un correo con texto escrito a mano a un destinatario.
+         */
+        post: operations["send_message_api_v1_emails_send_message_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/prospect-tracking/{prospect_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Prospect Tracking
+         * @description Correos del prospecto agrupados por campaña (activas e historial).
+         */
+        get: operations["prospect_tracking_api_v1_emails_prospect_tracking__prospect_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/by-prospect/{prospect_id}": {
         parameters: {
             query?: never;
@@ -890,6 +1131,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/templates/{template_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Template
+         * @description Elimina una plantilla. Conserva el historial (desvincula envíos/campañas).
+         */
+        delete: operations["delete_template_api_v1_emails_templates__template_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Template
+         * @description Edita una plantilla (nombre, asunto, HTML, etc.).
+         */
+        patch: operations["update_template_api_v1_emails_templates__template_id__patch"];
+        trace?: never;
+    };
     "/api/v1/dashboard/kpis": {
         parameters: {
             query?: never;
@@ -941,32 +1206,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/dashboard/charts/pipeline": {
+    "/api/v1/dashboard/email-engagement": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Chart Pipeline */
-        get: operations["chart_pipeline_api_v1_dashboard_charts_pipeline_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/dashboard/charts/conversion": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Chart Conversion */
-        get: operations["chart_conversion_api_v1_dashboard_charts_conversion_get"];
+        /** Email Engagement */
+        get: operations["email_engagement_api_v1_dashboard_email_engagement_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1152,12 +1400,148 @@ export interface components {
             /** File */
             file: string;
         };
+        /** CampaignDatesUpdate */
+        CampaignDatesUpdate: {
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            /** Name */
+            name?: string | null;
+        };
+        /** CampaignDeleted */
+        CampaignDeleted: {
+            /** Name */
+            name: string;
+            /** Campaigns Deleted */
+            campaigns_deleted: number;
+            /** Sends Deleted */
+            sends_deleted: number;
+            /** Responses Unlinked */
+            responses_unlinked: number;
+        };
+        /** CampaignDetailRead */
+        CampaignDetailRead: {
+            campaign: components["schemas"]["CampaignHistoryRead"];
+            /**
+             * Envios
+             * @default []
+             */
+            envios: components["schemas"]["CampaignEnvioRead"][];
+            /** Recipients */
+            recipients: components["schemas"]["CampaignRecipientRead"][];
+        };
+        /**
+         * CampaignEnvioRead
+         * @description Un envío (lote) de la campaña: el día que salió y sus cifras.
+         */
+        CampaignEnvioRead: {
+            /** Date */
+            date: string | null;
+            /** Audience */
+            audience: number;
+            /** Sent */
+            sent: number;
+            /** No Enviados */
+            no_enviados: number;
+            /** Opened */
+            opened: number;
+            /**
+             * Clicked
+             * @default 0
+             */
+            clicked: number;
+            /**
+             * Responded
+             * @default 0
+             */
+            responded: number;
+        };
+        /**
+         * CampaignHistoryRead
+         * @description Una campaña del historial, con sus resultados.
+         */
+        CampaignHistoryRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Segmento */
+            segmento: string | null;
+            /** Estado */
+            estado: string | null;
+            /** Audience */
+            audience: number;
+            /** Sent */
+            sent: number;
+            /** Sent Rate */
+            sent_rate: number;
+            /** Failed */
+            failed: number;
+            /** No Enviados */
+            no_enviados: number;
+            /** No Enviados Rate */
+            no_enviados_rate: number;
+            /** Opened */
+            opened: number;
+            /** Open Rate */
+            open_rate: number;
+            /** Clicked */
+            clicked: number;
+            /** Click Rate */
+            click_rate: number;
+            /** Responses */
+            responses: number;
+            /** Response Rate */
+            response_rate: number;
+            /** Quota Reached */
+            quota_reached: boolean;
+            /** Started At */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
+            /** Start Date */
+            start_date: string | null;
+            /** End Date */
+            end_date: string | null;
+            /** Send Date */
+            send_date?: string | null;
+            /**
+             * Envios Count
+             * @default 1
+             */
+            envios_count: number;
+        };
         /** CampaignQueued */
         CampaignQueued: {
             /** Queued */
             queued: number;
             /** Message */
             message: string;
+        };
+        /**
+         * CampaignRecipientRead
+         * @description Un destinatario de la campaña con su estado detallado.
+         */
+        CampaignRecipientRead: {
+            /** Prospect Id */
+            prospect_id: string | null;
+            /** Razon Social */
+            razon_social: string | null;
+            /** Recipient Email */
+            recipient_email: string;
+            /** Status */
+            status: string;
+            /** Sent At */
+            sent_at: string | null;
+            /** Opened At */
+            opened_at: string | null;
+            /** Clicked At */
+            clicked_at: string | null;
+            /** Responded */
+            responded: boolean;
+            /** Response Snippet */
+            response_snippet: string | null;
         };
         /** CampaignRequest */
         CampaignRequest: {
@@ -1184,6 +1568,14 @@ export interface components {
              * @default 3000
              */
             limit: number;
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            /** Source Campaign Id */
+            source_campaign_id?: string | null;
+            /** Source Filter */
+            source_filter?: ("opened" | "clicked") | null;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -1255,6 +1647,11 @@ export interface components {
             /** Account Manager Id */
             account_manager_id: string | null;
             /**
+             * Valor Servicio
+             * @default 0
+             */
+            valor_servicio: string;
+            /**
              * Created At
              * Format: date-time
              */
@@ -1277,8 +1674,12 @@ export interface components {
              * @default 0
              */
             valor_mensual: number | string;
+            /** Contrato Numero */
+            contrato_numero?: string | null;
             /** Start Date */
             start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
             /** @default activo */
             status: components["schemas"]["ClientServiceStatus"];
         };
@@ -1301,6 +1702,8 @@ export interface components {
             service_id: string;
             /** Valor Mensual */
             valor_mensual: string;
+            /** Contrato Numero */
+            contrato_numero: string | null;
             /** Start Date */
             start_date: string | null;
             /** End Date */
@@ -1312,6 +1715,20 @@ export interface components {
          * @enum {string}
          */
         ClientServiceStatus: "activo" | "pausado" | "cancelado";
+        /** ClientServiceUpdate */
+        ClientServiceUpdate: {
+            /** Service Id */
+            service_id?: string | null;
+            /** Valor Mensual */
+            valor_mensual?: number | string | null;
+            /** Contrato Numero */
+            contrato_numero?: string | null;
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+            status?: components["schemas"]["ClientServiceStatus"] | null;
+        };
         /**
          * ClientStatus
          * @enum {string}
@@ -1353,6 +1770,18 @@ export interface components {
             account_manager_id?: string | null;
             /** Start Date */
             start_date?: string | null;
+        };
+        /**
+         * EmailAttachment
+         * @description Un archivo adjunto: contenido en base64.
+         */
+        EmailAttachment: {
+            /** Filename */
+            filename: string;
+            /** Content */
+            content: string;
+            /** Content Type */
+            content_type?: string | null;
         };
         /** EmailSendRead */
         EmailSendRead: {
@@ -1453,6 +1882,19 @@ export interface components {
             variables: string[];
             /** Is Active */
             is_active: boolean;
+        };
+        /** EmailTemplateUpdate */
+        EmailTemplateUpdate: {
+            /** Name */
+            name?: string | null;
+            /** Subject */
+            subject?: string | null;
+            /** Body Html */
+            body_html?: string | null;
+            /** Variables */
+            variables?: string[] | null;
+            /** Is Active */
+            is_active?: boolean | null;
         };
         /** FollowUpCreate */
         FollowUpCreate: {
@@ -1659,6 +2101,38 @@ export interface components {
         MoveStageRequest: {
             new_stage: components["schemas"]["OpportunityStage"];
         };
+        /**
+         * OpeningRead
+         * @description Un correo abierto (para la pantalla 'Apertura de correos').
+         */
+        OpeningRead: {
+            /** Id */
+            id: string;
+            /** Prospect Id */
+            prospect_id: string | null;
+            /** Razon Social */
+            razon_social: string | null;
+            /** Campana */
+            campana: string | null;
+            /** Recipient Email */
+            recipient_email: string;
+            /** Subject */
+            subject: string | null;
+            /** Status */
+            status: string;
+            /** Sent At */
+            sent_at: string | null;
+            /** Opened At */
+            opened_at: string | null;
+            /** Clicked At */
+            clicked_at: string | null;
+            /** Error */
+            error: string | null;
+            /** Opens */
+            opens: number;
+            /** Clicks */
+            clicks: number;
+        };
         /** OpportunityCreate */
         OpportunityCreate: {
             /**
@@ -1757,6 +2231,21 @@ export interface components {
             /** Has Prev */
             has_prev: boolean;
         };
+        /** Page[CampaignHistoryRead] */
+        Page_CampaignHistoryRead_: {
+            /** Items */
+            items: components["schemas"]["CampaignHistoryRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Has Next */
+            has_next: boolean;
+            /** Has Prev */
+            has_prev: boolean;
+        };
         /** Page[ClientRead] */
         Page_ClientRead_: {
             /** Items */
@@ -1787,10 +2276,40 @@ export interface components {
             /** Has Prev */
             has_prev: boolean;
         };
+        /** Page[OpeningRead] */
+        Page_OpeningRead_: {
+            /** Items */
+            items: components["schemas"]["OpeningRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Has Next */
+            has_next: boolean;
+            /** Has Prev */
+            has_prev: boolean;
+        };
         /** Page[ProspectRead] */
         Page_ProspectRead_: {
             /** Items */
             items: components["schemas"]["ProspectRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Has Next */
+            has_next: boolean;
+            /** Has Prev */
+            has_prev: boolean;
+        };
+        /** Page[ResponseRead] */
+        Page_ResponseRead_: {
+            /** Items */
+            items: components["schemas"]["ResponseRead"][];
             /** Total */
             total: number;
             /** Page */
@@ -1832,6 +2351,36 @@ export interface components {
             action: string;
             /** Description */
             description: string;
+        };
+        /** ProspectCampaignGroup */
+        ProspectCampaignGroup: {
+            /** Campaign Id */
+            campaign_id: string | null;
+            /** Campaign Name */
+            campaign_name: string;
+            /** Finished */
+            finished: boolean;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Sent */
+            sent: number;
+            /** Opened */
+            opened: number;
+            /**
+             * Clicked
+             * @default 0
+             */
+            clicked: number;
+            /** No Enviados */
+            no_enviados: number;
+            /** Responded */
+            responded: number;
+            /** Responded At */
+            responded_at: string | null;
+            /** Sends */
+            sends: components["schemas"]["ProspectSendItem"][];
         };
         /** ProspectCreate */
         ProspectCreate: {
@@ -1947,6 +2496,13 @@ export interface components {
             telefono: string | null;
             /** Email */
             email: string | null;
+            /**
+             * Email Opt Out
+             * @default false
+             */
+            email_opt_out: boolean;
+            /** Email Opt Out At */
+            email_opt_out_at?: string | null;
             segmento: components["schemas"]["ProspectSegment"];
             estado: components["schemas"]["ProspectStatus"];
             /** Assigned To Id */
@@ -1977,11 +2533,44 @@ export interface components {
          * @enum {string}
          */
         ProspectSegment: "persona_juridica" | "persona_natural" | "alcaldia" | "ese" | "otro";
+        /** ProspectSendItem */
+        ProspectSendItem: {
+            /** Id */
+            id: string;
+            /** Recipient Email */
+            recipient_email: string;
+            /** Status */
+            status: string;
+            /** Sent At */
+            sent_at: string | null;
+            /** Opened At */
+            opened_at: string | null;
+            /** Clicked At */
+            clicked_at?: string | null;
+            /** Opens */
+            opens: number;
+            /**
+             * Clicks
+             * @default 0
+             */
+            clicks: number;
+            /** Error */
+            error: string | null;
+            /** Date */
+            date: string;
+        };
         /**
          * ProspectStatus
          * @enum {string}
          */
         ProspectStatus: "nuevo" | "contactado" | "fidelizado" | "no_fidelizado";
+        /** ProspectTracking */
+        ProspectTracking: {
+            /** Current */
+            current: components["schemas"]["ProspectCampaignGroup"][];
+            /** History */
+            history: components["schemas"]["ProspectCampaignGroup"][];
+        };
         /** ProspectUpdate */
         ProspectUpdate: {
             /** Razon Social */
@@ -2028,6 +2617,28 @@ export interface components {
             estado?: components["schemas"]["ProspectStatus"] | null;
             /** Notes */
             notes?: string | null;
+            /** Email Opt Out */
+            email_opt_out?: boolean | null;
+        };
+        /**
+         * ResponseRead
+         * @description Una respuesta recibida de un prospecto.
+         */
+        ResponseRead: {
+            /** Id */
+            id: string;
+            /** Prospect Id */
+            prospect_id: string | null;
+            /** Razon Social */
+            razon_social: string | null;
+            /** From Email */
+            from_email: string;
+            /** Subject */
+            subject: string;
+            /** Snippet */
+            snippet: string;
+            /** Received At */
+            received_at: string;
         };
         /** RoleCreate */
         RoleCreate: {
@@ -2083,6 +2694,27 @@ export interface components {
             estado: string | null;
             /** Organizacion Juridica */
             organizacion_juridica: string | null;
+        };
+        /**
+         * SendMessageRequest
+         * @description Enviar un correo con texto escrito a mano a un destinatario.
+         */
+        SendMessageRequest: {
+            /**
+             * To Email
+             * Format: email
+             */
+            to_email: string;
+            /** Subject */
+            subject: string;
+            /** Body */
+            body: string;
+            /** Prospect Id */
+            prospect_id?: string | null;
+            /** From Email */
+            from_email?: string | null;
+            /** Attachments */
+            attachments?: components["schemas"]["EmailAttachment"][];
         };
         /** ServiceCreate */
         ServiceCreate: {
@@ -3700,6 +4332,74 @@ export interface operations {
             };
         };
     };
+    update_client_service_api_v1_clients__client_id__services__client_service_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+                client_service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClientServiceUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientServiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_contract_api_v1_clients__client_id__services__client_service_id__contract_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+                client_service_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_invoices_api_v1_invoices_get: {
         parameters: {
             query?: {
@@ -4301,6 +5001,361 @@ export interface operations {
             };
         };
     };
+    list_campaigns_api_v1_emails_campaigns_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_CampaignHistoryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    campaign_detail_api_v1_emails_campaigns__campaign_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_campaign_api_v1_emails_campaigns__campaign_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDeleted"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_campaign_dates_api_v1_emails_campaigns__campaign_id__dates_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignDatesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_openings_api_v1_emails_openings_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_OpeningRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_recipients_api_v1_emails_recipients_get: {
+        parameters: {
+            query?: {
+                status?: string;
+                campaign_id?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_OpeningRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_responses_api_v1_emails_responses_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+                include_unmatched?: boolean;
+                campaign_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ResponseRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    responses_by_prospect_api_v1_emails_responses_by_prospect__prospect_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResponseRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_api_v1_emails_resend__send_id__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                send_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailSendRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_message_api_v1_emails_send_message_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailSendRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    prospect_tracking_api_v1_emails_prospect_tracking__prospect_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProspectTracking"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     sends_by_prospect_api_v1_emails_by_prospect__prospect_id__get: {
         parameters: {
             query?: never;
@@ -4382,6 +5437,8 @@ export interface operations {
                 actividad_ciiu?: string | null;
                 template_id?: string | null;
                 skip_sent?: boolean;
+                source_campaign_id?: string | null;
+                source_filter?: string | null;
             };
             header?: never;
             path?: never;
@@ -4495,6 +5552,70 @@ export interface operations {
             };
         };
     };
+    delete_template_api_v1_emails_templates__template_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_template_api_v1_emails_templates__template_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailTemplateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailTemplateRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_kpis_api_v1_dashboard_kpis_get: {
         parameters: {
             query?: {
@@ -4573,29 +5694,7 @@ export interface operations {
             };
         };
     };
-    chart_pipeline_api_v1_dashboard_charts_pipeline_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
-                };
-            };
-        };
-    };
-    chart_conversion_api_v1_dashboard_charts_conversion_get: {
+    email_engagement_api_v1_dashboard_email_engagement_get: {
         parameters: {
             query?: never;
             header?: never;

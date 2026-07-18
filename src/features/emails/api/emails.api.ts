@@ -44,6 +44,9 @@ export interface CampaignFilters {
   segmento?: string;
   estado?: string;
   actividad_ciiu?: string;
+  /** Re-campaña: solo quienes abrieron/hicieron clic en esta campaña anterior. */
+  source_campaign_id?: string;
+  source_filter?: 'opened' | 'clicked';
 }
 
 export async function getAudienceCount(
@@ -150,7 +153,9 @@ export interface ProspectSendItem {
   status: string;
   sent_at: string | null;
   opened_at: string | null;
+  clicked_at: string | null;
   opens: number;
+  clicks: number;
   error: string | null;
   date: string;
 }
@@ -163,6 +168,7 @@ export interface ProspectCampaignGroup {
   finished_at: string | null;
   sent: number;
   opened: number;
+  clicked: number;
   no_enviados: number;
   responded: number;
   responded_at: string | null;
@@ -215,6 +221,8 @@ export interface CampaignEnvio {
   sent: number;
   no_enviados: number;
   opened: number;
+  clicked: number;
+  responded: number;
 }
 
 export interface CampaignRecipient {
@@ -249,7 +257,7 @@ export async function getCampaignDetail(id: string): Promise<CampaignDetail> {
 
 export async function updateCampaignDates(
   id: string,
-  dates: { start_date: string | null; end_date: string | null },
+  dates: { start_date: string | null; end_date: string | null; name?: string | null },
 ): Promise<CampaignDetail> {
   const { data } = await api.patch<CampaignDetail>(`/emails/campaigns/${id}/dates`, dates);
   return data;

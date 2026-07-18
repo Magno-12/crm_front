@@ -1,27 +1,70 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { ArrowLeft, Pencil, UserCheck, Phone, Mail, MapPin } from 'lucide-react';
+import {
+  ArrowLeft,
+  Pencil,
+  UserCheck,
+  Phone,
+  Mail,
+  MapPin,
+  MailX,
+  Loader2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { FullPageSpinner, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
 import { EmailTrackingSection } from '@/features/prospects/components/EmailTrackingSection';
-import { useQuery } from '@tanstack/react-query';
+import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeline';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useProspect, useConvertToClient } from '@/features/prospects/hooks/useProspects';
-import { searchCiiu } from '@/features/prospects/api/prospects.api';
+import { searchCiiu, setEmailOptOut } from '@/features/prospects/api/prospects.api';
 import { segmentLabel, statusMeta } from '@/features/prospects/lib/status';
 import { apiErrorMessage } from '@/api/client';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatDateTime } from '@/lib/utils';
 
 
 export function ProspectDetailPage() {
   const { id = '' } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { data: prospect, isLoading, error, refetch } = useProspect(id);
   const [editOpen, setEditOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
   const convert = useConvertToClient();
+  const qc = useQueryClient();
+
+  // Volver a la vista desde donde se abrió la ficha (Seguimiento de correo,
+  // Seguimiento de prospecto, etc.); si se abrió directo, va a la base.
+  const goBack = () => {
+    if (window.history.length > 1 && location.key !== 'default') navigate(-1);
+    else navigate('/prospects');
+  };
+
+  const optOut = useMutation({
+    mutationFn: (block: boolean) => setEmailOptOut(id, block),
+    onSuccess: (_, block) => {
+      qc.invalidateQueries({ queryKey: ['prospects'] });
+      toast.success(
+        block
+          ? 'Cliente bloqueado: no recibirá más correos de campañas.'
+          : 'Cliente desbloqueado: volverá a recibir correos.',
+      );
+      setBlockOpen(false);
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   const ciiuCode = prospect?.actividad_ciiu ?? '';
   const ciiu = useQuery({
@@ -35,6 +78,10 @@ export function ProspectDetailPage() {
   if (error || !prospect) return <ErrorState error={error} onRetry={() => refetch()} />;
 
   const meta = statusMeta(prospect.estado);
+  const blocked = Boolean(
+    (prospect as { email_opt_out?: boolean }).email_opt_out,
+  );
+  const blockedAt = (prospect as { email_opt_out_at?: string | null }).email_opt_out_at;
 
   const onConvert = async () => {
     try {
@@ -48,12 +95,15 @@ export function ProspectDetailPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="icon">
-          <Link to="/prospects" aria-label="Volver">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+        <Button variant="ghost" size="icon" onClick={goBack} aria-label="Volver">
+          <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="flex-1 text-2xl font-bold tracking-tight">{prospect.razon_social}</h1>
+        {blocked && (
+          <Badge variant="destructive" className="gap-1">
+            <MailX className="h-3 w-3" /> Correos bloqueados
+          </Badge>
+        )}
         <Badge variant={meta.variant}>{meta.label}</Badge>
       </div>
 
@@ -129,6 +179,9 @@ export function ProspectDetailPage() {
             <InfoRow label="Renovación" value={formatDate(prospect.fecha_renovacion)} />
             <InfoRow label="Origen" value={prospect.source} />
             <InfoRow label="Creado" value={formatDate(prospect.created_at)} />
+            {blocked && (
+              <InfoRow label="Correos bloqueados" value={formatDateTime(blockedAt) ?? 'Sí'} />
+            )}
             <Can code="clients.convert_from_prospect">
               <Button
                 className="mt-2 w-full"
@@ -138,15 +191,78 @@ export function ProspectDetailPage() {
                 <UserCheck className="h-4 w-4" /> Convertir en cliente
               </Button>
             </Can>
+            <Can code="prospects.edit">
+              {blocked ? (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => optOut.mutate(false)}
+                  disabled={optOut.isPending}
+                >
+                  {optOut.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Mail className="h-4 w-4" />
+                  )}
+                  Desbloquear correos
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full text-destructive hover:text-destructive"
+                  onClick={() => setBlockOpen(true)}
+                >
+                  <MailX className="h-4 w-4" /> Bloquear correos
+                </Button>
+              )}
+            </Can>
           </CardContent>
         </Card>
 
         <div className="space-y-6 lg:col-span-2">
           <EmailTrackingSection prospectId={prospect.id} />
+          {/* Seguimiento de prospecto: llamadas, citas, reuniones y demás acciones */}
+          <FollowUpTimeline prospectId={prospect.id} />
         </div>
       </div>
 
       <ProspectFormDialog open={editOpen} onOpenChange={setEditOpen} prospect={prospect} />
+
+      <Dialog open={blockOpen} onOpenChange={(o) => !o && !optOut.isPending && setBlockOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Bloquear correos a este cliente?</DialogTitle>
+            <DialogDescription>
+              <span className="font-medium text-foreground">{prospect.razon_social}</span> no
+              volverá a recibir correos en ninguna campaña (por ejemplo, si falleció, vendió el
+              negocio o pidió no ser contactado). Su información y su historial se conservan, y
+              puedes desbloquearlo cuando quieras.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setBlockOpen(false)}
+              disabled={optOut.isPending}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              className="gap-1"
+              disabled={optOut.isPending}
+              onClick={() => optOut.mutate(true)}
+            >
+              {optOut.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MailX className="h-4 w-4" />
+              )}
+              Bloquear correos
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -170,4 +286,3 @@ function InfoRow({
     </div>
   );
 }
-

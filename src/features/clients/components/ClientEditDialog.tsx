@@ -118,7 +118,7 @@ export function ClientEditDialog({
           <F label="N° de contrato">
             <Input value={v.contrato_numero} onChange={(e) => set('contrato_numero', e.target.value)} />
           </F>
-          <F label="Fecha de contrato">
+          <F label="Fecha de fidelización">
             <Input
               type="date"
               value={v.fecha_contrato}

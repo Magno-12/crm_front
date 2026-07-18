@@ -127,6 +127,10 @@ function CampaignBlock({
                         group.responded_at ? formatDateTime(group.responded_at) : 'Sin responder'
                       }
                     />
+                    <StatusLine
+                      label="Clics"
+                      value={s.clicked_at ? formatDateTime(s.clicked_at) : 'Sin clics'}
+                    />
                     {fail && (
                       <div className={`pt-1 ${fail.quota ? 'text-muted-foreground' : 'text-destructive'}`}>
                         {fail.reason}
