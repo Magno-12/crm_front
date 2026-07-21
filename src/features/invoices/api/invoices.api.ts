@@ -4,6 +4,10 @@ import type { InvoiceCreate, InvoiceRead, Page } from '@/types/api';
 const API_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8000/api/v1';
 
+export async function deleteInvoice(id: string): Promise<void> {
+  await api.delete(`/invoices/${id}`);
+}
+
 export async function listInvoices(params: {
   q?: string;
   status?: string;

@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { FileText, Plus, Search, Download } from 'lucide-react';
+import { FileText, Plus, Search, Download, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -18,7 +26,8 @@ import { EmptyState, ErrorState } from '@/components/common/states';
 import { TableSkeleton } from '@/components/common/table-skeleton';
 import { Can } from '@/components/auth/Can';
 import { useDebounce } from '@/hooks/useDebounce';
-import { listInvoices, openInvoicePdf } from '@/features/invoices/api/invoices.api';
+import { deleteInvoice, listInvoices, openInvoicePdf } from '@/features/invoices/api/invoices.api';
+import type { InvoiceRead } from '@/types/api';
 import {
   INVOICE_STATUSES,
   invoiceStatusMeta,
@@ -32,7 +41,19 @@ export function InvoicesPage() {
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<InvoiceRead | null>(null);
   const debouncedQ = useDebounce(q, 300);
+  const qc = useQueryClient();
+
+  const del = useMutation({
+    mutationFn: (id: string) => deleteInvoice(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['invoices'] });
+      toast.success('Factura eliminada');
+      setToDelete(null);
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['invoices', { q: debouncedQ, status, page }],
@@ -148,9 +169,23 @@ export function InvoicesPage() {
                       <Badge variant={meta.variant}>{meta.label}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => download(inv.id, inv.number)}>
-                        <Download className="h-4 w-4" /> Descargar
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => download(inv.id, inv.number)}>
+                          <Download className="h-4 w-4" /> Descargar
+                        </Button>
+                        <Can code="invoices.delete">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            aria-label="Eliminar factura"
+                            title="Eliminar factura"
+                            onClick={() => setToDelete(inv)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </Can>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -187,6 +222,37 @@ export function InvoicesPage() {
       )}
 
       <InvoiceFormDialog open={formOpen} onOpenChange={setFormOpen} />
+
+      <Dialog open={!!toDelete} onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Eliminar factura?</DialogTitle>
+            <DialogDescription>
+              Se eliminará la factura{' '}
+              <span className="font-medium text-foreground">{toDelete?.number}</span> de{' '}
+              {toDelete?.bill_to_name} con sus renglones. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setToDelete(null)} disabled={del.isPending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              className="gap-1"
+              disabled={del.isPending}
+              onClick={() => toDelete && del.mutate(toDelete.id)}
+            >
+              {del.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -91,7 +91,7 @@ export function FollowUpTimeline({
             ) : (
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             )}
-            Seguimientos
+            Seguimiento de prospectos
             {data && data.length > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {data.length}

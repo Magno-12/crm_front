@@ -32,6 +32,11 @@ export async function updateClient(id: string, body: ClientUpdate): Promise<Clie
   return data;
 }
 
+/** Elimina el cliente fidelizado (y sus servicios); el prospecto se conserva. */
+export async function deleteClient(id: string): Promise<void> {
+  await api.delete(`/clients/${id}`);
+}
+
 export async function listClientServices(
   id: string,
 ): Promise<(ClientServiceRead & ContractFields)[]> {
