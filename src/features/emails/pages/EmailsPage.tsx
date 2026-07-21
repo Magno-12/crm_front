@@ -30,6 +30,7 @@ import { Can } from '@/components/auth/Can';
 import {
   deleteTemplate,
   getAudienceCount,
+  getSendLimits,
   listSenders,
   listTemplates,
   sendCampaign,
@@ -48,8 +49,8 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { apiErrorMessage } from '@/api/client';
 import type { EmailTemplateRead } from '@/types/api';
 
-// Límite de correos por día (todas las campañas).
-const CAMPAIGN_MAX = 3000;
+// Límite diario de respaldo mientras carga el real (viene del backend según el plan).
+const DEFAULT_DAILY_LIMIT = 3000;
 
 export function EmailsPage() {
   const qc = useQueryClient();
@@ -250,6 +251,8 @@ function CampaignDialog({
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
+  const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
+  const dailyLimit = limits.data?.daily_limit ?? DEFAULT_DAILY_LIMIT;
   const debouncedCiiu = useDebounce(ciiu, 400);
 
   const filters = {
@@ -379,7 +382,7 @@ function CampaignDialog({
           <p className="-mt-2 text-xs text-muted-foreground">
             Estas fechas son <span className="font-medium">solo informativas</span> (el período de
             la campaña que se muestra en el historial). No controlan el envío: los correos salen de
-            a {CAMPAIGN_MAX.toLocaleString('es-CO')} por día hasta cubrir la audiencia. Si las dejas
+            a {dailyLimit.toLocaleString('es-CO')} por día hasta cubrir la audiencia. Si las dejas
             vacías, se registran solas (inicio al enviar, fin al terminar).
           </p>
 
@@ -397,10 +400,10 @@ function CampaignDialog({
             Audiencia con correo:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> destinatario(s)
             {skipSent && templateId ? ' nuevos' : ''}.
-            {count > CAMPAIGN_MAX && (
+            {count > dailyLimit && (
               <span className="text-muted-foreground">
                 {' '}
-                Hoy se enviarán {CAMPAIGN_MAX.toLocaleString('es-CO')} por el límite diario; el
+                Hoy se enviarán {dailyLimit.toLocaleString('es-CO')} por el límite diario; el
                 resto continúa mañana.
               </span>
             )}
@@ -418,7 +421,7 @@ function CampaignDialog({
             }}
             disabled={mut.isPending}
           >
-            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, CAMPAIGN_MAX)}
+            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, dailyLimit)}
           </Button>
         </DialogFooter>
       </DialogContent>

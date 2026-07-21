@@ -1,8 +1,9 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +50,15 @@ const followUpSchema = z.object({
 });
 type FollowUpInput = z.infer<typeof followUpSchema>;
 
-export function FollowUpTimeline({ prospectId }: { prospectId: string }) {
+export function FollowUpTimeline({
+  prospectId,
+  defaultOpen = false,
+}: {
+  prospectId: string;
+  /** La sección puede ocultarse para despejar la ficha; cerrada por defecto. */
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   const { data, isLoading, error, refetch } = useFollowUps(prospectId);
   const create = useCreateFollowUp(prospectId);
   const form = useForm<FollowUpInput>({
@@ -69,9 +78,32 @@ export function FollowUpTimeline({ prospectId }: { prospectId: string }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Seguimientos</CardTitle>
+      <CardHeader
+        className="cursor-pointer select-none"
+        onClick={() => setOpen((v) => !v)}
+        role="button"
+        aria-expanded={open}
+      >
+        <CardTitle className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-2">
+            {open ? (
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            )}
+            Seguimientos
+            {data && data.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {data.length}
+              </Badge>
+            )}
+          </span>
+          <span className="text-xs font-normal text-primary">
+            {open ? 'Ocultar' : 'Mostrar'}
+          </span>
+        </CardTitle>
       </CardHeader>
+      {open && (
       <CardContent className="space-y-4">
         <Can code="followups.create">
           <form
@@ -131,6 +163,7 @@ export function FollowUpTimeline({ prospectId }: { prospectId: string }) {
           </ol>
         )}
       </CardContent>
+      )}
     </Card>
   );
 }

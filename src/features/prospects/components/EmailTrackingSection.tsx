@@ -152,7 +152,15 @@ function CampaignBlock({
   );
 }
 
-export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
+export function EmailTrackingSection({
+  prospectId,
+  defaultOpen = true,
+}: {
+  prospectId: string;
+  /** La sección puede ocultarse para despejar la ficha. */
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   const tracking = useQuery({
     queryKey: ['email-tracking', prospectId],
     queryFn: () => getProspectTracking(prospectId),
@@ -172,11 +180,27 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <MailOpen className="h-4 w-4" /> Seguimiento de correo
+        <CardHeader
+          className="cursor-pointer select-none"
+          onClick={() => setOpen((v) => !v)}
+          role="button"
+          aria-expanded={open}
+        >
+          <CardTitle className="flex items-center justify-between gap-2 text-base">
+            <span className="flex items-center gap-2">
+              {open ? (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              )}
+              <MailOpen className="h-4 w-4" /> Seguimiento de correo
+            </span>
+            <span className="text-xs font-normal text-primary">
+              {open ? 'Ocultar' : 'Mostrar'}
+            </span>
           </CardTitle>
         </CardHeader>
+        {open && (
         <CardContent className="space-y-4">
           {tracking.isLoading ? (
             <p className="text-sm text-muted-foreground">Cargando correos…</p>
@@ -249,6 +273,7 @@ export function EmailTrackingSection({ prospectId }: { prospectId: string }) {
             </div>
           )}
         </CardContent>
+        )}
       </Card>
       <SendMessageDialog
         open={composeTo !== null}

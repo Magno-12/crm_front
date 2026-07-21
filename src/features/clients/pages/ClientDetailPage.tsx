@@ -36,6 +36,7 @@ import {
 } from '@/features/clients/api/clients.api';
 import { ClientEditDialog } from '@/features/clients/components/ClientEditDialog';
 import { EmailTrackingSection } from '@/features/prospects/components/EmailTrackingSection';
+import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeline';
 import { listServices } from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP, formatDate } from '@/lib/utils';
@@ -263,7 +264,6 @@ export function ClientDetailPage() {
           <Info label="Correo contabilidad" value={client.contacto_contabilidad_email} />
           <Info label="N° contrato" value={client.contrato_numero} />
           <Info label="Fecha de fidelización" value={formatDate(client.fecha_contrato)} />
-          <Info label="Inicio" value={formatDate(client.start_date)} />
           <Info label="Creado" value={formatDate(client.created_at)} />
         </CardContent>
       </Card>
@@ -352,7 +352,9 @@ export function ClientDetailPage() {
         </CardContent>
       </Card>
 
+      {/* Hoja de vida completa: correos y gestiones (llamadas, citas, reuniones) */}
       {client.prospect_id && <EmailTrackingSection prospectId={client.prospect_id} />}
+      {client.prospect_id && <FollowUpTimeline prospectId={client.prospect_id} />}
 
       <ClientEditDialog client={client} open={editing} onOpenChange={setEditing} />
       <ServiceFormDialog

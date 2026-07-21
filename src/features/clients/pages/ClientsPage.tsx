@@ -68,7 +68,7 @@ export function ClientsPage() {
                 <TableHead>NIT</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Valor del servicio</TableHead>
-                <TableHead>Inicio</TableHead>
+                <TableHead>Fecha de fidelización</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
             </TableHeader>
@@ -85,10 +85,10 @@ export function ClientsPage() {
                       Number((c as { valor_servicio?: string | number }).valor_servicio ?? 0),
                     )}
                   </TableCell>
-                  <TableCell>{formatDate(c.start_date)}</TableCell>
+                  <TableCell>{formatDate(c.fecha_contrato)}</TableCell>
                   <TableCell className="text-right">
                     <Button asChild variant="ghost" size="sm">
-                      <Link to={`/clients/${c.id}`}>Ver</Link>
+                      <Link to={`/clients/${c.id}`}>Ver ficha</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

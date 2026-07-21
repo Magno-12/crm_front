@@ -44,9 +44,9 @@ export interface CampaignFilters {
   segmento?: string;
   estado?: string;
   actividad_ciiu?: string;
-  /** Re-campaña: solo quienes abrieron/hicieron clic en esta campaña anterior. */
+  /** Re-campaña: según la interacción con esta campaña anterior. */
   source_campaign_id?: string;
-  source_filter?: 'opened' | 'clicked';
+  source_filter?: 'opened' | 'clicked' | 'not_opened';
 }
 
 export async function getAudienceCount(
@@ -58,7 +58,10 @@ export async function getAudienceCount(
 
 export async function sendCampaign(
   body: CampaignFilters & {
-    template_id: string;
+    /** Plantilla existente, o mensaje escrito a mano (custom_subject + custom_body). */
+    template_id?: string | null;
+    custom_subject?: string | null;
+    custom_body?: string | null;
     skip_sent?: boolean;
     from_email?: string;
     limit?: number;
@@ -67,6 +70,18 @@ export async function sendCampaign(
   },
 ): Promise<{ queued: number; message: string }> {
   const { data } = await api.post<{ queued: number; message: string }>('/emails/campaign', body);
+  return data;
+}
+
+export interface SendLimits {
+  daily_limit: number;
+  remaining_today: number;
+  sent_today: number;
+}
+
+/** Límite diario de envíos según el plan contratado, y cuántos quedan hoy. */
+export async function getSendLimits(): Promise<SendLimits> {
+  const { data } = await api.get<SendLimits>('/emails/limits');
   return data;
 }
 

@@ -58,8 +58,8 @@ export function ProspectDetailPage() {
       qc.invalidateQueries({ queryKey: ['prospects'] });
       toast.success(
         block
-          ? 'Cliente bloqueado: no recibirá más correos de campañas.'
-          : 'Cliente desbloqueado: volverá a recibir correos.',
+          ? 'Prospecto bloqueado: no recibirá más correos ni contactos del sistema.'
+          : 'Prospecto desbloqueado: vuelve a estar disponible para campañas.',
       );
       setBlockOpen(false);
     },
@@ -101,7 +101,7 @@ export function ProspectDetailPage() {
         <h1 className="flex-1 text-2xl font-bold tracking-tight">{prospect.razon_social}</h1>
         {blocked && (
           <Badge variant="destructive" className="gap-1">
-            <MailX className="h-3 w-3" /> Correos bloqueados
+            <MailX className="h-3 w-3" /> Prospecto bloqueado
           </Badge>
         )}
         <Badge variant={meta.variant}>{meta.label}</Badge>
@@ -180,7 +180,7 @@ export function ProspectDetailPage() {
             <InfoRow label="Origen" value={prospect.source} />
             <InfoRow label="Creado" value={formatDate(prospect.created_at)} />
             {blocked && (
-              <InfoRow label="Correos bloqueados" value={formatDateTime(blockedAt) ?? 'Sí'} />
+              <InfoRow label="Bloqueado desde" value={formatDateTime(blockedAt) ?? 'Sí'} />
             )}
             <Can code="clients.convert_from_prospect">
               <Button
@@ -204,7 +204,7 @@ export function ProspectDetailPage() {
                   ) : (
                     <Mail className="h-4 w-4" />
                   )}
-                  Desbloquear correos
+                  Desbloquear prospecto
                 </Button>
               ) : (
                 <Button
@@ -212,7 +212,7 @@ export function ProspectDetailPage() {
                   className="w-full text-destructive hover:text-destructive"
                   onClick={() => setBlockOpen(true)}
                 >
-                  <MailX className="h-4 w-4" /> Bloquear correos
+                  <MailX className="h-4 w-4" /> Bloquear prospecto
                 </Button>
               )}
             </Can>
@@ -231,12 +231,12 @@ export function ProspectDetailPage() {
       <Dialog open={blockOpen} onOpenChange={(o) => !o && !optOut.isPending && setBlockOpen(false)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>¿Bloquear correos a este cliente?</DialogTitle>
+            <DialogTitle>¿Bloquear este prospecto?</DialogTitle>
             <DialogDescription>
-              <span className="font-medium text-foreground">{prospect.razon_social}</span> no
-              volverá a recibir correos en ninguna campaña (por ejemplo, si falleció, vendió el
-              negocio o pidió no ser contactado). Su información y su historial se conservan, y
-              puedes desbloquearlo cuando quieras.
+              <span className="font-medium text-foreground">{prospect.razon_social}</span> quedará
+              bloqueado a nivel global: no recibirá campañas, ni correos individuales, ni
+              respuestas (por ejemplo, si falleció, vendió el negocio o pidió no ser contactado).
+              Su información y su historial se conservan, y puedes desbloquearlo cuando quieras.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -258,7 +258,7 @@ export function ProspectDetailPage() {
               ) : (
                 <MailX className="h-4 w-4" />
               )}
-              Bloquear correos
+              Bloquear prospecto
             </Button>
           </DialogFooter>
         </DialogContent>

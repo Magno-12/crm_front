@@ -4,10 +4,13 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 import { MobileNav } from './MobileNav';
 import { HelpFab } from '@/components/help/HelpFab';
+import { useIdleLogout } from '@/hooks/useIdleLogout';
 
 const STORAGE_KEY = 'sidebar-collapsed';
 
 export function AppShell() {
+  // Control de sesiones: cierre automático por inactividad.
+  useIdleLogout();
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem(STORAGE_KEY) === 'true',
   );

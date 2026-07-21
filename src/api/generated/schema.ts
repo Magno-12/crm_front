@@ -1039,6 +1039,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/limits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Send Limits
+         * @description Límite diario de envíos (según el plan) y cuántos quedan disponibles hoy.
+         */
+        get: operations["send_limits_api_v1_emails_limits_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/senders": {
         parameters: {
             query?: never;
@@ -1545,11 +1565,12 @@ export interface components {
         };
         /** CampaignRequest */
         CampaignRequest: {
-            /**
-             * Template Id
-             * Format: uuid
-             */
-            template_id: string;
+            /** Template Id */
+            template_id?: string | null;
+            /** Custom Subject */
+            custom_subject?: string | null;
+            /** Custom Body */
+            custom_body?: string | null;
             /** Segmento */
             segmento?: string | null;
             /** Estado */
@@ -1565,7 +1586,7 @@ export interface components {
             skip_sent: boolean;
             /**
              * Limit
-             * @default 3000
+             * @default 10000
              */
             limit: number;
             /** Start Date */
@@ -1575,7 +1596,7 @@ export interface components {
             /** Source Campaign Id */
             source_campaign_id?: string | null;
             /** Source Filter */
-            source_filter?: ("opened" | "clicked") | null;
+            source_filter?: ("opened" | "clicked" | "not_opened") | null;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -2694,6 +2715,18 @@ export interface components {
             estado: string | null;
             /** Organizacion Juridica */
             organizacion_juridica: string | null;
+        };
+        /**
+         * SendLimits
+         * @description Límite diario de envíos y cuántos quedan disponibles hoy.
+         */
+        SendLimits: {
+            /** Daily Limit */
+            daily_limit: number;
+            /** Remaining Today */
+            remaining_today: number;
+            /** Sent Today */
+            sent_today: number;
         };
         /**
          * SendMessageRequest
@@ -5383,6 +5416,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_limits_api_v1_emails_limits_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SendLimits"];
                 };
             };
         };

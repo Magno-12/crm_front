@@ -195,7 +195,9 @@ function CampaignEditDialog({
   );
 }
 
-/** Re-campaña: nuevo envío dirigido solo a quienes abrieron o hicieron clic. */
+type SourceFilter = 'opened' | 'clicked' | 'not_opened';
+
+/** Re-campaña: nuevo envío según la interacción (abrieron, clic o no abrieron). */
 function RecampaignDialog({
   campaign,
   open,
@@ -206,17 +208,22 @@ function RecampaignDialog({
   onOpenChange: (o: boolean) => void;
 }) {
   const [templateId, setTemplateId] = useState('');
-  const [filter, setFilter] = useState<'opened' | 'clicked'>('opened');
+  const [filter, setFilter] = useState<SourceFilter>('opened');
+  // Modo del mensaje: plantilla existente o mensaje escrito a mano.
+  const [mode, setMode] = useState<'template' | 'custom'>('template');
+  const [customSubject, setCustomSubject] = useState('');
+  const [customBody, setCustomBody] = useState('');
   const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates, enabled: open });
 
+  const usingTemplate = mode === 'template';
   const audience = useQuery({
-    queryKey: ['email-audience-recampaign', campaign.id, filter, templateId],
+    queryKey: ['email-audience-recampaign', campaign.id, filter, usingTemplate ? templateId : ''],
     queryFn: () =>
       getAudienceCount({
         source_campaign_id: campaign.id,
         source_filter: filter,
-        template_id: templateId || undefined,
-        skip_sent: !!templateId,
+        template_id: usingTemplate && templateId ? templateId : undefined,
+        skip_sent: usingTemplate && !!templateId,
       }),
     enabled: open,
   });
@@ -224,7 +231,9 @@ function RecampaignDialog({
   const mut = useMutation({
     mutationFn: () =>
       sendCampaign({
-        template_id: templateId,
+        template_id: usingTemplate ? templateId : null,
+        custom_subject: usingTemplate ? null : customSubject.trim(),
+        custom_body: usingTemplate ? null : customBody.trim(),
         source_campaign_id: campaign.id,
         source_filter: filter,
         skip_sent: true,
@@ -237,21 +246,22 @@ function RecampaignDialog({
   });
 
   const count = audience.data ?? 0;
+  const notOpened = Math.max(0, campaign.sent - campaign.opened);
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && !mut.isPending && onOpenChange(false)}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Re-campaña de seguimiento</DialogTitle>
           <DialogDescription>
-            Envía una nueva campaña solo a quienes mostraron interés en{' '}
+            Nuevo envío según la interacción con{' '}
             <span className="font-medium text-foreground">{campaign.name}</span>.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
             <Label className="mb-1.5 block">Dirigida a</Label>
-            <Select value={filter} onValueChange={(v) => setFilter(v as 'opened' | 'clicked')}>
+            <Select value={filter} onValueChange={(v) => setFilter(v as SourceFilter)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -262,28 +272,86 @@ function RecampaignDialog({
                 <SelectItem value="clicked">
                   Quienes hicieron clic ({campaign.clicked})
                 </SelectItem>
+                <SelectItem value="not_opened">
+                  Quienes NO abrieron el correo ({notOpened})
+                </SelectItem>
               </SelectContent>
             </Select>
+            {filter === 'not_opened' && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Reenvío de seguimiento: usa un mensaje distinto al original para no repetir.
+              </p>
+            )}
           </div>
+
           <div>
-            <Label className="mb-1.5 block">Plantilla del nuevo correo</Label>
-            <Select value={templateId} onValueChange={setTemplateId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecciona una plantilla" />
-              </SelectTrigger>
-              <SelectContent>
-                {templates.data?.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label className="mb-1.5 block">Mensaje del nuevo correo</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={usingTemplate ? 'default' : 'outline'}
+                onClick={() => setMode('template')}
+              >
+                Usar plantilla
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={usingTemplate ? 'outline' : 'default'}
+                onClick={() => setMode('custom')}
+              >
+                Escribir mensaje
+              </Button>
+            </div>
           </div>
+
+          {usingTemplate ? (
+            <div>
+              <Label className="mb-1.5 block">Plantilla</Label>
+              <Select value={templateId} onValueChange={setTemplateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecciona una plantilla" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.data?.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <Label className="mb-1.5 block">Asunto</Label>
+                <Input
+                  placeholder="Ej. $razon_social, aún está a tiempo de ponerse al día"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="mb-1.5 block">Texto del mensaje</Label>
+                <textarea
+                  rows={6}
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder={'Escribe el mensaje…\nPuedes usar $razon_social, $nit, $ciudad, $atencion.'}
+                  value={customBody}
+                  onChange={(e) => setCustomBody(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  El mensaje queda guardado como plantilla para reutilizarlo después.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-md border bg-muted/30 p-3 text-sm">
             Destinatarios:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> con correo
-            {templateId ? ' (sin repetir la plantilla elegida)' : ''}.
+            {usingTemplate && templateId ? ' (sin repetir la plantilla elegida)' : ''}.
           </div>
         </div>
         <DialogFooter>
@@ -294,7 +362,9 @@ function RecampaignDialog({
             className="gap-1"
             disabled={mut.isPending}
             onClick={() => {
-              if (!templateId) return toast.error('Selecciona una plantilla');
+              if (usingTemplate && !templateId) return toast.error('Selecciona una plantilla');
+              if (!usingTemplate && (!customSubject.trim() || !customBody.trim()))
+                return toast.error('Escribe el asunto y el texto del mensaje');
               if (count === 0) return toast.error('No hay destinatarios');
               mut.mutate();
             }}
