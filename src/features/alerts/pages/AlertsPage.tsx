@@ -1,11 +1,27 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { BellRing, Clock, FileWarning, UserX, ShieldAlert } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  BellRing,
+  Clock,
+  FileWarning,
+  UserX,
+  ShieldAlert,
+  Send,
+  Loader2,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { CardGridSkeleton } from '@/components/common/table-skeleton';
-import { getAlerts } from '@/features/alerts/api/alerts.api';
+import { Can } from '@/components/auth/Can';
+import {
+  getAlerts,
+  sendAlertsDigest,
+  sendAlertsDigestToMe,
+} from '@/features/alerts/api/alerts.api';
+import { apiErrorMessage } from '@/api/client';
 import { cn } from '@/lib/utils';
 import type { Alert } from '@/types/api';
 
@@ -18,7 +34,11 @@ const CATEGORY_META: Record<
     icon: Clock,
     to: (id) => `/prospects/${id}`,
   },
-  propuesta_estancada: { label: 'Propuesta estancada', icon: FileWarning, to: () => '/opportunities' },
+  propuesta_estancada: {
+    label: 'Propuesta sin respuesta',
+    icon: FileWarning,
+    to: (id) => `/prospects/${id}`,
+  },
   cliente_sin_contacto: { label: 'Cliente sin contacto', icon: UserX, to: (id) => `/clients/${id}` },
   obligacion: { label: 'Obligación tributaria', icon: ShieldAlert, to: () => '/tax' },
 };
@@ -30,13 +50,59 @@ export function AlertsPage() {
   });
   const navigate = useNavigate();
 
+  const digest = useMutation({
+    mutationFn: (soloYo: boolean) =>
+      soloYo ? sendAlertsDigestToMe() : sendAlertsDigest(),
+    onSuccess: (res) => {
+      if (res.sent === 0) {
+        toast.info('No había alertas para enviar.');
+        return;
+      }
+      toast.success(
+        `Resumen enviado a ${res.sent} asesor(es) con ${res.total_alerts} alerta(s).`,
+      );
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Alertas</h1>
-        <p className="text-sm text-muted-foreground">
-          Automatización comercial: lo que requiere tu atención hoy.
-        </p>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Alertas</h1>
+          <p className="text-sm text-muted-foreground">
+            Automatización comercial: lo que requiere tu atención hoy.
+          </p>
+        </div>
+        <Can code="users.view">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              disabled={digest.isPending}
+              onClick={() => digest.mutate(true)}
+              title="Envía el resumen solo a tu correo (prueba)"
+            >
+              {digest.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Enviarme el resumen
+            </Button>
+            <Button
+              disabled={digest.isPending}
+              onClick={() => digest.mutate(false)}
+              title="Envía a cada asesor las alertas de sus prospectos y clientes"
+            >
+              {digest.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Enviar a los asesores
+            </Button>
+          </div>
+        </Can>
       </header>
 
       {isLoading ? (

@@ -427,6 +427,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/prospects/{prospect_id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Attachments
+         * @description Documentos adjuntos a los seguimientos del prospecto.
+         */
+        get: operations["list_attachments_api_v1_prospects__prospect_id__attachments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/{prospect_id}/follow-ups/{follow_up_id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Attachment
+         * @description Adjunta un documento (propuesta, contrato, soporte) a un seguimiento.
+         */
+        post: operations["upload_attachment_api_v1_prospects__prospect_id__follow_ups__follow_up_id__attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/{prospect_id}/attachments/{attachment_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download Attachment
+         * @description Descarga el documento adjunto.
+         */
+        get: operations["download_attachment_api_v1_prospects__prospect_id__attachments__attachment_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/{prospect_id}/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Attachment */
+        delete: operations["delete_attachment_api_v1_prospects__prospect_id__attachments__attachment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/opportunities": {
         parameters: {
             query?: never;
@@ -754,6 +831,46 @@ export interface paths {
         get: operations["get_alerts_api_v1_alerts_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/digest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Digest
+         * @description Envía a cada asesor, por correo, el resumen de sus alertas.
+         */
+        post: operations["send_digest_api_v1_alerts_digest_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/alerts/digest/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Digest Me
+         * @description Envía solo a quien lo solicita (prueba del correo de alertas).
+         */
+        post: operations["send_digest_me_api_v1_alerts_digest_me_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1359,6 +1476,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/charts/by-advisor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Chart By Advisor
+         * @description Ranking de asesores: quién tiene más clientes y mayor valor contratado.
+         */
+        get: operations["chart_by_advisor_api_v1_dashboard_charts_by_advisor_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1429,6 +1566,43 @@ export interface components {
             /** Role Ids */
             role_ids: string[];
         };
+        /**
+         * AttachmentRead
+         * @description Un documento adjunto a un seguimiento (sin el contenido binario).
+         */
+        AttachmentRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Follow Up Id
+             * Format: uuid
+             */
+            follow_up_id: string;
+            /**
+             * Prospect Id
+             * Format: uuid
+             */
+            prospect_id: string;
+            /** Filename */
+            filename: string;
+            /** Content Type */
+            content_type: string | null;
+            /** Size Bytes */
+            size_bytes: number;
+            /**
+             * Uploaded By Id
+             * Format: uuid
+             */
+            uploaded_by_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** AudienceCount */
         AudienceCount: {
             /** Count */
@@ -1470,6 +1644,11 @@ export interface components {
         };
         /** Body_import_prospects_api_v1_prospects_import_post */
         Body_import_prospects_api_v1_prospects_import_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_upload_attachment_api_v1_prospects__prospect_id__follow_ups__follow_up_id__attachments_post */
+        Body_upload_attachment_api_v1_prospects__prospect_id__follow_ups__follow_up_id__attachments_post: {
             /** File */
             file: string;
         };
@@ -1844,6 +2023,23 @@ export interface components {
             account_manager_id?: string | null;
             /** Start Date */
             start_date?: string | null;
+        };
+        /**
+         * DigestResult
+         * @description Resultado del envío del resumen de alertas por correo.
+         */
+        DigestResult: {
+            /** Sent */
+            sent: number;
+            /** Total Alerts */
+            total_alerts: number;
+            /**
+             * Recipients
+             * @default []
+             */
+            recipients: {
+                [key: string]: unknown;
+            }[];
         };
         /**
          * EmailAttachment
@@ -4172,6 +4368,135 @@ export interface operations {
             };
         };
     };
+    list_attachments_api_v1_prospects__prospect_id__attachments_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_attachment_api_v1_prospects__prospect_id__follow_ups__follow_up_id__attachments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+                follow_up_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_upload_attachment_api_v1_prospects__prospect_id__follow_ups__follow_up_id__attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttachmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_attachment_api_v1_prospects__prospect_id__attachments__attachment_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_attachment_api_v1_prospects__prospect_id__attachments__attachment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                prospect_id: string;
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_opportunities_api_v1_opportunities_get: {
         parameters: {
             query?: {
@@ -5027,6 +5352,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AlertsResponse"];
+                };
+            };
+        };
+    };
+    send_digest_api_v1_alerts_digest_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestResult"];
+                };
+            };
+        };
+    };
+    send_digest_me_api_v1_alerts_digest_me_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestResult"];
                 };
             };
         };
@@ -6067,6 +6432,28 @@ export interface operations {
         };
     };
     top_clients_api_v1_dashboard_top_clients_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    chart_by_advisor_api_v1_dashboard_charts_by_advisor_get: {
         parameters: {
             query?: never;
             header?: never;

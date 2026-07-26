@@ -84,6 +84,11 @@ export interface DashboardSummary {
   emails_opened: number;
   lost_prospects: number;
   avg_ticket: number;
+  /** Finanzas: cartera pendiente, recaudo del mes y facturación acumulada del año. */
+  cartera: number;
+  cartera_facturas: number;
+  recaudo_mes: number;
+  facturacion_acumulada: number;
 }
 
 export interface TrendPoint {

@@ -89,6 +89,48 @@ export async function importCooperativas(file: File): Promise<ImportResult> {
   return data;
 }
 
+export interface AttachmentRead {
+  id: string;
+  follow_up_id: string;
+  prospect_id: string;
+  filename: string;
+  content_type: string | null;
+  size_bytes: number;
+  created_at: string;
+}
+
+/** Documentos adjuntos a los seguimientos del prospecto. */
+export async function listAttachments(prospectId: string): Promise<AttachmentRead[]> {
+  const { data } = await api.get<AttachmentRead[]>(`/prospects/${prospectId}/attachments`);
+  return data;
+}
+
+export async function uploadAttachment(
+  prospectId: string,
+  followUpId: string,
+  file: File,
+): Promise<AttachmentRead> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await api.post<AttachmentRead>(
+    `/prospects/${prospectId}/follow-ups/${followUpId}/attachments`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return data;
+}
+
+export async function downloadAttachment(prospectId: string, id: string): Promise<Blob> {
+  const { data } = await api.get<Blob>(`/prospects/${prospectId}/attachments/${id}/download`, {
+    responseType: 'blob',
+  });
+  return data;
+}
+
+export async function deleteAttachment(prospectId: string, id: string): Promise<void> {
+  await api.delete(`/prospects/${prospectId}/attachments/${id}`);
+}
+
 export async function listFollowUps(prospectId: string): Promise<FollowUpRead[]> {
   const { data } = await api.get<FollowUpRead[]>(`/prospects/${prospectId}/follow-ups`);
   return data;

@@ -22,12 +22,15 @@ import {
   Users,
   Briefcase,
   Receipt,
+  HandCoins,
+  TrendingUp,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CardGridSkeleton } from '@/components/common/table-skeleton';
 import { ErrorState, EmptyState } from '@/components/common/states';
 import { KpiCard } from '@/features/dashboard/components/KpiCard';
 import {
+  getByAdvisor,
   getKpis,
   getProspectsByCity,
   getRevenueByService,
@@ -64,6 +67,7 @@ export function DashboardPage() {
     queryFn: getRevenueByActivity,
   });
   const topClients = useQuery({ queryKey: ['dashboard', 'top-clients'], queryFn: getTopClients });
+  const byAdvisor = useQuery({ queryKey: ['dashboard', 'by-advisor'], queryFn: getByAdvisor });
 
   const revenueTotal = (revenue.data ?? []).reduce((s, r) => s + r.value, 0);
 
@@ -116,6 +120,31 @@ export function DashboardPage() {
           icon={<Receipt />}
           label="Ticket promedio"
           value={summary.data ? formatCOP(summary.data.avg_ticket) : '—'}
+        />
+      </div>
+
+      {/* Indicadores financieros: cartera, recaudo y acumulado del año */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatChip
+          icon={<Wallet />}
+          label={
+            summary.data
+              ? `Cartera pendiente (${summary.data.cartera_facturas} factura${
+                  summary.data.cartera_facturas === 1 ? '' : 's'
+                })`
+              : 'Cartera pendiente'
+          }
+          value={summary.data ? formatCOP(summary.data.cartera) : '—'}
+        />
+        <StatChip
+          icon={<HandCoins />}
+          label="Recaudo del mes"
+          value={summary.data ? formatCOP(summary.data.recaudo_mes) : '—'}
+        />
+        <StatChip
+          icon={<TrendingUp />}
+          label="Facturación acumulada (año)"
+          value={summary.data ? formatCOP(summary.data.facturacion_acumulada) : '—'}
         />
       </div>
 
@@ -281,6 +310,35 @@ export function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Ranking de asesores: ¿quién vende más? */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ventas por asesor</CardTitle>
+          <CardDescription>
+            Valor mensual contratado y número de clientes a cargo de cada asesor.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="h-72">
+          <ChartGuard query={byAdvisor}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={byAdvisor.data} layout="vertical" margin={{ left: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} tickFormatter={(v) => formatCompact(v)} />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                <Tooltip
+                  cursor={{ fill: 'hsl(var(--muted))' }}
+                  formatter={(v: number, _n, item) => [
+                    `${formatCOP(v)} · ${(item?.payload as { clientes?: number })?.clientes ?? 0} cliente(s)`,
+                    'Contratado/mes',
+                  ]}
+                />
+                <Bar dataKey="value" name="Contratado/mes" radius={[0, 6, 6, 0]} fill="#0E7490" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartGuard>
+        </CardContent>
+      </Card>
     </div>
   );
 }

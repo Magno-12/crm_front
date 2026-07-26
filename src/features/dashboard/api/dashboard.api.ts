@@ -60,3 +60,13 @@ export async function getTopClients(): Promise<NamedValue[]> {
   const { data } = await api.get<ChartResponse<NamedValue>>('/dashboard/top-clients');
   return data.data;
 }
+
+/** Ranking de asesores: valor mensual contratado y número de clientes. */
+export interface AdvisorRow extends NamedValue {
+  clientes: number;
+}
+
+export async function getByAdvisor(): Promise<AdvisorRow[]> {
+  const { data } = await api.get<ChartResponse<AdvisorRow>>('/dashboard/charts/by-advisor');
+  return data.data;
+}
