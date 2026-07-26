@@ -30,7 +30,8 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <TopBar onOpenMobileNav={() => setMobileOpen(true)} />
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-[1400px] p-4 sm:p-6">
+          {/* pb-24: deja libre la esquina del botón flotante de ayuda (paginación). */}
+          <div className="mx-auto w-full max-w-[1400px] p-4 pb-24 sm:p-6 sm:pb-24">
             <Outlet />
           </div>
         </main>
