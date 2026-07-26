@@ -46,6 +46,7 @@ import {
   updateCampaignDates,
   listTemplates,
   getAudienceCount,
+  getSendLimits,
   sendCampaign,
   type OpeningRow,
   type RecipientStatus,
@@ -213,7 +214,14 @@ function RecampaignDialog({
   const [mode, setMode] = useState<'template' | 'custom'>('template');
   const [customSubject, setCustomSubject] = useState('');
   const [customBody, setCustomBody] = useState('');
+  // Cantidad a enviar hoy: 'max' = hasta el límite diario, o un tope elegido.
+  const [sendLimit, setSendLimit] = useState('max');
   const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates, enabled: open });
+  const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
+  const dailyLimit = limits.data?.daily_limit ?? 3000;
+  const limitOptions: number[] = [];
+  for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
+  const chosenLimit = sendLimit === 'max' ? dailyLimit : Number(sendLimit);
 
   const usingTemplate = mode === 'template';
   const audience = useQuery({
@@ -237,6 +245,7 @@ function RecampaignDialog({
         source_campaign_id: campaign.id,
         source_filter: filter,
         skip_sent: true,
+        limit: chosenLimit,
       }),
     onSuccess: (res) => {
       toast.success(res.message);
@@ -348,6 +357,25 @@ function RecampaignDialog({
             </div>
           )}
 
+          <div>
+            <Label className="mb-1.5 block">Cantidad a enviar hoy</Label>
+            <Select value={sendLimit} onValueChange={setSendLimit}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {limitOptions.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n.toLocaleString('es-CO')} correos
+                  </SelectItem>
+                ))}
+                <SelectItem value="max">
+                  Máximo del día ({dailyLimit.toLocaleString('es-CO')})
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="rounded-md border bg-muted/30 p-3 text-sm">
             Destinatarios:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> con correo
@@ -374,7 +402,7 @@ function RecampaignDialog({
             ) : (
               <Megaphone className="h-4 w-4" />
             )}
-            Enviar a {count}
+            Enviar a {Math.min(count, chosenLimit).toLocaleString('es-CO')}
           </Button>
         </DialogFooter>
       </DialogContent>

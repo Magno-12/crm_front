@@ -250,9 +250,15 @@ function CampaignDialog({
   const [sender, setSender] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  // Cantidad a enviar hoy: 'max' = hasta el límite diario, o un tope elegido (500, 1000…).
+  const [sendLimit, setSendLimit] = useState('max');
   const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
   const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
   const dailyLimit = limits.data?.daily_limit ?? DEFAULT_DAILY_LIMIT;
+  // Opciones de 500 en 500 hasta el límite diario (3.000 hoy; se adapta si sube el plan).
+  const limitOptions: number[] = [];
+  for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
+  const chosenLimit = sendLimit === 'max' ? dailyLimit : Number(sendLimit);
   const debouncedCiiu = useDebounce(ciiu, 400);
 
   const filters = {
@@ -280,6 +286,7 @@ function CampaignDialog({
         from_email: sender || undefined,
         start_date: startDate || null,
         end_date: endDate || null,
+        limit: chosenLimit,
         ...filters,
       }),
     onSuccess: (res) => {
@@ -369,6 +376,29 @@ function CampaignDialog({
             <Input placeholder="Ej. 8610" value={ciiu} onChange={(e) => setCiiu(e.target.value)} />
           </div>
 
+          <div>
+            <Label className="mb-1.5 block">Cantidad a enviar hoy</Label>
+            <Select value={sendLimit} onValueChange={setSendLimit}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {limitOptions.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n.toLocaleString('es-CO')} correos
+                  </SelectItem>
+                ))}
+                <SelectItem value="max">
+                  Máximo del día ({dailyLimit.toLocaleString('es-CO')})
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Hoy salen hasta esa cantidad; el resto de la audiencia continúa los días
+              siguientes al volver a enviar la campaña.
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label className="mb-1.5 block">Fecha de inicio (opcional)</Label>
@@ -400,11 +430,12 @@ function CampaignDialog({
             Audiencia con correo:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> destinatario(s)
             {skipSent && templateId ? ' nuevos' : ''}.
-            {count > dailyLimit && (
+            {count > chosenLimit && (
               <span className="text-muted-foreground">
                 {' '}
-                Hoy se enviarán {dailyLimit.toLocaleString('es-CO')} por el límite diario; el
-                resto continúa mañana.
+                Hoy se enviarán {chosenLimit.toLocaleString('es-CO')}
+                {sendLimit === 'max' ? ' por el límite diario' : ' según la cantidad elegida'}; el
+                resto queda pendiente.
               </span>
             )}
           </div>
@@ -421,7 +452,8 @@ function CampaignDialog({
             }}
             disabled={mut.isPending}
           >
-            <Megaphone className="h-4 w-4" /> Enviar a {Math.min(count, dailyLimit)}
+            <Megaphone className="h-4 w-4" /> Enviar a{' '}
+            {Math.min(count, chosenLimit).toLocaleString('es-CO')}
           </Button>
         </DialogFooter>
       </DialogContent>
