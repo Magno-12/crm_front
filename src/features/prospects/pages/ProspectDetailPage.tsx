@@ -136,6 +136,15 @@ export function ProspectDetailPage() {
           <CardContent className="space-y-3 text-sm">
             <InfoRow label="NIT" value={prospect.nit + (prospect.dv ? `-${prospect.dv}` : '')} />
             <InfoRow label="Segmento" value={segmentLabel(prospect.segmento)} />
+            {(prospect as { sigla?: string | null }).sigla && (
+              <InfoRow label="Sigla" value={(prospect as { sigla?: string }).sigla ?? ''} />
+            )}
+            {(prospect as { tipo_entidad?: string | null }).tipo_entidad && (
+              <InfoRow
+                label="Tipo de entidad"
+                value={(prospect as { tipo_entidad?: string }).tipo_entidad ?? ''}
+              />
+            )}
             <InfoRow label="Representante legal" value={prospect.representante_legal ?? '—'} />
             <InfoRow label="Cédula representante" value={prospect.cedula_representante ?? '—'} />
             <InfoRow

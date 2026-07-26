@@ -19,8 +19,8 @@ import { Can } from '@/components/auth/Can';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProspects } from '@/features/prospects/hooks/useProspects';
 import {
+  MARKET_SEGMENTS,
   PROSPECT_STATUSES,
-  SEGMENTS,
   SEGMENT_META,
   segmentLabel,
   statusMeta,
@@ -55,6 +55,8 @@ export function ProspectsPage() {
     q: debouncedQ || undefined,
     estado: estado === 'all' ? undefined : estado,
     segmento: segmento === 'all' ? undefined : segmento,
+    // Las cooperativas tienen su propia pantalla; aquí no se mezclan.
+    exclude_segmento: 'cooperativa',
     actividad_ciiu: debouncedCiiu || undefined,
     regimen: debouncedRegimen || undefined,
     ingresos_min: debouncedIngMin || undefined,
@@ -132,7 +134,7 @@ export function ProspectsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los segmentos</SelectItem>
-            {SEGMENTS.map((s) => (
+            {MARKET_SEGMENTS.map((s) => (
               <SelectItem key={s} value={s}>
                 {SEGMENT_META[s]?.label ?? s}
               </SelectItem>

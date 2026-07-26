@@ -14,6 +14,8 @@ export interface ProspectFilters {
   estado?: string;
   ciudad?: string;
   segmento?: string;
+  /** Excluye un segmento (la base de mercadeo excluye a las cooperativas). */
+  exclude_segmento?: string;
   actividad_ciiu?: string;
   regimen?: string;
   ingresos_min?: string;
@@ -72,6 +74,16 @@ export async function importProspects(file: File): Promise<ImportResult> {
   const formData = new FormData();
   formData.append('file', file);
   const { data } = await api.post<ImportResult>('/prospects/import', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data;
+}
+
+/** Importa el Excel de entidades vigiladas por la Supersolidaria (cooperativas). */
+export async function importCooperativas(file: File): Promise<ImportResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await api.post<ImportResult>('/prospects/import-cooperativas', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data;

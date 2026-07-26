@@ -12,20 +12,25 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useImportProspects } from '@/features/prospects/hooks/useProspects';
+import { useImportCooperativas, useImportProspects } from '@/features/prospects/hooks/useProspects';
 import { apiErrorMessage } from '@/api/client';
 import type { ImportResult } from '@/types/api';
 
 export function ImportDialog({
   open,
   onOpenChange,
+  cooperativas = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Importa el Excel de la Supersolidaria (cooperativas) en lugar de prospectos. */
+  cooperativas?: boolean;
 }) {
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<ImportResult | null>(null);
-  const importMut = useImportProspects();
+  const importProspectsMut = useImportProspects();
+  const importCoopMut = useImportCooperativas();
+  const importMut = cooperativas ? importCoopMut : importProspectsMut;
 
   const onImport = async () => {
     if (!file) return;
@@ -50,10 +55,22 @@ export function ImportDialog({
     <Dialog open={open} onOpenChange={close}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Importar prospectos desde Excel</DialogTitle>
+          <DialogTitle>
+            {cooperativas ? 'Importar cooperativas desde Excel' : 'Importar prospectos desde Excel'}
+          </DialogTitle>
           <DialogDescription>
-            El archivo debe tener al menos las columnas <code>nit</code> y{' '}
-            <code>razon_social</code>. Los NIT duplicados se omiten.
+            {cooperativas ? (
+              <>
+                Archivo de entidades vigiladas por la Supersolidaria (columnas{' '}
+                <code>NOMBREENTIDAD</code>, <code>NIT</code>, <code>EMAIL</code>…). Los NIT
+                duplicados se omiten.
+              </>
+            ) : (
+              <>
+                El archivo debe tener al menos las columnas <code>nit</code> y{' '}
+                <code>razon_social</code>. Los NIT duplicados se omiten.
+              </>
+            )}
           </DialogDescription>
         </DialogHeader>
 

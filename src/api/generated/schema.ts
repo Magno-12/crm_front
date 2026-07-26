@@ -247,6 +247,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/audit/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Sessions
+         * @description Sesiones por usuario: quién entró, a qué hora, cuándo salió y cuánto estuvo.
+         */
+        get: operations["list_sessions_api_v1_admin_audit_sessions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit": {
         parameters: {
             query?: never;
@@ -310,6 +330,26 @@ export interface paths {
         put?: never;
         /** Import Prospects */
         post: operations["import_prospects_api_v1_prospects_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/import-cooperativas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Cooperativas
+         * @description Importa el Excel de entidades vigiladas por la Supersolidaria (cooperativas).
+         */
+        post: operations["import_cooperativas_api_v1_prospects_import_cooperativas_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -488,7 +528,11 @@ export interface paths {
         get: operations["get_client_api_v1_clients__client_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Client
+         * @description Elimina un cliente fidelizado (con sus servicios). El prospecto se conserva.
+         */
+        delete: operations["delete_client_api_v1_clients__client_id__delete"];
         options?: never;
         head?: never;
         /** Update Client */
@@ -582,7 +626,11 @@ export interface paths {
         get: operations["get_invoice_api_v1_invoices__invoice_id__get"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Delete Invoice
+         * @description Elimina la factura y sus renglones. Queda registrado en la auditoría.
+         */
+        delete: operations["delete_invoice_api_v1_invoices__invoice_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1414,6 +1462,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /** Body_import_cooperativas_api_v1_prospects_import_cooperativas_post */
+        Body_import_cooperativas_api_v1_prospects_import_cooperativas_post: {
+            /** File */
+            file: string;
         };
         /** Body_import_prospects_api_v1_prospects_import_post */
         Body_import_prospects_api_v1_prospects_import_post: {
@@ -2357,6 +2410,21 @@ export interface components {
             /** Has Prev */
             has_prev: boolean;
         };
+        /** Page[UserSessionRead] */
+        Page_UserSessionRead_: {
+            /** Items */
+            items: components["schemas"]["UserSessionRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Has Next */
+            has_next: boolean;
+            /** Has Prev */
+            has_prev: boolean;
+        };
         /** PermissionRead */
         PermissionRead: {
             /**
@@ -2411,6 +2479,10 @@ export interface components {
             dv?: string | null;
             /** Razon Social */
             razon_social: string;
+            /** Sigla */
+            sigla?: string | null;
+            /** Tipo Entidad */
+            tipo_entidad?: string | null;
             /** Nivel */
             nivel?: string | null;
             /** Representante Legal */
@@ -2475,6 +2547,10 @@ export interface components {
             dv: string | null;
             /** Razon Social */
             razon_social: string;
+            /** Sigla */
+            sigla?: string | null;
+            /** Tipo Entidad */
+            tipo_entidad?: string | null;
             /** Nivel */
             nivel: string | null;
             /** Representante Legal */
@@ -2553,7 +2629,7 @@ export interface components {
          * @description Sector / fuente del prospecto (basado en las bases reales).
          * @enum {string}
          */
-        ProspectSegment: "persona_juridica" | "persona_natural" | "alcaldia" | "ese" | "otro";
+        ProspectSegment: "persona_juridica" | "persona_natural" | "alcaldia" | "ese" | "cooperativa" | "otro";
         /** ProspectSendItem */
         ProspectSendItem: {
             /** Id */
@@ -2596,6 +2672,10 @@ export interface components {
         ProspectUpdate: {
             /** Razon Social */
             razon_social?: string | null;
+            /** Sigla */
+            sigla?: string | null;
+            /** Tipo Entidad */
+            tipo_entidad?: string | null;
             /** Nivel */
             nivel?: string | null;
             /** Representante Legal */
@@ -3009,6 +3089,31 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+        };
+        /**
+         * UserSessionRead
+         * @description Una sesión de usuario: entrada, salida y duración (control de acceso).
+         */
+        UserSessionRead: {
+            /** User Id */
+            user_id: string;
+            /** Email */
+            email: string | null;
+            /** Full Name */
+            full_name: string | null;
+            /**
+             * Login At
+             * Format: date-time
+             */
+            login_at: string;
+            /** Logout At */
+            logout_at: string | null;
+            /** Duration Seconds */
+            duration_seconds: number | null;
+            /** Status */
+            status: string;
+            /** Ip Address */
+            ip_address: string | null;
         };
         /** UserUpdate */
         UserUpdate: {
@@ -3604,6 +3709,40 @@ export interface operations {
             };
         };
     };
+    list_sessions_api_v1_admin_audit_sessions_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                user_id?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_UserSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_audit_api_v1_admin_audit_get: {
         parameters: {
             query?: {
@@ -3653,6 +3792,7 @@ export interface operations {
                 activos_min?: number | string | null;
                 activos_max?: number | string | null;
                 en_gestion?: boolean;
+                exclude_segmento?: components["schemas"]["ProspectSegment"] | null;
                 page?: number;
                 page_size?: number;
             };
@@ -3745,6 +3885,39 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["Body_import_prospects_api_v1_prospects_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_cooperativas_api_v1_prospects_import_cooperativas_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_cooperativas_api_v1_prospects_import_cooperativas_post"];
             };
         };
         responses: {
@@ -4264,6 +4437,35 @@ export interface operations {
             };
         };
     };
+    delete_client_api_v1_clients__client_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_client_api_v1_clients__client_id__patch: {
         parameters: {
             query?: never;
@@ -4519,6 +4721,35 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["InvoiceRead"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_invoice_api_v1_invoices__invoice_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                invoice_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

@@ -13,6 +13,11 @@ const DashboardPage = lazy(() =>
 const ProspectsPage = lazy(() =>
   import('@/features/prospects/pages/ProspectsPage').then((m) => ({ default: m.ProspectsPage })),
 );
+const CooperativasPage = lazy(() =>
+  import('@/features/prospects/pages/CooperativasPage').then((m) => ({
+    default: m.CooperativasPage,
+  })),
+);
 const ProspectDetailPage = lazy(() =>
   import('@/features/prospects/pages/ProspectDetailPage').then((m) => ({
     default: m.ProspectDetailPage,
@@ -97,6 +102,14 @@ export function App() {
             element={
               <ProtectedRoute requires="prospects.view">
                 <ProspectsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cooperativas"
+            element={
+              <ProtectedRoute requires="prospects.view">
+                <CooperativasPage />
               </ProtectedRoute>
             }
           />

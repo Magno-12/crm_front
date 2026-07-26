@@ -7,6 +7,7 @@ import {
   createProspect,
   deleteProspect,
   getProspect,
+  importCooperativas,
   importProspects,
   listFollowUps,
   listProspects,
@@ -74,6 +75,14 @@ export function useImportProspects() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (file: File) => importProspects(file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+}
+
+export function useImportCooperativas() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => importCooperativas(file),
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }

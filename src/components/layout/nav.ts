@@ -12,6 +12,7 @@ import {
   BellRing,
   Receipt,
   Clock,
+  HeartHandshake,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -32,6 +33,7 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     items: [
       { label: 'Base de datos mercadeo', to: '/prospects', icon: Users, permission: 'prospects.view' },
+      { label: 'Cooperativas', to: '/cooperativas', icon: HeartHandshake, permission: 'prospects.view' },
       { label: 'Envío de correos', to: '/emails', icon: Mail, permission: 'emails.send' },
       { label: 'Seguimiento de correo', to: '/aperturas', icon: MailOpen, permission: 'emails.send' },
       { label: 'Seguimiento de prospecto', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
