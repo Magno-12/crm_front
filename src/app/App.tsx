@@ -57,6 +57,9 @@ const RolesPage = lazy(() =>
 const AuditPage = lazy(() =>
   import('@/features/admin/audit/AuditPage').then((m) => ({ default: m.AuditPage })),
 );
+const SessionsPage = lazy(() =>
+  import('@/features/admin/sessions/SessionsPage').then((m) => ({ default: m.SessionsPage })),
+);
 const ServicesPage = lazy(() =>
   import('@/features/admin/services/ServicesPage').then((m) => ({ default: m.ServicesPage })),
 );
@@ -192,6 +195,14 @@ export function App() {
             element={
               <ProtectedRoute requires="audit.view">
                 <AuditPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/sessions"
+            element={
+              <ProtectedRoute requires="audit.view">
+                <SessionsPage />
               </ProtectedRoute>
             }
           />

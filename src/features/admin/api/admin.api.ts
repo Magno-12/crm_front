@@ -82,3 +82,24 @@ export async function listAudit(params: {
   const { data } = await api.get<Page<AuditRead>>('/admin/audit', { params });
   return data;
 }
+
+export interface UserSession {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  login_at: string;
+  logout_at: string | null;
+  duration_seconds: number | null;
+  status: 'activa' | 'cerrada' | 'sin_cierre';
+  ip_address: string | null;
+}
+
+/** Sesiones por usuario: entrada, salida y duración (control de acceso). */
+export async function listSessions(params: {
+  days?: number;
+  page?: number;
+  page_size?: number;
+}): Promise<Page<UserSession>> {
+  const { data } = await api.get<Page<UserSession>>('/admin/audit/sessions', { params });
+  return data;
+}

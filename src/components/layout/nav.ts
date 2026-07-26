@@ -11,6 +11,7 @@ import {
   ScrollText,
   BellRing,
   Receipt,
+  Clock,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -46,6 +47,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Usuarios', to: '/admin/users', icon: Users, permission: 'users.view' },
       { label: 'Roles', to: '/admin/roles', icon: ShieldCheck, permission: 'roles.view' },
+      { label: 'Sesiones', to: '/admin/sessions', icon: Clock, permission: 'audit.view' },
       { label: 'Auditoría', to: '/admin/audit', icon: ScrollText, permission: 'audit.view' },
       { label: 'Servicios', to: '/admin/services', icon: Settings, permission: 'services.view' },
     ],
