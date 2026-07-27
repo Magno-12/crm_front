@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowLeft, Plus, Pencil, FileDown, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Plus,
+  Pencil,
+  FileDown,
+  Loader2,
+  KeyRound,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +37,7 @@ import { FullPageSpinner, ErrorState, EmptyState } from '@/components/common/sta
 import { Can } from '@/components/auth/Can';
 import {
   getClient,
+  getDianCredentials,
   listClientServices,
   addClientService,
   updateClientService,
@@ -40,7 +50,7 @@ import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeli
 import { listServices } from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP, formatDate } from '@/lib/utils';
-import type { ClientServiceRead } from '@/types/api';
+import type { ClientRead, ClientServiceRead } from '@/types/api';
 
 type ServiceRow = ClientServiceRead & ContractFields;
 
@@ -190,6 +200,69 @@ function ServiceFormDialog({
   );
 }
 
+/** Acceso al portal DIAN del cliente: usuario visible, clave bajo permiso. */
+function DianAccessCard({ client }: { client: ClientRead }) {
+  const [clave, setClave] = useState<string | null>(null);
+  const usuario = (client as { dian_usuario?: string | null }).dian_usuario;
+  const guardada = (client as { dian_clave_guardada?: boolean }).dian_clave_guardada;
+
+  const reveal = useMutation({
+    mutationFn: () => getDianCredentials(client.id),
+    onSuccess: (res) => setClave(res.dian_clave ?? '—'),
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
+  if (!usuario && !guardada) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <KeyRound className="h-4 w-4" /> Acceso al portal DIAN
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+        <Info label="Usuario DIAN" value={usuario} />
+        <div>
+          <p className="text-muted-foreground">Clave DIAN</p>
+          <p className="font-mono font-medium">
+            {clave ?? (guardada ? '••••••••' : '—')}
+          </p>
+        </div>
+        <div className="flex items-end">
+          {guardada && (
+            <Can code="clients.credentials">
+              {clave ? (
+                <Button variant="outline" size="sm" onClick={() => setClave(null)}>
+                  <EyeOff className="h-4 w-4" /> Ocultar
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={reveal.isPending}
+                  onClick={() => reveal.mutate()}
+                  title="Queda registrado en la auditoría"
+                >
+                  {reveal.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                  Ver clave
+                </Button>
+              )}
+            </Can>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground sm:col-span-3">
+          La clave se guarda cifrada. Consultarla queda registrado en la auditoría del sistema.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function ClientDetailPage() {
   const { id = '' } = useParams();
   const { data: client, isLoading, error, refetch } = useQuery({
@@ -267,6 +340,8 @@ export function ClientDetailPage() {
           <Info label="Creado" value={formatDate(client.created_at)} />
         </CardContent>
       </Card>
+
+      <DianAccessCard client={client} />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">

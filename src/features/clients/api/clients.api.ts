@@ -32,6 +32,17 @@ export async function updateClient(id: string, body: ClientUpdate): Promise<Clie
   return data;
 }
 
+export interface DianCredentials {
+  dian_usuario: string | null;
+  dian_clave: string | null;
+}
+
+/** Muestra la clave DIAN del cliente. Requiere permiso y queda en auditoría. */
+export async function getDianCredentials(id: string): Promise<DianCredentials> {
+  const { data } = await api.get<DianCredentials>(`/clients/${id}/dian-credentials`);
+  return data;
+}
+
 /** Elimina el cliente fidelizado (y sus servicios); el prospecto se conserva. */
 export async function deleteClient(id: string): Promise<void> {
   await api.delete(`/clients/${id}`);

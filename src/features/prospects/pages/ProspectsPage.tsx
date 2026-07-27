@@ -55,8 +55,6 @@ export function ProspectsPage() {
     q: debouncedQ || undefined,
     estado: estado === 'all' ? undefined : estado,
     segmento: segmento === 'all' ? undefined : segmento,
-    // Las cooperativas tienen su propia pantalla; aquí no se mezclan.
-    exclude_segmento: 'cooperativa',
     actividad_ciiu: debouncedCiiu || undefined,
     regimen: debouncedRegimen || undefined,
     ingresos_min: debouncedIngMin || undefined,

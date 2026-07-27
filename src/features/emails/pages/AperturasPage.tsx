@@ -9,9 +9,11 @@ import {
   Send,
   ArrowLeft,
   Megaphone,
-  Trash2,
   Loader2,
   Pencil,
+  Archive,
+  RotateCcw,
+  FileDown,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +44,8 @@ import {
   getCampaigns,
   getCampaignDetail,
   getRecipients,
-  deleteCampaign,
+  archiveCampaign,
+  exportSends,
   updateCampaignDates,
   listTemplates,
   getAudienceCount,
@@ -776,18 +779,47 @@ export function AperturasPage() {
   // volver atrás, se regresa a esta misma campaña y no al inicio.
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedId = searchParams.get('campana');
-  const [toDelete, setToDelete] = useState<CampaignHistoryRow | null>(null);
+  // Vista: campañas vigentes o terminadas.
+  const terminadas = searchParams.get('vista') === 'terminadas';
+  const [toArchive, setToArchive] = useState<CampaignHistoryRow | null>(null);
   const [toEdit, setToEdit] = useState<CampaignHistoryRow | null>(null);
   const qc = useQueryClient();
-  const campaigns = useQuery({ queryKey: ['email-campaigns'], queryFn: () => getCampaigns(1) });
+  const campaigns = useQuery({
+    queryKey: ['email-campaigns', terminadas],
+    queryFn: () => getCampaigns(1, terminadas),
+  });
 
-  const del = useMutation({
-    mutationFn: (id: string) => deleteCampaign(id),
+  const [exportando, setExportando] = useState(false);
+
+  /** Descarga el Excel de correos enviados (todos, o los de la campaña abierta). */
+  const descargarExcel = async (campaignId: string | null) => {
+    setExportando(true);
+    try {
+      const blob = await exportSends(campaignId);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = campaignId ? 'correos-campana.xlsx' : 'correos-enviados.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    } finally {
+      setExportando(false);
+    }
+  };
+
+  const archive = useMutation({
+    mutationFn: ({ id, archived }: { id: string; archived: boolean }) =>
+      archiveCampaign(id, archived),
     onSuccess: (res) => {
-      toast.success(`Campaña "${res.name}" eliminada (${res.sends_deleted} correos).`);
+      toast.success(
+        res.archived
+          ? 'Campaña terminada: pasó a «Campañas terminadas».'
+          : 'Campaña reactivada: vuelve a las vigentes.',
+      );
       qc.invalidateQueries({ queryKey: ['email-campaigns'] });
-      setToDelete(null);
-      setSearchParams({}, { replace: true });
+      setToArchive(null);
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
@@ -797,11 +829,26 @@ export function AperturasPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Seguimiento de correo</h1>
-        <p className="text-sm text-muted-foreground">
-          Cada campaña con su trazabilidad: recibidos, abiertos, respondidos y clics.
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Seguimiento de correo</h1>
+          <p className="text-sm text-muted-foreground">
+            Cada campaña con su trazabilidad: recibidos, abiertos, respondidos y clics.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          disabled={exportando}
+          onClick={() => descargarExcel(selectedId)}
+          title="Descarga en Excel los correos enviados con su trazabilidad"
+        >
+          {exportando ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <FileDown className="h-4 w-4" />
+          )}
+          {selected ? 'Exportar esta campaña' : 'Exportar correos a Excel'}
+        </Button>
       </div>
 
       {selected ? (
@@ -809,21 +856,43 @@ export function AperturasPage() {
       ) : (
         /* Mercadeo de campañas: elige una para ver su seguimiento */
         <Card>
-          <CardHeader>
+          <CardHeader className="gap-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Megaphone className="h-4 w-4" /> Mercadeo de campañas
+              <Megaphone className="h-4 w-4" />
+              {terminadas ? 'Campañas terminadas' : 'Mercadeo de campañas'}
               {campaigns.data && (
                 <Badge variant="secondary" className="ml-1">
                   {campaigns.data.total}
                 </Badge>
               )}
             </CardTitle>
+            {/* Vigentes vs terminadas: las terminadas salen del listado principal */}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant={terminadas ? 'outline' : 'default'}
+                onClick={() => setSearchParams({})}
+              >
+                Campañas vigentes
+              </Button>
+              <Button
+                size="sm"
+                variant={terminadas ? 'default' : 'outline'}
+                onClick={() => setSearchParams({ vista: 'terminadas' })}
+              >
+                <Archive className="h-4 w-4" /> Campañas terminadas
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {items.length === 0 ? (
               <EmptyState
-                title="Aún no hay campañas"
-                description="Cuando envíes una campaña, aquí aparecerá para ver su seguimiento."
+                title={terminadas ? 'No hay campañas terminadas' : 'Aún no hay campañas'}
+                description={
+                  terminadas
+                    ? 'Cuando termines una campaña, aquí quedará archivada con toda su trazabilidad.'
+                    : 'Cuando envíes una campaña, aquí aparecerá para ver su seguimiento.'
+                }
               />
             ) : (
               <ul className="divide-y rounded-md border">
@@ -864,20 +933,29 @@ export function AperturasPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </Can>
-                      {/* Eliminar: solo administradores (mismo permiso que en plantillas) */}
-                      <Can code="emails.templates.delete">
+                      {/* Terminar la campaña: sale de las vigentes sin borrar nada */}
+                      <Can code="emails.send">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          aria-label="Eliminar campaña"
-                          title="Eliminar campaña"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          aria-label={terminadas ? 'Reactivar campaña' : 'Terminar campaña'}
+                          title={
+                            terminadas
+                              ? 'Reactivar: vuelve a las campañas vigentes'
+                              : 'Terminar campaña: pasa a «Campañas terminadas»'
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
-                            setToDelete(c);
+                            if (terminadas) archive.mutate({ id: c.id, archived: false });
+                            else setToArchive(c);
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {terminadas ? (
+                            <RotateCcw className="h-4 w-4" />
+                          ) : (
+                            <Archive className="h-4 w-4" />
+                          )}
                         </Button>
                       </Can>
                     </div>
@@ -892,35 +970,39 @@ export function AperturasPage() {
       <CampaignEditDialog campaign={toEdit} onOpenChange={(o) => !o && setToEdit(null)} />
 
       <Dialog
-        open={!!toDelete}
-        onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}
+        open={!!toArchive}
+        onOpenChange={(o) => !o && !archive.isPending && setToArchive(null)}
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>¿Eliminar campaña?</DialogTitle>
+            <DialogTitle>¿Terminar la campaña?</DialogTitle>
             <DialogDescription>
-              Se eliminará la campaña{' '}
-              <span className="font-medium text-foreground">{toDelete?.name}</span> con todos sus
-              envíos y su trazabilidad (recibidos, aperturas y clics). Las respuestas de clientes se
-              conservan. Esta acción no se puede deshacer.
+              La campaña{' '}
+              <span className="font-medium text-foreground">{toArchive?.name}</span> pasará a
+              <b> Campañas terminadas</b>. No se borra nada: sus envíos y su trazabilidad
+              (recibidos, aperturas, respuestas y clics) se conservan y se pueden consultar cuando
+              quieras. Así, en el listado principal quedan solo las campañas vigentes.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setToDelete(null)} disabled={del.isPending}>
+            <Button
+              variant="outline"
+              onClick={() => setToArchive(null)}
+              disabled={archive.isPending}
+            >
               Cancelar
             </Button>
             <Button
-              variant="destructive"
               className="gap-1"
-              disabled={del.isPending}
-              onClick={() => toDelete && del.mutate(toDelete.id)}
+              disabled={archive.isPending}
+              onClick={() => toArchive && archive.mutate({ id: toArchive.id, archived: true })}
             >
-              {del.isPending ? (
+              {archive.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Trash2 className="h-4 w-4" />
+                <Archive className="h-4 w-4" />
               )}
-              Eliminar
+              Terminar campaña
             </Button>
           </DialogFooter>
         </DialogContent>

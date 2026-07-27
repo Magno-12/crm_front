@@ -258,10 +258,32 @@ export interface CampaignDetail {
   recipients: CampaignRecipient[];
 }
 
-export async function getCampaigns(page = 1): Promise<Paged<CampaignHistoryRow>> {
+export async function getCampaigns(page = 1, archived = false): Promise<Paged<CampaignHistoryRow>> {
   const { data } = await api.get<Paged<CampaignHistoryRow>>('/emails/campaigns', {
-    params: { page, page_size: 50 },
+    params: { page, page_size: 50, archived },
   });
+  return data;
+}
+
+/** Descarga en Excel los correos enviados (todos o los de una campaña). */
+export async function exportSends(campaignId?: string | null): Promise<Blob> {
+  const { data } = await api.get<Blob>('/emails/export', {
+    params: campaignId ? { campaign_id: campaignId } : undefined,
+    responseType: 'blob',
+  });
+  return data;
+}
+
+/** Termina una campaña (pasa a «Terminadas») o la reactiva. No borra datos. */
+export async function archiveCampaign(
+  id: string,
+  archived = true,
+): Promise<{ archived: boolean; envios: number }> {
+  const { data } = await api.post<{ archived: boolean; envios: number }>(
+    `/emails/campaigns/${id}/archive`,
+    null,
+    { params: { archived } },
+  );
   return data;
 }
 

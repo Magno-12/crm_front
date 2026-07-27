@@ -9,10 +9,11 @@ import {
   Settings,
   ShieldCheck,
   ScrollText,
-  BellRing,
   Receipt,
   Clock,
-  HeartHandshake,
+  BarChart3,
+  Wallet,
+  BellRing,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -29,24 +30,38 @@ export interface NavSection {
   items: NavItem[];
 }
 
+// Estructura acordada: mercadeo → pipeline comercial → facturación y cartera →
+// administración del sistema.
 export const NAV_SECTIONS: NavSection[] = [
   {
+    title: 'Mercadeo y prospección',
     items: [
       { label: 'Base de datos mercadeo', to: '/prospects', icon: Users, permission: 'prospects.view' },
-      { label: 'Cooperativas', to: '/cooperativas', icon: HeartHandshake, permission: 'prospects.view' },
-      { label: 'Envío de correos', to: '/emails', icon: Mail, permission: 'emails.send' },
+      { label: 'Envío de correos y campañas', to: '/emails', icon: Mail, permission: 'emails.send' },
       { label: 'Seguimiento de correo', to: '/aperturas', icon: MailOpen, permission: 'emails.send' },
+    ],
+  },
+  {
+    title: 'Pipeline comercial',
+    items: [
       { label: 'Seguimiento de prospecto', to: '/seguimiento', icon: ClipboardList, permission: 'prospects.view' },
-      { label: 'Clientes fidelizados', to: '/clients', icon: Briefcase, permission: 'clients.view' },
-      { label: 'Facturas', to: '/invoices', icon: FileText, permission: 'invoices.view' },
-      { label: 'Obligaciones', to: '/tax', icon: Receipt, permission: 'tax.view' },
-      { label: 'Alertas', to: '/alerts', icon: BellRing, permission: 'dashboard.view' },
-      { label: 'Dashboard', to: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
+      { label: 'Clientes fidelizados y contratos', to: '/clients', icon: Briefcase, permission: 'clients.view' },
+      { label: 'Obligaciones y alertas', to: '/tax', icon: BellRing, permission: 'tax.view' },
+    ],
+  },
+  {
+    title: 'Facturación y cartera',
+    items: [
+      { label: 'Facturación', to: '/invoices', icon: FileText, permission: 'invoices.view' },
+      { label: 'Recibos de caja', to: '/recibos', icon: Receipt, permission: 'payments.view' },
+      { label: 'Cartera de clientes', to: '/cartera', icon: Wallet, permission: 'payments.view' },
     ],
   },
   {
     title: 'Administración',
     items: [
+      { label: 'Dashboard', to: '/', icon: LayoutDashboard, permission: 'dashboard.view' },
+      { label: 'Reportes', to: '/reportes', icon: BarChart3, permission: 'audit.view' },
       { label: 'Usuarios', to: '/admin/users', icon: Users, permission: 'users.view' },
       { label: 'Roles', to: '/admin/roles', icon: ShieldCheck, permission: 'roles.view' },
       { label: 'Sesiones', to: '/admin/sessions', icon: Clock, permission: 'audit.view' },

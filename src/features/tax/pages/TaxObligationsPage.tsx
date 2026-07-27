@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, ShieldCheck, CheckCircle2, RotateCcw, Trash2 } from 'lucide-react';
+import { Plus, ShieldCheck, CheckCircle2, RotateCcw, Trash2, BellRing } from 'lucide-react';
+import { AlertsPage } from '@/features/alerts/pages/AlertsPage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,8 +28,39 @@ import { TaxFormDialog } from '@/features/tax/components/TaxFormDialog';
 import { apiErrorMessage } from '@/api/client';
 import { cn, formatDate } from '@/lib/utils';
 
+type Vista = 'obligaciones' | 'alertas';
+
+/** Pestañas entre las obligaciones tributarias y las alertas comerciales. */
+function VistaTabs({
+  vista,
+  setVista,
+}: {
+  vista: Vista;
+  setVista: (v: Vista) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Button
+        size="sm"
+        variant={vista === 'obligaciones' ? 'default' : 'outline'}
+        onClick={() => setVista('obligaciones')}
+      >
+        <ShieldCheck className="h-4 w-4" /> Obligaciones
+      </Button>
+      <Button
+        size="sm"
+        variant={vista === 'alertas' ? 'default' : 'outline'}
+        onClick={() => setVista('alertas')}
+      >
+        <BellRing className="h-4 w-4" /> Alertas
+      </Button>
+    </div>
+  );
+}
+
 export function TaxObligationsPage() {
   const qc = useQueryClient();
+  const [vista, setVista] = useState<Vista>('obligaciones');
   const [type, setType] = useState('all');
   const [status, setStatus] = useState('all');
   const [formOpen, setFormOpen] = useState(false);
@@ -59,11 +91,28 @@ export function TaxObligationsPage() {
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
+  if (vista === 'alertas') {
+    return (
+      <div className="space-y-6">
+        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Obligaciones y alertas</h1>
+            <p className="text-sm text-muted-foreground">
+              Vencimientos tributarios y avisos comerciales en un solo lugar.
+            </p>
+          </div>
+        </header>
+        <VistaTabs vista={vista} setVista={setVista} />
+        <AlertsPage embedded />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Obligaciones tributarias</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Obligaciones y alertas</h1>
           <p className="text-sm text-muted-foreground">
             Control de vencimientos con semáforo por cliente.
           </p>
@@ -74,6 +123,8 @@ export function TaxObligationsPage() {
           </Button>
         </Can>
       </header>
+
+      <VistaTabs vista={vista} setVista={setVista} />
 
       {/* Semáforo resumen */}
       <div className="grid grid-cols-3 gap-3">

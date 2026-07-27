@@ -94,6 +94,28 @@ export interface UserSession {
   ip_address: string | null;
 }
 
+export interface UserActivity {
+  user_id: string;
+  email: string | null;
+  full_name: string | null;
+  sesiones: number;
+  horas: number;
+  promedio_min: number;
+  sin_cierre: number;
+  ultimo_ingreso: string | null;
+  seguimientos: number;
+  clientes: number;
+  recibos: number;
+}
+
+/** Reporte por usuario: sesiones, tiempo en la plataforma y gestiones. */
+export async function getUserActivity(days = 30): Promise<UserActivity[]> {
+  const { data } = await api.get<UserActivity[]>('/admin/audit/activity', {
+    params: { days },
+  });
+  return data;
+}
+
 /** Sesiones por usuario: entrada, salida y duración (control de acceso). */
 export async function listSessions(params: {
   days?: number;

@@ -37,7 +37,6 @@ import {
   unlockUser,
 } from '@/features/admin/api/admin.api';
 import { apiErrorMessage } from '@/api/client';
-import { formatDate } from '@/lib/utils';
 
 export function UsersPage() {
   const qc = useQueryClient();
@@ -84,11 +83,10 @@ export function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nombre</TableHead>
+                <TableHead>Usuario</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Roles</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead>Último acceso</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -115,7 +113,6 @@ export function UsersPage() {
                       <Badge variant="secondary">Inactivo</Badge>
                     )}
                   </TableCell>
-                  <TableCell>{formatDate(u.last_login_at)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

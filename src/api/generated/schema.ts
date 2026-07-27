@@ -247,6 +247,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/audit/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * User Activity
+         * @description Reporte por usuario: sesiones, tiempo en la plataforma y gestiones.
+         */
+        get: operations["user_activity_api_v1_admin_audit_activity_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit/sessions": {
         parameters: {
             query?: never;
@@ -616,6 +636,26 @@ export interface paths {
         patch: operations["update_client_api_v1_clients__client_id__patch"];
         trace?: never;
     };
+    "/api/v1/clients/{client_id}/dian-credentials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dian Credentials
+         * @description Muestra el usuario y la clave DIAN del cliente. Queda en la auditoría.
+         */
+        get: operations["dian_credentials_api_v1_clients__client_id__dian_credentials_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients/{client_id}/services": {
         parameters: {
             query?: never;
@@ -745,6 +785,90 @@ export interface paths {
         head?: never;
         /** Update Status */
         patch: operations["update_status_api_v1_invoices__invoice_id__status_patch"];
+        trace?: never;
+    };
+    "/api/v1/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Payments
+         * @description Recibos de caja registrados, del más reciente al más antiguo.
+         */
+        get: operations["list_payments_api_v1_payments_get"];
+        put?: never;
+        /**
+         * Create Payment
+         * @description Registra un recibo de caja; si cubre la factura, la deja pagada.
+         */
+        post: operations["create_payment_api_v1_payments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/payments/{payment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Payment
+         * @description Anula un recibo de caja y reabre la factura si quedaba saldo.
+         */
+        delete: operations["delete_payment_api_v1_payments__payment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Portfolio
+         * @description Cartera de clientes: saldo por cliente y antigüedad de la deuda.
+         */
+        get: operations["portfolio_api_v1_portfolio_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/portfolio/client/{client_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Client Pending
+         * @description Facturas pendientes de un cliente (para aplicar un recibo de caja).
+         */
+        get: operations["client_pending_api_v1_portfolio_client__client_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/tax-obligations": {
@@ -992,11 +1116,31 @@ export interface paths {
         };
         /**
          * List Campaigns
-         * @description Historial de campañas con inicio, fin y resultados.
+         * @description Campañas con inicio, fin y resultados (vigentes o terminadas).
          */
         get: operations["list_campaigns_api_v1_emails_campaigns_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/campaigns/{campaign_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive Campaign
+         * @description Termina una campaña (pasa a «Terminadas») o la reactiva. No borra datos.
+         */
+        post: operations["archive_campaign_api_v1_emails_campaigns__campaign_id__archive_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1652,6 +1796,16 @@ export interface components {
             /** File */
             file: string;
         };
+        /**
+         * CampaignArchived
+         * @description Resultado de terminar (o reactivar) una campaña.
+         */
+        CampaignArchived: {
+            /** Archived */
+            archived: boolean;
+            /** Envios */
+            envios: number;
+        };
         /** CampaignDatesUpdate */
         CampaignDatesUpdate: {
             /** Start Date */
@@ -1895,6 +2049,13 @@ export interface components {
             contrato_numero: string | null;
             /** Fecha Contrato */
             fecha_contrato: string | null;
+            /** Dian Usuario */
+            dian_usuario?: string | null;
+            /**
+             * Dian Clave Guardada
+             * @default false
+             */
+            dian_clave_guardada: boolean;
             /** Notas */
             notas: string | null;
             /** Account Manager Id */
@@ -2012,6 +2173,10 @@ export interface components {
             contrato_numero?: string | null;
             /** Fecha Contrato */
             fecha_contrato?: string | null;
+            /** Dian Usuario */
+            dian_usuario?: string | null;
+            /** Dian Clave */
+            dian_clave?: string | null;
             /** Notas */
             notas?: string | null;
             /** Account Manager Id */
@@ -2023,6 +2188,16 @@ export interface components {
             account_manager_id?: string | null;
             /** Start Date */
             start_date?: string | null;
+        };
+        /**
+         * DianCredentialRead
+         * @description Clave DIAN en claro: se entrega solo bajo permiso y queda en auditoría.
+         */
+        DianCredentialRead: {
+            /** Dian Usuario */
+            dian_usuario: string | null;
+            /** Dian Clave */
+            dian_clave: string | null;
         };
         /**
          * DigestResult
@@ -2371,6 +2546,13 @@ export interface components {
         MoveStageRequest: {
             new_stage: components["schemas"]["OpportunityStage"];
         };
+        /** NamedValue */
+        NamedValue: {
+            /** Name */
+            name: string;
+            /** Value */
+            value: number;
+        };
         /**
          * OpeningRead
          * @description Un correo abierto (para la pantalla 'Apertura de correos').
@@ -2561,6 +2743,21 @@ export interface components {
             /** Has Prev */
             has_prev: boolean;
         };
+        /** Page[PaymentRead] */
+        Page_PaymentRead_: {
+            /** Items */
+            items: components["schemas"]["PaymentRead"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Has Next */
+            has_next: boolean;
+            /** Has Prev */
+            has_prev: boolean;
+        };
         /** Page[ProspectRead] */
         Page_ProspectRead_: {
             /** Items */
@@ -2621,6 +2818,93 @@ export interface components {
             /** Has Prev */
             has_prev: boolean;
         };
+        /** PaymentCreate */
+        PaymentCreate: {
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Invoice Id */
+            invoice_id?: string | null;
+            /** Payment Date */
+            payment_date?: string | null;
+            /** Amount */
+            amount: number | string;
+            /** @default transferencia */
+            method: components["schemas"]["PaymentMethod"];
+            /** Reference */
+            reference?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /**
+         * PaymentMethod
+         * @enum {string}
+         */
+        PaymentMethod: "efectivo" | "transferencia" | "consignacion" | "cheque" | "tarjeta" | "otro";
+        /** PaymentRead */
+        PaymentRead: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+            /**
+             * Client Id
+             * Format: uuid
+             */
+            client_id: string;
+            /** Client Name */
+            client_name: string | null;
+            /** Invoice Id */
+            invoice_id: string | null;
+            /** Invoice Number */
+            invoice_number: string | null;
+            /**
+             * Payment Date
+             * Format: date
+             */
+            payment_date: string;
+            /** Amount */
+            amount: string;
+            method: components["schemas"]["PaymentMethod"];
+            /** Reference */
+            reference: string | null;
+            /** Notes */
+            notes: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * PendingInvoice
+         * @description Factura pendiente de un cliente, con su saldo (para aplicar el recibo).
+         */
+        PendingInvoice: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Number */
+            number: string;
+            /**
+             * Issue Date
+             * Format: date
+             */
+            issue_date: string;
+            /** Due Date */
+            due_date: string | null;
+            /** Total */
+            total: number;
+            /** Saldo */
+            saldo: number;
+        };
         /** PermissionRead */
         PermissionRead: {
             /**
@@ -2636,6 +2920,39 @@ export interface components {
             action: string;
             /** Description */
             description: string;
+        };
+        /** PortfolioClient */
+        PortfolioClient: {
+            /** Client Id */
+            client_id: string | null;
+            /** Client Name */
+            client_name: string | null;
+            /** Nit */
+            nit: string | null;
+            /** Saldo */
+            saldo: number;
+            /** Facturas */
+            facturas: number;
+            /** Vencido */
+            vencido: number;
+            /** Dias Max */
+            dias_max: number;
+        };
+        /**
+         * PortfolioRead
+         * @description Cartera consolidada: saldo total, vencido y antigüedad por tramos.
+         */
+        PortfolioRead: {
+            /** Total */
+            total: number;
+            /** Vencido */
+            vencido: number;
+            /** Al Dia */
+            al_dia: number;
+            /** Clientes */
+            clientes: components["schemas"]["PortfolioClient"][];
+            /** Antiguedad */
+            antiguedad: components["schemas"]["NamedValue"][];
         };
         /** ProspectCampaignGroup */
         ProspectCampaignGroup: {
@@ -3212,6 +3529,34 @@ export interface components {
             /** Expires In */
             expires_in: number;
             user: components["schemas"]["UserPublic"];
+        };
+        /**
+         * UserActivityRead
+         * @description Estadística de uso por usuario (reporte de control).
+         */
+        UserActivityRead: {
+            /** User Id */
+            user_id: string;
+            /** Email */
+            email: string | null;
+            /** Full Name */
+            full_name: string | null;
+            /** Sesiones */
+            sesiones: number;
+            /** Horas */
+            horas: number;
+            /** Promedio Min */
+            promedio_min: number;
+            /** Sin Cierre */
+            sin_cierre: number;
+            /** Ultimo Ingreso */
+            ultimo_ingreso: string | null;
+            /** Seguimientos */
+            seguimientos: number;
+            /** Clientes */
+            clientes: number;
+            /** Recibos */
+            recibos: number;
         };
         /** UserCreate */
         UserCreate: {
@@ -3901,6 +4246,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PermissionRead"][];
+                };
+            };
+        };
+    };
+    user_activity_api_v1_admin_audit_activity_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserActivityRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -4826,6 +5202,37 @@ export interface operations {
             };
         };
     };
+    dian_credentials_api_v1_clients__client_id__dian_credentials_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DianCredentialRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_client_services_api_v1_clients__client_id__services_get: {
         parameters: {
             query?: never;
@@ -5140,6 +5547,153 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvoiceRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_payments_api_v1_payments_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                client_id?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_PaymentRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_payment_api_v1_payments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaymentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_payment_api_v1_payments__payment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                payment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    portfolio_api_v1_portfolio_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PortfolioRead"];
+                };
+            };
+        };
+    };
+    client_pending_api_v1_portfolio_client__client_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingInvoice"][];
                 };
             };
             /** @description Validation Error */
@@ -5635,6 +6189,7 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                archived?: boolean;
             };
             header?: never;
             path?: never;
@@ -5649,6 +6204,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Page_CampaignHistoryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_campaign_api_v1_emails_campaigns__campaign_id__archive_post: {
+        parameters: {
+            query?: {
+                archived?: boolean;
+            };
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignArchived"];
                 };
             };
             /** @description Validation Error */

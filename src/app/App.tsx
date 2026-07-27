@@ -13,10 +13,14 @@ const DashboardPage = lazy(() =>
 const ProspectsPage = lazy(() =>
   import('@/features/prospects/pages/ProspectsPage').then((m) => ({ default: m.ProspectsPage })),
 );
-const CooperativasPage = lazy(() =>
-  import('@/features/prospects/pages/CooperativasPage').then((m) => ({
-    default: m.CooperativasPage,
-  })),
+const RecibosPage = lazy(() =>
+  import('@/features/payments/pages/RecibosPage').then((m) => ({ default: m.RecibosPage })),
+);
+const CarteraPage = lazy(() =>
+  import('@/features/payments/pages/CarteraPage').then((m) => ({ default: m.CarteraPage })),
+);
+const ReportsPage = lazy(() =>
+  import('@/features/admin/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })),
 );
 const ProspectDetailPage = lazy(() =>
   import('@/features/prospects/pages/ProspectDetailPage').then((m) => ({
@@ -106,10 +110,26 @@ export function App() {
             }
           />
           <Route
-            path="/cooperativas"
+            path="/recibos"
             element={
-              <ProtectedRoute requires="prospects.view">
-                <CooperativasPage />
+              <ProtectedRoute requires="payments.view">
+                <RecibosPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cartera"
+            element={
+              <ProtectedRoute requires="payments.view">
+                <CarteraPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reportes"
+            element={
+              <ProtectedRoute requires="audit.view">
+                <ReportsPage />
               </ProtectedRoute>
             }
           />

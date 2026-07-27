@@ -41,6 +41,8 @@ export function ClientEditDialog({
         contacto_contabilidad_email: client.contacto_contabilidad_email ?? '',
         contrato_numero: client.contrato_numero ?? '',
         fecha_contrato: client.fecha_contrato ?? '',
+        dian_usuario: (client as { dian_usuario?: string | null }).dian_usuario ?? '',
+        dian_clave: '',
         notas: client.notas ?? '',
       });
     }
@@ -51,7 +53,7 @@ export function ClientEditDialog({
   const mut = useMutation({
     mutationFn: () => {
       const clean = (s: string) => (s.trim() !== '' ? s : null);
-      const body: ClientUpdate = {
+      const body: ClientUpdate & { dian_usuario?: string | null; dian_clave?: string } = {
         razon_social: v.razon_social,
         direccion: clean(v.direccion ?? ''),
         telefono: clean(v.telefono ?? ''),
@@ -61,8 +63,13 @@ export function ClientEditDialog({
         contacto_contabilidad_email: clean(v.contacto_contabilidad_email ?? ''),
         contrato_numero: clean(v.contrato_numero ?? ''),
         fecha_contrato: clean(v.fecha_contrato ?? ''),
+        dian_usuario: clean(v.dian_usuario ?? ''),
         notas: clean(v.notas ?? ''),
       };
+      // La clave solo se envía si se escribió una nueva (vacío = no cambiar).
+      if ((v.dian_clave ?? '').trim() !== '') {
+        (body as Record<string, unknown>).dian_clave = v.dian_clave;
+      }
       return updateClient(client.id, body);
     },
     onSuccess: () => {
@@ -125,6 +132,32 @@ export function ClientEditDialog({
               onChange={(e) => set('fecha_contrato', e.target.value)}
             />
           </F>
+          <Section>Acceso al portal DIAN del cliente</Section>
+          <F label="Usuario DIAN">
+            <Input
+              value={v.dian_usuario}
+              onChange={(e) => set('dian_usuario', e.target.value)}
+              placeholder="Cédula / NIT de ingreso"
+            />
+          </F>
+          <F label="Clave DIAN">
+            <Input
+              type="password"
+              value={v.dian_clave}
+              onChange={(e) => set('dian_clave', e.target.value)}
+              placeholder={
+                (client as { dian_clave_guardada?: boolean }).dian_clave_guardada
+                  ? 'Guardada — escribe una nueva para reemplazarla'
+                  : 'Sin clave guardada'
+              }
+              autoComplete="new-password"
+            />
+          </F>
+          <p className="text-xs text-muted-foreground sm:col-span-2">
+            La clave se guarda cifrada y no se muestra en pantalla. Solo los administradores
+            pueden consultarla y cada consulta queda registrada en la auditoría.
+          </p>
+
           <F label="Notas" className="sm:col-span-2">
             <Input value={v.notas} onChange={(e) => set('notas', e.target.value)} />
           </F>

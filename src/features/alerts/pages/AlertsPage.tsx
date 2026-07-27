@@ -43,7 +43,7 @@ const CATEGORY_META: Record<
   obligacion: { label: 'Obligación tributaria', icon: ShieldAlert, to: () => '/tax' },
 };
 
-export function AlertsPage() {
+export function AlertsPage({ embedded = false }: { embedded?: boolean } = {}) {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['alerts'],
     queryFn: getAlerts,
@@ -69,10 +69,14 @@ export function AlertsPage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Alertas</h1>
-          <p className="text-sm text-muted-foreground">
-            Automatización comercial: lo que requiere tu atención hoy.
-          </p>
+          {!embedded && (
+            <>
+              <h1 className="text-2xl font-bold tracking-tight">Alertas</h1>
+              <p className="text-sm text-muted-foreground">
+                Automatización comercial: lo que requiere tu atención hoy.
+              </p>
+            </>
+          )}
         </div>
         <Can code="users.view">
           <div className="flex flex-wrap gap-2">

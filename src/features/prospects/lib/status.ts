@@ -24,12 +24,12 @@ export const SEGMENT_META: Record<string, { label: string; short: string }> = {
   persona_juridica: { label: 'Persona Jurídica', short: 'P. Jurídica' },
   persona_natural: { label: 'Persona Natural', short: 'P. Natural' },
   alcaldia: { label: 'Alcaldía', short: 'Alcaldía' },
-  ese: { label: 'ESE', short: 'ESE' },
+  ese: { label: 'Ese', short: 'Ese' },
   cooperativa: { label: 'Cooperativa', short: 'Cooperativa' },
   otro: { label: 'Otro', short: 'Otro' },
 };
 
-// Orden de prioridad acordado: naturales, jurídicas, alcaldías, ESE, cooperativas, otros.
+// Orden de prioridad acordado: naturales, jurídicas, alcaldías, Ese, cooperativas, otros.
 export const SEGMENTS = [
   'persona_natural',
   'persona_juridica',
@@ -39,8 +39,8 @@ export const SEGMENTS = [
   'otro',
 ] as const;
 
-// Segmentos de la base de mercadeo (las cooperativas tienen pantalla propia).
-export const MARKET_SEGMENTS = SEGMENTS.filter((s) => s !== 'cooperativa');
+// Las cooperativas se consultan como un segmento más de la base de mercadeo.
+export const MARKET_SEGMENTS = SEGMENTS;
 
 export function segmentLabel(segment: string): string {
   return SEGMENT_META[segment]?.short ?? segment;
