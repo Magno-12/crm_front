@@ -10,7 +10,7 @@ import {
   ShieldCheck,
   ScrollText,
   Receipt,
-  Clock,
+  FileSpreadsheet,
   BarChart3,
   Wallet,
   BellRing,
@@ -64,9 +64,16 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: 'Reportes', to: '/reportes', icon: BarChart3, permission: 'audit.view' },
       { label: 'Usuarios', to: '/admin/users', icon: Users, permission: 'users.view' },
       { label: 'Roles', to: '/admin/roles', icon: ShieldCheck, permission: 'roles.view' },
-      { label: 'Sesiones', to: '/admin/sessions', icon: Clock, permission: 'audit.view' },
+      // Sesiones dejó de ser una entrada aparte: el control de entrada y salida
+      // vive dentro de Reportes, en el historial diario de cada usuario.
       { label: 'Auditoría', to: '/admin/audit', icon: ScrollText, permission: 'audit.view' },
       { label: 'Servicios', to: '/admin/services', icon: Settings, permission: 'services.view' },
+      {
+        label: 'Catálogo CIIU',
+        to: '/admin/ciiu',
+        icon: FileSpreadsheet,
+        permission: 'prospects.view',
+      },
     ],
   },
 ];

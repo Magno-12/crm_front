@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart3, Users, Wallet, TrendingUp, Download } from 'lucide-react';
+import { ArrowLeft, BarChart3, Clock, Download, TrendingUp, Users, Wallet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +14,11 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { TableSkeleton } from '@/components/common/table-skeleton';
-import { getUserActivity, type UserActivity } from '@/features/admin/api/admin.api';
+import {
+  getUserActivity,
+  getUserActivityDaily,
+  type UserActivity,
+} from '@/features/admin/api/admin.api';
 import { getPortfolio } from '@/features/payments/api/payments.api';
 import { getSummary, getRevenueByService } from '@/features/dashboard/api/dashboard.api';
 import { formatCOP, formatDateTime } from '@/lib/utils';
@@ -44,6 +48,8 @@ function downloadCsv(filename: string, headers: string[], rows: (string | number
 export function ReportsPage() {
   const [tab, setTab] = useState<Tab>('usuarios');
   const [days, setDays] = useState('30');
+  // Usuario cuyo historial diario se está viendo (null = el listado consolidado).
+  const [detalle, setDetalle] = useState<UserActivity | null>(null);
 
   const activity = useQuery({
     queryKey: ['report-activity', days],
@@ -149,7 +155,15 @@ export function ReportsPage() {
         })}
       </div>
 
-      {tab === 'usuarios' && (
+      {tab === 'usuarios' && detalle && (
+        <HistorialUsuario
+          usuario={detalle}
+          days={Number(days)}
+          onVolver={() => setDetalle(null)}
+        />
+      )}
+
+      {tab === 'usuarios' && !detalle && (
         <Card>
           <CardHeader>
             <CardTitle>Control por usuario</CardTitle>
@@ -176,11 +190,17 @@ export function ReportsPage() {
                     <TableHead className="text-center">Clientes</TableHead>
                     <TableHead className="text-center">Recibos</TableHead>
                     <TableHead>Último ingreso</TableHead>
+                    <TableHead />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {activity.data.map((u: UserActivity) => (
-                    <TableRow key={u.user_id}>
+                    <TableRow
+                      key={u.user_id}
+                      className="cursor-pointer"
+                      onClick={() => setDetalle(u)}
+                      title="Ver el historial día por día"
+                    >
                       <TableCell>
                         <div className="font-medium">{u.full_name ?? '—'}</div>
                         <div className="text-xs text-muted-foreground">{u.email}</div>
@@ -195,6 +215,9 @@ export function ReportsPage() {
                       <TableCell className="text-center">{u.recibos}</TableCell>
                       <TableCell className="text-sm">
                         {u.ultimo_ingreso ? formatDateTime(u.ultimo_ingreso) : '—'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-xs text-primary">Ver historial →</span>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -328,5 +351,134 @@ export function ReportsPage() {
         </Card>
       )}
     </div>
+  );
+}
+
+/** Historial día por día de un usuario: a qué hora entró, cuándo salió y qué registró.
+ *
+ * Reemplaza a la antigua pantalla de Sesiones: la misma información de control
+ * de acceso, pero agrupada por fecha y junto a las gestiones de ese día.
+ */
+function HistorialUsuario({
+  usuario,
+  days,
+  onVolver,
+}: {
+  usuario: UserActivity;
+  days: number;
+  onVolver: () => void;
+}) {
+  const q = useQuery({
+    queryKey: ['report-activity-daily', usuario.user_id, days],
+    queryFn: () => getUserActivityDaily(usuario.user_id, days),
+  });
+
+  const hora = (iso: string | null) =>
+    iso
+      ? new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+      : '—';
+
+  const exportarDetalle = () => {
+    if (!q.data) return;
+    downloadCsv(
+      `historial-${(usuario.full_name ?? 'usuario').replace(/\s+/g, '-').toLowerCase()}-${days}dias.csv`,
+      ['Fecha', 'Ingreso', 'Salida', 'Horas', 'Sesiones', 'Promedio (min)', 'Seguimientos', 'Clientes', 'Recibos'],
+      q.data.map((d) => [
+        d.fecha,
+        hora(d.ingreso),
+        hora(d.salida),
+        d.horas,
+        d.sesiones,
+        d.promedio_min,
+        d.seguimientos,
+        d.clientes,
+        d.recibos,
+      ]),
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            {usuario.full_name ?? 'Usuario'}
+          </CardTitle>
+          <CardDescription>
+            {usuario.email} · historial día por día de los últimos {days} días.
+          </CardDescription>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportarDetalle}>
+            <Download className="h-4 w-4" /> Exportar
+          </Button>
+          <Button variant="outline" size="sm" onClick={onVolver}>
+            <ArrowLeft className="h-4 w-4" /> Volver
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {q.isLoading ? (
+          <TableSkeleton rows={6} columns={8} />
+        ) : q.error ? (
+          <ErrorState error={q.error} onRetry={() => q.refetch()} />
+        ) : !q.data || q.data.length === 0 ? (
+          <EmptyState
+            icon={<Clock />}
+            title="Sin actividad en el período"
+            description="Este usuario no registró ingresos ni gestiones."
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead className="text-center">Ingreso</TableHead>
+                <TableHead className="text-center">Salida</TableHead>
+                <TableHead className="text-center">Horas</TableHead>
+                <TableHead className="text-center">Sesiones</TableHead>
+                <TableHead className="text-center">Promedio</TableHead>
+                <TableHead className="text-center">Seguimientos</TableHead>
+                <TableHead className="text-center">Clientes</TableHead>
+                <TableHead className="text-center">Recibos</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {q.data.map((d) => (
+                <TableRow key={d.fecha}>
+                  <TableCell className="font-medium">
+                    {new Date(`${d.fecha}T12:00:00`).toLocaleDateString('es-CO', {
+                      weekday: 'short',
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </TableCell>
+                  <TableCell className="text-center">{hora(d.ingreso)}</TableCell>
+                  <TableCell className="text-center">
+                    {d.salida ? (
+                      hora(d.salida)
+                    ) : (
+                      <span className="text-xs text-muted-foreground" title="Cerró el navegador sin salir">
+                        sin cierre
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">{d.horas}</TableCell>
+                  <TableCell className="text-center">{d.sesiones}</TableCell>
+                  <TableCell className="text-center text-muted-foreground">
+                    {d.promedio_min ? `${d.promedio_min} min` : '—'}
+                  </TableCell>
+                  <TableCell className="text-center">{d.seguimientos || '—'}</TableCell>
+                  <TableCell className="text-center">{d.clientes || '—'}</TableCell>
+                  <TableCell className="text-center">{d.recibos || '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   );
 }

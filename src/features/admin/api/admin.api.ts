@@ -116,6 +116,31 @@ export async function getUserActivity(days = 30): Promise<UserActivity[]> {
   return data;
 }
 
+export interface UserActivityDay {
+  fecha: string;
+  ingreso: string | null;
+  salida: string | null;
+  minutos: number;
+  horas: number;
+  sesiones: number;
+  promedio_min: number;
+  sin_cierre: number;
+  seguimientos: number;
+  clientes: number;
+  recibos: number;
+}
+
+/** Historial día por día de un usuario: entrada, salida, tiempo y gestiones. */
+export async function getUserActivityDaily(
+  userId: string,
+  days = 30,
+): Promise<UserActivityDay[]> {
+  const { data } = await api.get<UserActivityDay[]>(`/admin/audit/activity/${userId}`, {
+    params: { days },
+  });
+  return data;
+}
+
 /** Sesiones por usuario: entrada, salida y duración (control de acceso). */
 export async function listSessions(params: {
   days?: number;

@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 /** Minutos de inactividad antes de cerrar la sesión automáticamente. */
-const IDLE_MINUTES = 15;
+const IDLE_MINUTES = 30;
 /** Minutos antes del cierre en que se muestra el aviso para extender la sesión. */
 const WARN_BEFORE_MINUTES = 1;
 

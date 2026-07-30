@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
+import { searchCiiu } from '@/api/ciiu';
 import {
   deleteTemplate,
   getAudienceCount,
@@ -261,6 +262,16 @@ function CampaignDialog({
   const chosenLimit = sendLimit === 'max' ? dailyLimit : Number(sendLimit);
   const debouncedCiiu = useDebounce(ciiu, 400);
 
+  // Nombre de la actividad económica del código digitado (ej. 9602 → Peluquería…).
+  const ciiuNombre = useQuery({
+    queryKey: ['ciiu', debouncedCiiu],
+    queryFn: async () => {
+      const rows = await searchCiiu(debouncedCiiu, 5);
+      return rows.find((r) => r.code === debouncedCiiu) ?? rows[0] ?? null;
+    },
+    enabled: open && debouncedCiiu.length >= 2,
+  });
+
   const filters = {
     segmento: segmento === 'all' ? undefined : segmento,
     estado: estado === 'all' ? undefined : estado,
@@ -374,6 +385,22 @@ function CampaignDialog({
           <div>
             <Label className="mb-1.5 block">Actividad CIIU (opcional)</Label>
             <Input placeholder="Ej. 8610" value={ciiu} onChange={(e) => setCiiu(e.target.value)} />
+            {/* Al digitar el código se muestra de qué actividad se trata. */}
+            {debouncedCiiu.length >= 2 && (
+              <p className="mt-1.5 text-xs">
+                {ciiuNombre.isFetching ? (
+                  <span className="text-muted-foreground">Buscando actividad…</span>
+                ) : ciiuNombre.data ? (
+                  <span className="text-primary">
+                    {ciiuNombre.data.code} · {ciiuNombre.data.description}
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground">
+                    No hay una actividad con ese código en el catálogo CIIU.
+                  </span>
+                )}
+              </p>
+            )}
           </div>
 
           <div>

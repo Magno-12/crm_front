@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Area,
@@ -26,9 +27,17 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CardGridSkeleton } from '@/components/common/table-skeleton';
 import { ErrorState, EmptyState } from '@/components/common/states';
 import { KpiCard } from '@/features/dashboard/components/KpiCard';
+import { GerencialPanel } from '@/features/dashboard/components/GerencialPanel';
 import {
   getByAdvisor,
   getKpis,
@@ -57,6 +66,8 @@ function kpiValue(key: string, value: number): string {
 }
 
 export function DashboardPage() {
+  // Periodo del control por asesor; el resto de indicadores es del estado actual.
+  const [dias, setDias] = useState(30);
   const kpis = useQuery({ queryKey: ['dashboard', 'kpis'], queryFn: getKpis });
   const summary = useQuery({ queryKey: ['dashboard', 'summary'], queryFn: getSummary });
   const trend = useQuery({ queryKey: ['dashboard', 'trend'], queryFn: getTrend });
@@ -73,12 +84,34 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard gerencial</h1>
-        <p className="text-sm text-muted-foreground">
-          Visión consolidada de prospectos, facturación y aperturas de correo.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard gerencial</h1>
+          <p className="text-sm text-muted-foreground">
+            Cómo va cada campaña, cuánto se debe, qué vence y qué hizo cada asesor.
+          </p>
+        </div>
+        <Select value={String(dias)} onValueChange={(v) => setDias(Number(v))}>
+          <SelectTrigger className="w-[170px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="7">Últimos 7 días</SelectItem>
+            <SelectItem value="30">Últimos 30 días</SelectItem>
+            <SelectItem value="90">Últimos 90 días</SelectItem>
+          </SelectContent>
+        </Select>
       </header>
+
+      {/* Panel gerencial: campañas, cartera, obligaciones, prospectos y asesores */}
+      <GerencialPanel days={dias} />
+
+      <div className="border-t pt-6">
+        <h2 className="text-lg font-semibold tracking-tight">Análisis comercial</h2>
+        <p className="text-sm text-muted-foreground">
+          Tendencia del negocio, distribución de ingresos y ranking de clientes y asesores.
+        </p>
+      </div>
 
       {/* KPIs principales */}
       {kpis.isLoading ? (

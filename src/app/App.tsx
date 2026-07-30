@@ -66,11 +66,11 @@ const RolesPage = lazy(() =>
 const AuditPage = lazy(() =>
   import('@/features/admin/audit/AuditPage').then((m) => ({ default: m.AuditPage })),
 );
-const SessionsPage = lazy(() =>
-  import('@/features/admin/sessions/SessionsPage').then((m) => ({ default: m.SessionsPage })),
-);
 const ServicesPage = lazy(() =>
   import('@/features/admin/services/ServicesPage').then((m) => ({ default: m.ServicesPage })),
+);
+const CiiuPage = lazy(() =>
+  import('@/features/admin/ciiu/CiiuPage').then((m) => ({ default: m.CiiuPage })),
 );
 
 export function App() {
@@ -231,19 +231,23 @@ export function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/sessions"
-            element={
-              <ProtectedRoute requires="audit.view">
-                <SessionsPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Sesiones se fusionó con Reportes: el control de entrada y salida es
+              ahora el historial diario de cada usuario. Se conserva la ruta para
+              no romper los enlaces guardados. */}
+          <Route path="/admin/sessions" element={<Navigate to="/reportes" replace />} />
           <Route
             path="/admin/services"
             element={
               <ProtectedRoute requires="services.view">
                 <ServicesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/ciiu"
+            element={
+              <ProtectedRoute requires="prospects.view">
+                <CiiuPage />
               </ProtectedRoute>
             }
           />
