@@ -251,15 +251,26 @@ function CampaignDialog({
   const [sender, setSender] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  // Cantidad a enviar hoy: 'max' = hasta el límite diario, o un tope elegido (500, 1000…).
+  // Cantidad a enviar hoy: 'max' (hasta el límite diario), un tope de la lista
+  // (500, 1000…) o 'custom' para escribir cualquier cantidad.
   const [sendLimit, setSendLimit] = useState('max');
+  const [customLimit, setCustomLimit] = useState('');
   const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
   const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
   const dailyLimit = limits.data?.daily_limit ?? DEFAULT_DAILY_LIMIT;
   // Opciones de 500 en 500 hasta el límite diario (3.000 hoy; se adapta si sube el plan).
   const limitOptions: number[] = [];
   for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
-  const chosenLimit = sendLimit === 'max' ? dailyLimit : Number(sendLimit);
+  const customNum = Number(customLimit);
+  const customValido = Number.isInteger(customNum) && customNum >= 1 && customNum <= dailyLimit;
+  const chosenLimit =
+    sendLimit === 'max'
+      ? dailyLimit
+      : sendLimit === 'custom'
+        ? customValido
+          ? customNum
+          : 0
+        : Number(sendLimit);
   const debouncedCiiu = useDebounce(ciiu, 400);
 
   // Nombre de la actividad económica del código digitado (ej. 9602 → Peluquería…).
@@ -418,8 +429,33 @@ function CampaignDialog({
                 <SelectItem value="max">
                   Máximo del día ({dailyLimit.toLocaleString('es-CO')})
                 </SelectItem>
+                <SelectItem value="custom">Otra cantidad…</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* Cantidad libre: cualquier número, sin quedar atado a los topes de 500. */}
+            {sendLimit === 'custom' && (
+              <div className="mt-2">
+                <Input
+                  type="number"
+                  min={1}
+                  max={dailyLimit}
+                  step={1}
+                  autoFocus
+                  placeholder={`Escriba la cantidad (1 a ${dailyLimit.toLocaleString('es-CO')})`}
+                  value={customLimit}
+                  onChange={(e) => setCustomLimit(e.target.value)}
+                  aria-label="Cantidad personalizada de correos"
+                />
+                {customLimit !== '' && !customValido && (
+                  <p className="mt-1 text-xs text-destructive">
+                    Escriba un número entero entre 1 y {dailyLimit.toLocaleString('es-CO')}, que es
+                    el máximo que permite el plan de correo por día.
+                  </p>
+                )}
+              </div>
+            )}
+
             <p className="mt-1 text-xs text-muted-foreground">
               Hoy salen hasta esa cantidad; el resto de la audiencia continúa los días
               siguientes al volver a enviar la campaña.
@@ -474,10 +510,14 @@ function CampaignDialog({
           <Button
             onClick={() => {
               if (!templateId) return toast.error('Selecciona una plantilla');
+              if (sendLimit === 'custom' && !customValido)
+                return toast.error(
+                  `Escriba una cantidad entre 1 y ${dailyLimit.toLocaleString('es-CO')}`,
+                );
               if (count === 0) return toast.error('No hay destinatarios');
               mut.mutate();
             }}
-            disabled={mut.isPending}
+            disabled={mut.isPending || (sendLimit === 'custom' && !customValido)}
           >
             <Megaphone className="h-4 w-4" /> Enviar a{' '}
             {Math.min(count, chosenLimit).toLocaleString('es-CO')}
