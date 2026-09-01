@@ -18,12 +18,26 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { TableSkeleton } from '@/components/common/table-skeleton';
 import { Can } from '@/components/auth/Can';
-import { createService, listServices } from '@/features/dashboard/api/services.api';
+import { useCan } from '@/features/auth/hooks/useAuth';
+import {
+  AREAS_CONTRATO,
+  createService,
+  listServices,
+  updateService,
+} from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP } from '@/lib/utils';
+import type { ServiceRead } from '@/types/api';
 
 export function ServicesPage() {
   const services = useQuery({ queryKey: ['services'], queryFn: () => listServices(false) });
@@ -57,6 +71,7 @@ export function ServicesPage() {
                 <TableHead>Nombre</TableHead>
                 <TableHead>Categoría</TableHead>
                 <TableHead>Descripción</TableHead>
+                <TableHead>Área del contrato</TableHead>
                 <TableHead>Valor base</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
@@ -70,6 +85,9 @@ export function ServicesPage() {
                   </TableCell>
                   <TableCell className="max-w-xs truncate text-muted-foreground">
                     {s.description || '—'}
+                  </TableCell>
+                  <TableCell>
+                    <AreaSelector servicio={s} />
                   </TableCell>
                   <TableCell>{formatCOP(Number(s.default_value))}</TableCell>
                   <TableCell>
@@ -86,6 +104,16 @@ export function ServicesPage() {
         </Card>
       )}
 
+      <div className="rounded-lg border bg-muted/40 p-3.5 text-sm">
+        <p className="font-medium">Para qué sirve el área del contrato</p>
+        <p className="mt-1 text-muted-foreground">
+          El contrato marco tiene nueve áreas de especialidad y cada una trae su anexo técnico.
+          Al asignarle el área a un servicio, el contrato del cliente que lo tenga contratado
+          marca esa casilla en la Cláusula Primera y adjunta el anexo correspondiente.{' '}
+          <strong>Un servicio sin área sale en el contrato pero sin su anexo.</strong>
+        </p>
+      </div>
+
       <ServiceDialog open={open} onOpenChange={setOpen} />
     </div>
   );
@@ -94,6 +122,7 @@ export function ServicesPage() {
 const schema = z.object({
   name: z.string().min(1, 'Requerido'),
   description: z.string().optional(),
+  area_contrato: z.string().optional(),
   default_value: z.coerce.number().min(0),
 });
 type FormInput = z.input<typeof schema>;
@@ -103,7 +132,7 @@ function ServiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
   const qc = useQueryClient();
   const form = useForm<FormInput, unknown, FormOutput>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', description: '', default_value: 0 },
+    defaultValues: { name: '', description: '', area_contrato: 'ninguna', default_value: 0 },
   });
   const mut = useMutation({
     mutationFn: (v: FormOutput) =>
@@ -111,6 +140,7 @@ function ServiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
         name: v.name,
         category: '',
         description: v.description ?? '',
+        area_contrato: v.area_contrato && v.area_contrato !== 'ninguna' ? v.area_contrato : null,
         default_value: String(v.default_value),
         is_active: true,
       }),
@@ -146,6 +176,29 @@ function ServiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
             <Input id="description" {...form.register('description')} />
           </div>
           <div>
+            <Label className="mb-1.5 block">Área del contrato marco</Label>
+            <Select
+              value={form.watch('area_contrato') ?? 'ninguna'}
+              onValueChange={(v) => form.setValue('area_contrato', v)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ninguna">Sin área (no adjunta anexo)</SelectItem>
+                {AREAS_CONTRATO.map((a) => (
+                  <SelectItem key={a.value} value={a.value}>
+                    {a.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Define qué anexo técnico se adjunta al contrato de los clientes que contraten
+              este servicio.
+            </p>
+          </div>
+          <div>
             <Label htmlFor="default_value" className="mb-1.5 block">
               Valor base (COP)
             </Label>
@@ -162,5 +215,53 @@ function ServiceDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Área del contrato marco del servicio: define qué anexo técnico se adjunta. */
+function AreaSelector({ servicio }: { servicio: ServiceRead }) {
+  const qc = useQueryClient();
+  const mut = useMutation({
+    mutationFn: (area: string) =>
+      updateService(servicio.id, { area_contrato: area === 'ninguna' ? null : area }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['services'] });
+      toast.success('Área del contrato actualizada');
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
+  const actual = (servicio as ServiceRead & { area_contrato?: string | null }).area_contrato;
+  const puedeEditar = useCan('services.edit');
+
+  // Quien no puede editar el catálogo solo ve el área asignada.
+  if (!puedeEditar) {
+    return (
+      <span className="text-muted-foreground">
+        {AREAS_CONTRATO.find((a) => a.value === actual)?.label ?? 'Sin área'}
+      </span>
+    );
+  }
+
+  return (
+    <>
+      <Select
+        value={actual ?? 'ninguna'}
+        onValueChange={(v) => mut.mutate(v)}
+        disabled={mut.isPending}
+      >
+        <SelectTrigger className="w-[240px]" aria-label={`Área del contrato de ${servicio.name}`}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="ninguna">Sin área (no adjunta anexo)</SelectItem>
+          {AREAS_CONTRATO.map((a) => (
+            <SelectItem key={a.value} value={a.value}>
+              {a.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
   );
 }
