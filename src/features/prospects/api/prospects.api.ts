@@ -2,7 +2,6 @@ import { api } from '@/api/client';
 import type {
   FollowUpCreate,
   FollowUpRead,
-  ImportResult,
   Page,
   ProspectCreate,
   ProspectRead,
@@ -70,20 +69,51 @@ export async function convertToClient(id: string): Promise<{ id: string; nit: st
   return data;
 }
 
-/** Importa una base de prospectos.
+export interface ImportJob {
+  id: string;
+  filename: string;
+  kind: string;
+  segmento: string | null;
+  status: 'procesando' | 'terminado' | 'fallido';
+  procesados: number;
+  total_estimado: number;
+  created: number;
+  skipped: number;
+  errors: Record<string, unknown>[];
+  message: string | null;
+  created_at: string;
+  finished_at: string | null;
+}
+
+/** Sube una base de prospectos y deja el cargue corriendo en segundo plano.
+ *
+ * Devuelve el trabajo: el archivo puede tener cientos de miles de filas y
+ * tardar minutos, así que el avance se consulta con `getImportJob`.
  *
  * En las bases de 2026 las hojas son departamentos, así que el segmento lo
  * define el archivo (persona_juridica / persona_natural). Sin ese dato se
  * deduce del nombre de la hoja, como en las bases antiguas.
  */
-export async function importProspects(file: File, segmento?: string): Promise<ImportResult> {
+export async function importProspects(file: File, segmento?: string): Promise<ImportJob> {
   const formData = new FormData();
   formData.append('file', file);
-  const { data } = await api.post<ImportResult>('/prospects/import', formData, {
+  const { data } = await api.post<ImportJob>('/prospects/import', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
     params: segmento ? { segmento } : undefined,
-    timeout: 15 * 60 * 1000,
+    timeout: 10 * 60 * 1000, // la subida del archivo, no el procesamiento
   });
+  return data;
+}
+
+/** Avance del cargue: cuántas filas lleva y cuántas creó. */
+export async function getImportJob(id: string): Promise<ImportJob> {
+  const { data } = await api.get<ImportJob>(`/prospects/import-jobs/${id}`);
+  return data;
+}
+
+/** Últimos cargues de base, con su estado. */
+export async function listImportJobs(): Promise<ImportJob[]> {
+  const { data } = await api.get<ImportJob[]>('/prospects/import-jobs');
   return data;
 }
 
@@ -104,10 +134,10 @@ export async function purgeProspects(): Promise<PurgeResult> {
 }
 
 /** Importa el Excel de entidades vigiladas por la Supersolidaria (cooperativas). */
-export async function importCooperativas(file: File): Promise<ImportResult> {
+export async function importCooperativas(file: File): Promise<ImportJob> {
   const formData = new FormData();
   formData.append('file', file);
-  const { data } = await api.post<ImportResult>('/prospects/import-cooperativas', formData, {
+  const { data } = await api.post<ImportJob>('/prospects/import-cooperativas', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return data;
