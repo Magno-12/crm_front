@@ -35,50 +35,18 @@ import {
 } from '@/features/prospects/api/prospects.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatDate } from '@/lib/utils';
-import type { FollowUpOutcome, FollowUpType } from '@/types/api';
-
-// Opciones que puede elegir el usuario al registrar un seguimiento.
-const FOLLOWUP_TYPES: { value: FollowUpType; label: string }[] = [
-  { value: 'LLAMADA', label: 'Llamada' },
-  { value: 'CITA', label: 'Cita' },
-  { value: 'REUNION', label: 'Reunión' },
-  { value: 'OTROS', label: 'Otros' },
-];
-
-// Etiquetas legibles para mostrar cualquier tipo (incluye los heredados).
-const TYPE_LABELS: Record<string, string> = {
-  LLAMADA: 'Llamada',
-  CITA: 'Cita',
-  REUNION: 'Reunión',
-  OTROS: 'Otros',
-  CORREO: 'Correo',
-  VISITA: 'Visita',
-  WHATSAPP: 'WhatsApp',
-  NOTA: 'Nota',
-};
-
-// En qué quedó el contacto. Registrarlo es lo que mueve el estado del
-// prospecto, por eso se elige de la lista y no se escribe a mano.
-const OUTCOMES: { value: FollowUpOutcome; label: string; mueve?: string }[] = [
-  { value: 'CONTESTO', label: 'Contestó', mueve: 'Contactado' },
-  { value: 'NO_CONTESTO', label: 'No contestó' },
-  { value: 'BUZON', label: 'Entró a buzón' },
-  { value: 'VOLVER_A_LLAMAR', label: 'Pidió que lo llamaran después' },
-  { value: 'PIDIO_INFORMACION', label: 'Pidió información o propuesta', mueve: 'Contactado' },
-  { value: 'AGENDO_CITA', label: 'Agendó cita', mueve: 'Contactado' },
-  { value: 'EN_NEGOCIACION', label: 'En negociación', mueve: 'Contactado' },
-  { value: 'NO_INTERESADO', label: 'No está interesado', mueve: 'No fidelizado' },
-  { value: 'DATO_ERRADO', label: 'Dato equivocado o inexistente', mueve: 'No fidelizado' },
-];
-
-const OUTCOME_LABELS: Record<string, string> = Object.fromEntries(
-  OUTCOMES.map((o) => [o.value, o.label]),
-);
-
-const SIN_RESULTADO = 'sin_resultado';
+import type { FollowUpOutcome } from '@/types/api';
+import {
+  FOLLOWUP_TYPES,
+  OUTCOMES,
+  SIN_RESULTADO,
+  outcomeLabel,
+  typeIcon,
+  typeLabel,
+} from '@/features/prospects/lib/followup';
 
 const followUpSchema = z.object({
-  type: z.enum(['LLAMADA', 'CITA', 'REUNION', 'OTROS']),
+  type: z.enum(['LLAMADA', 'WHATSAPP', 'CORREO', 'VISITA', 'CITA', 'REUNION', 'OTROS']),
   notes: z.string().min(1, 'Escribe una nota'),
   outcome: z.string().optional(),
 });
@@ -208,7 +176,10 @@ export function FollowUpTimeline({
                   <SelectContent>
                     {FOLLOWUP_TYPES.map((t) => (
                       <SelectItem key={t.value} value={t.value}>
-                        {t.label}
+                        <span className="flex items-center gap-2">
+                          <t.icon className="h-3.5 w-3.5" />
+                          {t.label}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -282,13 +253,19 @@ export function FollowUpTimeline({
               <li key={f.id} className="relative">
                 <span className="absolute -left-[1.6rem] top-1 h-3 w-3 rounded-full border-2 border-background bg-primary" />
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{TYPE_LABELS[f.type] ?? f.type}</Badge>
+                  <Badge variant="secondary" className="gap-1">
+                    {(() => {
+                      const Icono = typeIcon(f.type);
+                      return <Icono className="h-3 w-3" />;
+                    })()}
+                    {typeLabel(f.type)}
+                  </Badge>
                   <span className="text-xs text-muted-foreground">{formatDate(f.created_at)}</span>
                 </div>
                 <p className="mt-1 text-sm">{f.notes}</p>
                 {f.outcome && (
                   <p className="text-xs text-muted-foreground">
-                    Resultado: {OUTCOME_LABELS[f.outcome] ?? f.outcome}
+                    Resultado: {outcomeLabel(f.outcome)}
                   </p>
                 )}
                 {byFollowUp(f.id).length > 0 && (

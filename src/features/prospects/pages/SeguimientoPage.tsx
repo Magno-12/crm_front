@@ -10,6 +10,7 @@ import { TableSkeleton } from '@/components/common/table-skeleton';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useProspects, useFollowUps } from '@/features/prospects/hooks/useProspects';
 import { segmentLabel, statusMeta } from '@/features/prospects/lib/status';
+import { outcomeLabel, typeIcon, typeLabel } from '@/features/prospects/lib/followup';
 import { formatDate } from '@/lib/utils';
 import type { ProspectRead } from '@/types/api';
 
@@ -67,6 +68,11 @@ export function SeguimientoPage() {
 function SeguimientoRow({ prospect }: { prospect: ProspectRead }) {
   const [open, setOpen] = useState(false);
   const meta = statusMeta(prospect.estado);
+  // Se carga siempre para poder decir por dónde fue el último contacto sin
+  // obligar al asesor a desplegar prospecto por prospecto.
+  const { data: seguimientos } = useFollowUps(prospect.id);
+  const ultimo = seguimientos?.[0];
+  const IconoCanal = ultimo ? typeIcon(ultimo.type) : null;
   return (
     <div className="p-3">
       <div className="flex items-center gap-3">
@@ -78,6 +84,14 @@ function SeguimientoRow({ prospect }: { prospect: ProspectRead }) {
           <p className="text-xs text-muted-foreground">
             {prospect.nit} · {segmentLabel(prospect.segmento)}
           </p>
+          {ultimo && IconoCanal && (
+            <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+              <IconoCanal className="h-3.5 w-3.5 shrink-0" />
+              <span className="font-medium text-foreground">{typeLabel(ultimo.type)}</span>
+              <span>{formatDate(ultimo.created_at)}</span>
+              {ultimo.outcome && <span>· {outcomeLabel(ultimo.outcome)}</span>}
+            </p>
+          )}
         </div>
         <Badge variant={meta.variant}>{meta.label}</Badge>
         <Button asChild variant="ghost" size="sm">
@@ -100,10 +114,17 @@ function MiniTimeline({ prospectId }: { prospectId: string }) {
         <li key={f.id} className="relative">
           <span className="absolute -left-[1.4rem] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-primary" />
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {f.type}
+            <Badge variant="secondary" className="gap-1 text-xs">
+              {(() => {
+                const Icono = typeIcon(f.type);
+                return <Icono className="h-3 w-3" />;
+              })()}
+              {typeLabel(f.type)}
             </Badge>
             <span className="text-xs text-muted-foreground">{formatDate(f.created_at)}</span>
+            {f.outcome && (
+              <span className="text-xs text-muted-foreground">· {outcomeLabel(f.outcome)}</span>
+            )}
           </div>
           <p className="text-sm">{f.notes}</p>
         </li>
