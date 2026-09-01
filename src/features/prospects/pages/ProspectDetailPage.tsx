@@ -25,6 +25,7 @@ import {
 import { FullPageSpinner, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
+import { ObligacionesPorNit } from '@/features/tax/components/ObligacionesPorNit';
 import { EmailTrackingSection } from '@/features/prospects/components/EmailTrackingSection';
 import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeline';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -122,6 +123,9 @@ export function ProspectDetailPage() {
           </div>
         </Can>
       )}
+
+      {/* Vencimientos tributarios del NIT: solo si ese NIT ya es cliente. */}
+      <ObligacionesPorNit nit={prospect.nit} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">

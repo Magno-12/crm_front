@@ -12,6 +12,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useImportCooperativas, useImportProspects } from '@/features/prospects/hooks/useProspects';
 import { apiErrorMessage } from '@/api/client';
 import type { ImportResult } from '@/types/api';
@@ -27,6 +34,9 @@ export function ImportDialog({
   cooperativas?: boolean;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  // En las bases de 2026 las hojas son departamentos: el segmento lo define
+  // el archivo, no la hoja.
+  const [segmento, setSegmento] = useState('persona_juridica');
   const [result, setResult] = useState<ImportResult | null>(null);
   const importProspectsMut = useImportProspects();
   const importCoopMut = useImportCooperativas();
@@ -35,7 +45,9 @@ export function ImportDialog({
   const onImport = async () => {
     if (!file) return;
     try {
-      const res = await importMut.mutateAsync(file);
+      const res = cooperativas
+        ? await importCoopMut.mutateAsync(file)
+        : await importProspectsMut.mutateAsync({ file, segmento });
       setResult(res);
       toast.success(`Importación: ${res.created} creados, ${res.skipped} omitidos`);
     } catch (error) {
@@ -73,6 +85,27 @@ export function ImportDialog({
             )}
           </DialogDescription>
         </DialogHeader>
+
+        {!cooperativas && (
+          <div className="space-y-2">
+            <Label>¿De qué es esta base?</Label>
+            <Select value={segmento} onValueChange={setSegmento}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="persona_juridica">Personas jurídicas</SelectItem>
+                <SelectItem value="persona_natural">Personas naturales</SelectItem>
+                <SelectItem value="alcaldia">Alcaldías</SelectItem>
+                <SelectItem value="ese">Ese</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              En las bases nuevas cada hoja es un departamento, así que el segmento lo define el
+              archivo. El departamento, el municipio y la zona comercial se leen del propio archivo.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="excel">Archivo .xlsx</Label>

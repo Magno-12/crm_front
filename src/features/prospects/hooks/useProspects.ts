@@ -9,6 +9,7 @@ import {
   getProspect,
   importCooperativas,
   importProspects,
+  purgeProspects,
   listFollowUps,
   listProspects,
   updateProspect,
@@ -74,7 +75,17 @@ export function useConvertToClient() {
 export function useImportProspects() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (file: File) => importProspects(file),
+    mutationFn: ({ file, segmento }: { file: File; segmento?: string }) =>
+      importProspects(file, segmento),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
+  });
+}
+
+/** Vacía la base de mercadeo (los clientes fidelizados se conservan). */
+export function usePurgeProspects() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: purgeProspects,
     onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }

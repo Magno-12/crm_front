@@ -6,8 +6,40 @@ import type {
   EmailTemplateRead,
 } from '@/types/api';
 
-export async function listTemplates(): Promise<EmailTemplateRead[]> {
-  const { data } = await api.get<EmailTemplateRead[]>('/emails/templates');
+export async function listTemplates(archived = false): Promise<EmailTemplateRead[]> {
+  const { data } = await api.get<EmailTemplateRead[]>('/emails/templates', {
+    params: { archived },
+  });
+  return data;
+}
+
+/** Termina una plantilla (la oculta del trabajo diario) o la reactiva. */
+export async function archiveTemplate(
+  id: string,
+  archived = true,
+): Promise<EmailTemplateRead> {
+  const { data } = await api.post<EmailTemplateRead>(
+    `/emails/templates/${id}/archive`,
+    null,
+    { params: { archived } },
+  );
+  return data;
+}
+
+export interface RecampaignProgress {
+  total: number;
+  ya_enviados: number;
+  faltan: number;
+}
+
+/** Del universo de esa interacción: a cuántos ya se les escribió y cuántos faltan. */
+export async function getRecampaignProgress(
+  sourceCampaignId: string,
+  sourceFilter?: string | null,
+): Promise<RecampaignProgress> {
+  const { data } = await api.get<RecampaignProgress>('/emails/recampaign-progress', {
+    params: { source_campaign_id: sourceCampaignId, source_filter: sourceFilter ?? undefined },
+  });
   return data;
 }
 
@@ -44,6 +76,10 @@ export interface CampaignFilters {
   segmento?: string;
   estado?: string;
   actividad_ciiu?: string;
+  /** Territorio: la firma trabaja las campañas por zona. */
+  departamento?: string;
+  ciudad?: string;
+  zona?: string;
   /** Re-campaña: según la interacción con esta campaña anterior. */
   source_campaign_id?: string;
   source_filter?: 'opened' | 'clicked' | 'not_opened';
@@ -207,6 +243,8 @@ export async function resendEmail(sendId: string): Promise<void> {
 export interface CampaignHistoryRow {
   id: string;
   name: string;
+  /** Plantilla con la que salió: el seguimiento usa la misma. */
+  template_id: string | null;
   segmento: string | null;
   estado: string | null;
   audience: number;

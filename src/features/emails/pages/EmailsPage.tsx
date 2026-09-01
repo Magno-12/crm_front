@@ -4,7 +4,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Mail, Plus, Send, Megaphone, Trash2, Loader2, Pencil } from 'lucide-react';
+import {
+  Archive,
+  Loader2,
+  Mail,
+  Megaphone,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Send,
+  Trash2,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +38,9 @@ import {
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import { searchCiiu } from '@/api/ciiu';
+import { getUbicaciones, getZonas } from '@/api/ubicaciones';
 import {
+  archiveTemplate,
   deleteTemplate,
   getAudienceCount,
   getSendLimits,
@@ -55,13 +67,28 @@ const DEFAULT_DAILY_LIMIT = 3000;
 
 export function EmailsPage() {
   const qc = useQueryClient();
-  const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates });
+  // Las plantillas terminadas salen del trabajo diario, igual que las campañas.
+  const [verTerminadas, setVerTerminadas] = useState(false);
+  const templates = useQuery({
+    queryKey: ['email-templates', verTerminadas],
+    queryFn: () => listTemplates(verTerminadas),
+  });
   const [templateOpen, setTemplateOpen] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [campaignOpen, setCampaignOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<EmailTemplateRead | null>(null);
   const [editTemplate, setEditTemplate] = useState<EmailTemplateRead | null>(null);
   const [toDelete, setToDelete] = useState<EmailTemplateRead | null>(null);
+
+  const archivar = useMutation({
+    mutationFn: ({ id, archived }: { id: string; archived: boolean }) =>
+      archiveTemplate(id, archived),
+    onSuccess: (_r, v) => {
+      qc.invalidateQueries({ queryKey: ['email-templates'] });
+      toast.success(v.archived ? 'Plantilla terminada' : 'Plantilla reactivada');
+    },
+    onError: (e) => toast.error(apiErrorMessage(e)),
+  });
 
   const del = useMutation({
     mutationFn: (id: string) => deleteTemplate(id),
@@ -99,6 +126,23 @@ export function EmailsPage() {
         </div>
       </header>
 
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={verTerminadas ? 'outline' : 'default'}
+          size="sm"
+          onClick={() => setVerTerminadas(false)}
+        >
+          <Mail className="h-4 w-4" /> Plantillas vigentes
+        </Button>
+        <Button
+          variant={verTerminadas ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setVerTerminadas(true)}
+        >
+          <Archive className="h-4 w-4" /> Plantillas terminadas
+        </Button>
+      </div>
+
       {templates.isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : templates.error ? (
@@ -106,8 +150,12 @@ export function EmailsPage() {
       ) : !templates.data || templates.data.length === 0 ? (
         <EmptyState
           icon={<Mail />}
-          title="Sin plantillas"
-          description="Crea una plantilla para empezar a enviar correos."
+          title={verTerminadas ? 'Sin plantillas terminadas' : 'Sin plantillas'}
+          description={
+            verTerminadas
+              ? 'Las plantillas que termine aparecerán aquí y se pueden reactivar.'
+              : 'Crea una plantilla para empezar a enviar correos.'
+          }
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -142,6 +190,29 @@ export function EmailsPage() {
                         }}
                       >
                         <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Can>
+                    <Can code="emails.templates.edit">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        aria-label={verTerminadas ? 'Reactivar plantilla' : 'Terminar plantilla'}
+                        title={
+                          verTerminadas
+                            ? 'Reactivar: vuelve al listado de vigentes'
+                            : 'Terminar: se oculta del trabajo diario, no se borra'
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          archivar.mutate({ id: t.id, archived: !verTerminadas });
+                        }}
+                      >
+                        {verTerminadas ? (
+                          <RotateCcw className="h-4 w-4" />
+                        ) : (
+                          <Archive className="h-4 w-4" />
+                        )}
                       </Button>
                     </Can>
                     <Can code="emails.templates.delete">
@@ -247,6 +318,10 @@ function CampaignDialog({
   const [segmento, setSegmento] = useState('all');
   const [estado, setEstado] = useState('all');
   const [ciiu, setCiiu] = useState('');
+  // Territorio: la firma arma campañas por departamento y por municipio.
+  const [departamento, setDepartamento] = useState('all');
+  const [municipio, setMunicipio] = useState('all');
+  const [zona, setZona] = useState('all');
   const [skipSent, setSkipSent] = useState(true);
   const [sender, setSender] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -283,10 +358,25 @@ function CampaignDialog({
     enabled: open && debouncedCiiu.length >= 2,
   });
 
+  const departamentos = useQuery({
+    queryKey: ['ubicaciones'],
+    queryFn: () => getUbicaciones(),
+    enabled: open,
+  });
+  const municipios = useQuery({
+    queryKey: ['ubicaciones', departamento],
+    queryFn: () => getUbicaciones(departamento),
+    enabled: open && departamento !== 'all',
+  });
+  const zonasQ = useQuery({ queryKey: ['zonas'], queryFn: getZonas, enabled: open });
+
   const filters = {
     segmento: segmento === 'all' ? undefined : segmento,
     estado: estado === 'all' ? undefined : estado,
     actividad_ciiu: debouncedCiiu || undefined,
+    departamento: departamento === 'all' ? undefined : departamento,
+    ciudad: municipio === 'all' ? undefined : municipio,
+    zona: zona === 'all' ? undefined : zona,
   };
   const audienceParams = {
     ...filters,
@@ -393,6 +483,72 @@ function CampaignDialog({
               </Select>
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="mb-1.5 block">Departamento (opcional)</Label>
+              <Select
+                value={departamento}
+                onValueChange={(v) => {
+                  setDepartamento(v);
+                  setMunicipio('all');
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los departamentos</SelectItem>
+                  {(departamentos.data ?? []).map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="mb-1.5 block">Municipio (opcional)</Label>
+              <Select
+                value={municipio}
+                onValueChange={setMunicipio}
+                disabled={departamento === 'all'}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      departamento === 'all' ? 'Elija primero el departamento' : 'Todos'
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los municipios</SelectItem>
+                  {(municipios.data ?? []).map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="mb-1.5 block">Zona comercial (opcional)</Label>
+            <Select value={zona} onValueChange={setZona}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las zonas</SelectItem>
+                {(zonasQ.data ?? []).map((z) => (
+                  <SelectItem key={z} value={z}>
+                    {z}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label className="mb-1.5 block">Actividad CIIU (opcional)</Label>
             <Input placeholder="Ej. 8610" value={ciiu} onChange={(e) => setCiiu(e.target.value)} />

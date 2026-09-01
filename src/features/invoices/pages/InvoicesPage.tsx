@@ -33,6 +33,7 @@ import {
   invoiceStatusMeta,
 } from '@/features/invoices/lib/status';
 import { InvoiceFormDialog } from '@/features/invoices/components/InvoiceFormDialog';
+import { ClientesConContrato } from '@/features/clients/components/ClientesConContrato';
 import { apiErrorMessage } from '@/api/client';
 import { formatCOP, formatDate } from '@/lib/utils';
 
@@ -41,6 +42,8 @@ export function InvoicesPage() {
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
+  // Cliente elegido en el listado: filtra las facturas y precarga el formulario.
+  const [prospectoElegido, setProspectoElegido] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<InvoiceRead | null>(null);
   const debouncedQ = useDebounce(q, 300);
   const qc = useQueryClient();
@@ -87,6 +90,18 @@ export function InvoicesPage() {
           </Button>
         </Can>
       </header>
+
+      <ClientesConContrato
+        titulo="Clientes con contrato"
+        descripcion="Los clientes fidelizados con contrato. Elija uno para facturarle o para ver sus facturas."
+        accion="Facturar"
+        onSeleccionar={(c) => {
+          setQ(c.nit);
+          setPage(1);
+          setProspectoElegido(c.prospect_id);
+          setFormOpen(true);
+        }}
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="relative flex-1">
@@ -221,7 +236,14 @@ export function InvoicesPage() {
         </div>
       )}
 
-      <InvoiceFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <InvoiceFormDialog
+        open={formOpen}
+        onOpenChange={(o) => {
+          setFormOpen(o);
+          if (!o) setProspectoElegido(null);
+        }}
+        prospectId={prospectoElegido}
+      />
 
       <Dialog open={!!toDelete} onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}>
         <DialogContent className="max-w-md">

@@ -70,11 +70,35 @@ export async function convertToClient(id: string): Promise<{ id: string; nit: st
   return data;
 }
 
-export async function importProspects(file: File): Promise<ImportResult> {
+/** Importa una base de prospectos.
+ *
+ * En las bases de 2026 las hojas son departamentos, así que el segmento lo
+ * define el archivo (persona_juridica / persona_natural). Sin ese dato se
+ * deduce del nombre de la hoja, como en las bases antiguas.
+ */
+export async function importProspects(file: File, segmento?: string): Promise<ImportResult> {
   const formData = new FormData();
   formData.append('file', file);
   const { data } = await api.post<ImportResult>('/prospects/import', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
+    params: segmento ? { segmento } : undefined,
+    timeout: 15 * 60 * 1000,
+  });
+  return data;
+}
+
+export interface PurgeResult {
+  prospectos: number;
+  conservados: number;
+  correos: number;
+  seguimientos: number;
+}
+
+/** Vacía la base de mercadeo para volver a cargarla. Conserva a los fidelizados. */
+export async function purgeProspects(): Promise<PurgeResult> {
+  const { data } = await api.delete<PurgeResult>('/prospects/purge', {
+    params: { confirmar: 'BORRAR' },
+    timeout: 15 * 60 * 1000,
   });
   return data;
 }

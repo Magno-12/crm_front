@@ -1,6 +1,26 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getUbicaciones, getZonas } from '@/api/ubicaciones';
 import { Link } from 'react-router-dom';
-import { Users, Plus, Upload, Search, Download, SlidersHorizontal } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  Download,
+  Loader2,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  Trash2,
+  Upload,
+  Users,
+} from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,7 +37,7 @@ import { EmptyState, ErrorState } from '@/components/common/states';
 import { TableSkeleton } from '@/components/common/table-skeleton';
 import { Can } from '@/components/auth/Can';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useProspects } from '@/features/prospects/hooks/useProspects';
+import { useProspects, usePurgeProspects } from '@/features/prospects/hooks/useProspects';
 import {
   MARKET_SEGMENTS,
   PROSPECT_STATUSES,
@@ -27,7 +47,7 @@ import {
 } from '@/features/prospects/lib/status';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
 import { ImportDialog } from '@/features/prospects/components/ImportDialog';
-import { getAccessToken } from '@/api/client';
+import { apiErrorMessage, getAccessToken } from '@/api/client';
 
 export function ProspectsPage() {
   const [q, setQ] = useState('');
@@ -35,6 +55,10 @@ export function ProspectsPage() {
   const [segmento, setSegmento] = useState<string>('all');
   const [ciiu, setCiiu] = useState('');
   const [regimen, setRegimen] = useState('');
+  // Territorio: las bases vienen por departamento, municipio y zona comercial.
+  const [departamento, setDepartamento] = useState('all');
+  const [municipio, setMunicipio] = useState('all');
+  const [zona, setZona] = useState('all');
   const [ingresosMin, setIngresosMin] = useState('');
   const [ingresosMax, setIngresosMax] = useState('');
   const [activosMin, setActivosMin] = useState('');
@@ -43,6 +67,7 @@ export function ProspectsPage() {
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [purgeOpen, setPurgeOpen] = useState(false);
   const debouncedQ = useDebounce(q, 300);
   const debouncedCiiu = useDebounce(ciiu, 400);
   const debouncedRegimen = useDebounce(regimen, 400);
@@ -56,6 +81,9 @@ export function ProspectsPage() {
     estado: estado === 'all' ? undefined : estado,
     segmento: segmento === 'all' ? undefined : segmento,
     actividad_ciiu: debouncedCiiu || undefined,
+    departamento: departamento === 'all' ? undefined : departamento,
+    ciudad: municipio === 'all' ? undefined : municipio,
+    zona: zona === 'all' ? undefined : zona,
     regimen: debouncedRegimen || undefined,
     ingresos_min: debouncedIngMin || undefined,
     ingresos_max: debouncedIngMax || undefined,
@@ -64,6 +92,15 @@ export function ProspectsPage() {
     page,
     page_size: 20,
   };
+  const departamentos = useQuery({ queryKey: ['ubicaciones'], queryFn: () => getUbicaciones() });
+  const municipios = useQuery({
+    queryKey: ['ubicaciones', departamento],
+    queryFn: () => getUbicaciones(departamento),
+    enabled: departamento !== 'all',
+  });
+  const zonasQ = useQuery({ queryKey: ['zonas'], queryFn: getZonas });
+  const purge = usePurgeProspects();
+
   const { data, isLoading, error, refetch } = useProspects(filters);
 
   const exportUrl = `${import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api/v1'}/prospects/export`;
@@ -96,6 +133,11 @@ export function ProspectsPage() {
           <Can code="prospects.import">
             <Button variant="outline" onClick={() => setImportOpen(true)}>
               <Upload className="h-4 w-4" /> Importar
+            </Button>
+          </Can>
+          <Can code="prospects.delete">
+            <Button variant="outline" onClick={() => setPurgeOpen(true)}>
+              <Trash2 className="h-4 w-4" /> Vaciar base
             </Button>
           </Can>
           <Can code="prospects.create">
@@ -179,6 +221,74 @@ export function ProspectsPage() {
                 setPage(1);
               }}
             />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Departamento</label>
+            <Select
+              value={departamento}
+              onValueChange={(v) => {
+                setDepartamento(v);
+                setMunicipio('all');
+                setPage(1);
+              }}
+            >
+              <SelectTrigger aria-label="Filtrar por departamento">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {(departamentos.data ?? []).map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Municipio</label>
+            <Select
+              value={municipio}
+              onValueChange={(v) => {
+                setMunicipio(v);
+                setPage(1);
+              }}
+              disabled={departamento === 'all'}
+            >
+              <SelectTrigger aria-label="Filtrar por municipio">
+                <SelectValue placeholder={departamento === 'all' ? 'Elija departamento' : 'Todos'} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                {(municipios.data ?? []).map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs text-muted-foreground">Zona comercial</label>
+            <Select
+              value={zona}
+              onValueChange={(v) => {
+                setZona(v);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger aria-label="Filtrar por zona">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                {(zonasQ.data ?? []).map((z) => (
+                  <SelectItem key={z} value={z}>
+                    {z}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="mb-1 block text-xs text-muted-foreground">Régimen tributario</label>
@@ -332,6 +442,55 @@ export function ProspectsPage() {
 
       <ProspectFormDialog open={formOpen} onOpenChange={setFormOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+
+      {/* Vaciar la base para volver a cargarla: no tiene vuelta atrás. */}
+      <Dialog open={purgeOpen} onOpenChange={(o) => !o && !purge.isPending && setPurgeOpen(false)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Vaciar la base de mercadeo?</DialogTitle>
+            <DialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <p>
+                  Se borran <b>todos los prospectos</b> con su historial de correos y seguimientos,
+                  para volver a cargar la base desde cero. Esta acción no se puede deshacer.
+                </p>
+                <p>
+                  Los prospectos que ya se <b>fidelizaron</b> no se borran: son clientes de la firma
+                  y con ellos se irían sus contratos, facturas y cartera.
+                </p>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPurgeOpen(false)} disabled={purge.isPending}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={purge.isPending}
+              onClick={async () => {
+                try {
+                  const r = await purge.mutateAsync();
+                  toast.success(
+                    `Base vaciada: ${r.prospectos.toLocaleString('es-CO')} prospectos borrados, ` +
+                      `${r.conservados} fidelizados conservados.`,
+                  );
+                  setPurgeOpen(false);
+                } catch (e) {
+                  toast.error(apiErrorMessage(e));
+                }
+              }}
+            >
+              {purge.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+              Sí, vaciar la base
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

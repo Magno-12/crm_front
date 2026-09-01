@@ -26,6 +26,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { EmptyState, ErrorState } from '@/components/common/states';
 import { TableSkeleton } from '@/components/common/table-skeleton';
 import { Can } from '@/components/auth/Can';
+import { ClientesConContrato } from '@/features/clients/components/ClientesConContrato';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
   createPayment,
@@ -53,9 +54,12 @@ const METHODS: PaymentMethod[] = [
 function PaymentFormDialog({
   open,
   onOpenChange,
+  clienteInicial,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  /** Cliente elegido en el listado: el recibo abre con él ya puesto. */
+  clienteInicial?: string | null;
 }) {
   const qc = useQueryClient();
   const [clientId, setClientId] = useState('');
@@ -65,6 +69,10 @@ function PaymentFormDialog({
   const [reference, setReference] = useState('');
   const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
+
+  useEffect(() => {
+    if (open && clienteInicial) setClientId(clienteInicial);
+  }, [open, clienteInicial]);
 
   const clients = useQuery({
     queryKey: ['clients', 'all'],
@@ -244,6 +252,8 @@ export function RecibosPage() {
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
+  // Cliente elegido en el listado de deudores.
+  const [clienteElegido, setClienteElegido] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<PaymentRead | null>(null);
   const debouncedQ = useDebounce(q, 300);
   const qc = useQueryClient();
@@ -280,6 +290,17 @@ export function RecibosPage() {
           </Button>
         </Can>
       </header>
+
+      <ClientesConContrato
+        soloConSaldo
+        titulo="Clientes con facturas pendientes"
+        descripcion="Elija el cliente y luego la factura a la que se le aplica el pago."
+        accion="Registrar recibo"
+        onSeleccionar={(c) => {
+          setClienteElegido(c.id);
+          setFormOpen(true);
+        }}
+      />
 
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -386,7 +407,14 @@ export function RecibosPage() {
         </div>
       )}
 
-      <PaymentFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <PaymentFormDialog
+        open={formOpen}
+        onOpenChange={(o) => {
+          setFormOpen(o);
+          if (!o) setClienteElegido(null);
+        }}
+        clienteInicial={clienteElegido}
+      />
 
       <Dialog open={!!toDelete} onOpenChange={(o) => !o && !del.isPending && setToDelete(null)}>
         <DialogContent className="max-w-md">

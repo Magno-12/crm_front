@@ -49,6 +49,7 @@ import {
   updateCampaignDates,
   listTemplates,
   getAudienceCount,
+  getRecampaignProgress,
   getSendLimits,
   sendCampaign,
   type OpeningRow,
@@ -211,7 +212,9 @@ function RecampaignDialog({
   open: boolean;
   onOpenChange: (o: boolean) => void;
 }) {
-  const [templateId, setTemplateId] = useState('');
+  // Por defecto se reutiliza la plantilla de la campaña original: el
+  // seguimiento es el mismo mensaje, no uno distinto por cada interacción.
+  const [templateId, setTemplateId] = useState(campaign.template_id ?? '');
   const [filter, setFilter] = useState<SourceFilter>('opened');
   // Modo del mensaje: plantilla existente o mensaje escrito a mano.
   const [mode, setMode] = useState<'template' | 'custom'>('template');
@@ -219,7 +222,7 @@ function RecampaignDialog({
   const [customBody, setCustomBody] = useState('');
   // Cantidad a enviar hoy: 'max' = hasta el límite diario, o un tope elegido.
   const [sendLimit, setSendLimit] = useState('max');
-  const templates = useQuery({ queryKey: ['email-templates'], queryFn: listTemplates, enabled: open });
+  const templates = useQuery({ queryKey: ['email-templates'], queryFn: () => listTemplates(), enabled: open });
   const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
   const dailyLimit = limits.data?.daily_limit ?? 3000;
   const limitOptions: number[] = [];
@@ -255,6 +258,13 @@ function RecampaignDialog({
       onOpenChange(false);
     },
     onError: (e) => toast.error(apiErrorMessage(e)),
+  });
+
+  // Cuántos cumplen la condición, a cuántos ya se les escribió y cuántos faltan.
+  const avance = useQuery({
+    queryKey: ['recampaign-progress', campaign.id, filter],
+    queryFn: () => getRecampaignProgress(campaign.id, filter),
+    enabled: open,
   });
 
   const count = audience.data ?? 0;
@@ -294,6 +304,30 @@ function RecampaignDialog({
                 Reenvío de seguimiento: usa un mensaje distinto al original para no repetir.
               </p>
             )}
+            {avance.data && (
+              <div className="mt-2 grid grid-cols-3 gap-2 rounded-lg border bg-muted/40 p-2.5 text-center">
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Cumplen la condición</p>
+                  <p className="text-sm font-semibold">{avance.data.total.toLocaleString('es-CO')}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Ya se les envió</p>
+                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                    {avance.data.ya_enviados.toLocaleString('es-CO')}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-muted-foreground">Faltan por enviar</p>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                    {avance.data.faltan.toLocaleString('es-CO')}
+                  </p>
+                </div>
+              </div>
+            )}
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              A quien ya recibió este seguimiento no se le vuelve a enviar: solo salen los
+              que cumplieron la condición después.
+            </p>
           </div>
 
           <div>

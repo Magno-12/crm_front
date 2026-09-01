@@ -38,9 +38,12 @@ interface FormValues {
 export function InvoiceFormDialog({
   open,
   onOpenChange,
+  prospectId: prospectIdInicial,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  /** Cliente elegido en el listado: llega con su prospecto ya seleccionado. */
+  prospectId?: string | null;
 }) {
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
@@ -55,6 +58,12 @@ export function InvoiceFormDialog({
     },
   });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
+
+  // Al abrir desde el listado de clientes, la factura ya viene con el suyo.
+  useEffect(() => {
+    if (open && prospectIdInicial) form.setValue('prospect_id', prospectIdInicial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, prospectIdInicial]);
 
   const prospectId = form.watch('prospect_id');
   const catalog = useQuery({ queryKey: ['services'], queryFn: () => listServices(true) });

@@ -32,7 +32,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { FullPageSpinner, ErrorState, EmptyState } from '@/components/common/states';
 import { Can } from '@/components/auth/Can';
 import {
@@ -49,6 +57,7 @@ import { EmailTrackingSection } from '@/features/prospects/components/EmailTrack
 import { FollowUpTimeline } from '@/features/prospects/components/FollowUpTimeline';
 import { listServices } from '@/features/dashboard/api/services.api';
 import { apiErrorMessage } from '@/api/client';
+import { numeroALetras } from '@/lib/numero-a-letras';
 import { formatCOP, formatDate } from '@/lib/utils';
 import type { ClientRead, ClientServiceRead } from '@/types/api';
 
@@ -304,6 +313,11 @@ export function ClientDetailPage() {
   if (isLoading) return <FullPageSpinner />;
   if (error || !client) return <ErrorState error={error} onRetry={() => refetch()} />;
 
+  // Totalización de lo contratado: es lo que se lleva al contrato y a la factura.
+  const totalServicios = (servicesQ.data ?? [])
+    .filter((cs) => cs.status === 'activo')
+    .reduce((suma, cs) => suma + Number(cs.valor_mensual || 0), 0);
+
   const serviceName = (sid: string) => catalog.data?.find((s) => s.id === sid)?.name ?? sid;
 
   return (
@@ -421,6 +435,20 @@ export function ClientDetailPage() {
                     </TableRow>
                   ))}
                 </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={4} className="font-medium">
+                      Total de los servicios contratados
+                    </TableCell>
+                    <TableCell className="font-semibold">
+                      {formatCOP(totalServicios)}
+                    </TableCell>
+                    <TableCell colSpan={2} className="text-right text-xs font-normal text-muted-foreground">
+                      {/* En letras, como se acostumbra en los documentos contables. */}
+                      {numeroALetras(totalServicios).toUpperCase()} M/CTE
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
               </Table>
             </div>
           )}
