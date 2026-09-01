@@ -26,7 +26,7 @@ export type ProspectSegment = Schemas['ProspectSegment'];
 export type FollowUpRead = Schemas['FollowUpRead'];
 export type FollowUpCreate = Schemas['FollowUpCreate'];
 export type FollowUpType = Schemas['FollowUpType'];
-export type ImportResult = Schemas['ImportResult'];
+export type FollowUpOutcome = Schemas['FollowUpOutcome'];
 
 export type OpportunityRead = Schemas['OpportunityRead'];
 export type OpportunityCreate = Schemas['OpportunityCreate'];

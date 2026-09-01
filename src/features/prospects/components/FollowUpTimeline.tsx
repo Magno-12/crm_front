@@ -35,7 +35,7 @@ import {
 } from '@/features/prospects/api/prospects.api';
 import { apiErrorMessage } from '@/api/client';
 import { formatDate } from '@/lib/utils';
-import type { FollowUpType } from '@/types/api';
+import type { FollowUpOutcome, FollowUpType } from '@/types/api';
 
 // Opciones que puede elegir el usuario al registrar un seguimiento.
 const FOLLOWUP_TYPES: { value: FollowUpType; label: string }[] = [
@@ -56,6 +56,26 @@ const TYPE_LABELS: Record<string, string> = {
   WHATSAPP: 'WhatsApp',
   NOTA: 'Nota',
 };
+
+// En qué quedó el contacto. Registrarlo es lo que mueve el estado del
+// prospecto, por eso se elige de la lista y no se escribe a mano.
+const OUTCOMES: { value: FollowUpOutcome; label: string; mueve?: string }[] = [
+  { value: 'CONTESTO', label: 'Contestó', mueve: 'Contactado' },
+  { value: 'NO_CONTESTO', label: 'No contestó' },
+  { value: 'BUZON', label: 'Entró a buzón' },
+  { value: 'VOLVER_A_LLAMAR', label: 'Pidió que lo llamaran después' },
+  { value: 'PIDIO_INFORMACION', label: 'Pidió información o propuesta', mueve: 'Contactado' },
+  { value: 'AGENDO_CITA', label: 'Agendó cita', mueve: 'Contactado' },
+  { value: 'EN_NEGOCIACION', label: 'En negociación', mueve: 'Contactado' },
+  { value: 'NO_INTERESADO', label: 'No está interesado', mueve: 'No fidelizado' },
+  { value: 'DATO_ERRADO', label: 'Dato equivocado o inexistente', mueve: 'No fidelizado' },
+];
+
+const OUTCOME_LABELS: Record<string, string> = Object.fromEntries(
+  OUTCOMES.map((o) => [o.value, o.label]),
+);
+
+const SIN_RESULTADO = 'sin_resultado';
 
 const followUpSchema = z.object({
   type: z.enum(['LLAMADA', 'CITA', 'REUNION', 'OTROS']),
@@ -80,8 +100,11 @@ export function FollowUpTimeline({
   const create = useCreateFollowUp(prospectId);
   const form = useForm<FollowUpInput>({
     resolver: zodResolver(followUpSchema),
-    defaultValues: { type: 'LLAMADA', notes: '', outcome: '' },
+    defaultValues: { type: 'LLAMADA', notes: '', outcome: SIN_RESULTADO },
   });
+
+  // Aviso de a qué estado va a quedar el prospecto al guardar.
+  const mueveA = OUTCOMES.find((o) => o.value === form.watch('outcome'))?.mueve;
 
   // Documentos adjuntos de todos los seguimientos del prospecto.
   const attachments = useQuery({
@@ -94,14 +117,20 @@ export function FollowUpTimeline({
 
   const onSubmit = async (values: FollowUpInput) => {
     try {
-      const created = await create.mutateAsync(values);
+      const created = await create.mutateAsync({
+        ...values,
+        outcome:
+          values.outcome === SIN_RESULTADO
+            ? undefined
+            : (values.outcome as FollowUpOutcome),
+      });
       if (file) {
         await uploadAttachment(prospectId, created.id, file);
         qc.invalidateQueries({ queryKey: ['prospect-attachments', prospectId] });
         setFile(null);
         if (fileInput.current) fileInput.current.value = '';
       }
-      form.reset({ type: values.type, notes: '', outcome: '' });
+      form.reset({ type: values.type, notes: '', outcome: SIN_RESULTADO });
       toast.success(file ? 'Seguimiento y documento registrados' : 'Seguimiento registrado');
     } catch (e) {
       toast.error(apiErrorMessage(e));
@@ -185,6 +214,25 @@ export function FollowUpTimeline({
                   </SelectContent>
                 </Select>
               </div>
+              <div className="w-full sm:w-64">
+                <Label className="mb-1 block text-xs">¿En qué quedó?</Label>
+                <Select
+                  value={form.watch('outcome')}
+                  onValueChange={(v) => form.setValue('outcome', v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={SIN_RESULTADO}>Sin registrar</SelectItem>
+                    {OUTCOMES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex-1">
                 <Label className="mb-1 block text-xs">Nota</Label>
                 <Input placeholder="¿Qué pasó?" {...form.register('notes')} />
@@ -193,6 +241,11 @@ export function FollowUpTimeline({
                 <Plus className="h-4 w-4" /> Agregar
               </Button>
             </div>
+            {mueveA && (
+              <p className="text-xs text-muted-foreground">
+                Al guardar, el prospecto pasa a <strong>{mueveA}</strong>.
+              </p>
+            )}
             {/* Adjuntar documento a la gestión (propuesta, contrato, soporte…) */}
             <div className="flex flex-wrap items-center gap-2">
               <Label className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -233,7 +286,11 @@ export function FollowUpTimeline({
                   <span className="text-xs text-muted-foreground">{formatDate(f.created_at)}</span>
                 </div>
                 <p className="mt-1 text-sm">{f.notes}</p>
-                {f.outcome && <p className="text-xs text-muted-foreground">Resultado: {f.outcome}</p>}
+                {f.outcome && (
+                  <p className="text-xs text-muted-foreground">
+                    Resultado: {OUTCOME_LABELS[f.outcome] ?? f.outcome}
+                  </p>
+                )}
                 {byFollowUp(f.id).length > 0 && (
                   <ul className="mt-2 space-y-1">
                     {byFollowUp(f.id).map((a) => (

@@ -304,6 +304,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/audit/activity/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * User Activity Daily
+         * @description Historial día por día del usuario: entrada, salida, tiempo y gestiones.
+         */
+        get: operations["user_activity_daily_api_v1_admin_audit_activity__user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/prospects": {
         parameters: {
             query?: never;
@@ -339,6 +359,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/prospects/ubicaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ubicaciones
+         * @description Departamentos de la base; con `departamento`, sus municipios.
+         */
+        get: operations["ubicaciones_api_v1_prospects_ubicaciones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/zonas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Zonas
+         * @description Zonas comerciales de la base (P1 - SEDE, P1 - 2h Cali, P2 - Digital…).
+         */
+        get: operations["zonas_api_v1_prospects_zonas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/purge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Purge Base
+         * @description Vacía la base de mercadeo para volver a cargarla desde cero.
+         *
+         *     Es una acción sin vuelta atrás, así que exige `confirmar=BORRAR`. Los
+         *     prospectos que ya se fidelizaron NO se borran: son clientes de la firma y
+         *     con ellos se irían sus contratos, facturas y cartera.
+         */
+        delete: operations["purge_base_api_v1_prospects_purge_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/prospects/import": {
         parameters: {
             query?: never;
@@ -348,8 +432,60 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Import Prospects */
+        /**
+         * Import Prospects
+         * @description Recibe la base y deja el cargue corriendo en segundo plano.
+         *
+         *     Las bases reales tienen cientos de miles de filas y tardan minutos: si el
+         *     cargue viajara dentro de esta petición, el servidor la cortaría antes de
+         *     terminar. Aquí solo se guarda el archivo y se devuelve el trabajo para
+         *     consultar su avance en `/prospects/import-jobs/{id}`.
+         *
+         *     En las bases de 2026 las hojas son departamentos, así que el segmento lo
+         *     define el archivo: se envía `segmento=persona_juridica` o `persona_natural`.
+         *     Sin ese dato se deduce del nombre de la hoja, como en las bases antiguas.
+         */
         post: operations["import_prospects_api_v1_prospects_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/import-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar Cargues
+         * @description Últimos cargues de base, con su estado.
+         */
+        get: operations["listar_cargues_api_v1_prospects_import_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prospects/import-jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado Cargue
+         * @description Avance del cargue: cuántas filas lleva y cuántas creó.
+         */
+        get: operations["estado_cargue_api_v1_prospects_import_jobs__job_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -596,6 +732,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/clients/facturables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clientes Facturables
+         * @description Clientes con contrato, con lo que facturan y lo que deben.
+         *
+         *     Es por donde arrancan Facturación y Recibos de caja: primero el cliente.
+         */
+        get: operations["clientes_facturables_api_v1_clients_facturables_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/clients": {
         parameters: {
             query?: never;
@@ -703,7 +861,7 @@ export interface paths {
         };
         /**
          * Download Contract
-         * @description Genera y descarga el contrato del servicio en PDF (plantilla estándar).
+         * @description Contrato marco del cliente en PDF, con los anexos técnicos que apliquen.
          */
         get: operations["download_contract_api_v1_clients__client_id__services__client_service_id__contract_get"];
         put?: never;
@@ -889,6 +1047,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tax-obligations/by-nit/{nit}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Obligations By Nit
+         * @description Vencimientos tributarios de ese NIT, para consultarlos desde la ficha.
+         */
+        get: operations["obligations_by_nit_api_v1_tax_obligations_by_nit__nit__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tax-obligations/summary": {
         parameters: {
             query?: never;
@@ -898,6 +1076,26 @@ export interface paths {
         };
         /** Summary */
         get: operations["summary_api_v1_tax_obligations_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tax-obligations/clientes-sin-control": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Clientes Sin Control
+         * @description Clientes fidelizados con contrato a los que nadie les registró obligaciones.
+         */
+        get: operations["clientes_sin_control_api_v1_tax_obligations_clientes_sin_control_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1047,6 +1245,46 @@ export interface paths {
         get: operations["search_ciiu_api_v1_ciiu_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ciiu/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Catalog Status
+         * @description Cuántas actividades hay cargadas (0 = el catálogo del DANE aún no se sube).
+         */
+        get: operations["catalog_status_api_v1_ciiu_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ciiu/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Catalog
+         * @description Carga el catálogo CIIU desde el archivo del DANE (.xlsx o .csv).
+         */
+        post: operations["import_catalog_api_v1_ciiu_import_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1348,6 +1586,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Sends
+         * @description Descarga en Excel todos los correos enviados con su trazabilidad.
+         */
+        get: operations["export_sends_api_v1_emails_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/limits": {
         parameters: {
             query?: never;
@@ -1425,6 +1683,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/emails/recampaign-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recampaign Progress
+         * @description Del universo de esa interacción, a cuántos ya se les escribió y cuántos faltan.
+         */
+        get: operations["recampaign_progress_api_v1_emails_recampaign_progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/emails/campaign": {
         parameters: {
             query?: never;
@@ -1449,11 +1727,34 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Templates */
+        /**
+         * List Templates
+         * @description Plantillas vigentes; con `archived=true`, las terminadas.
+         */
         get: operations["list_templates_api_v1_emails_templates_get"];
         put?: never;
         /** Create Template */
         post: operations["create_template_api_v1_emails_templates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/emails/templates/{template_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive Template
+         * @description Termina una plantilla (sale del trabajo diario) o la reactiva.
+         */
+        post: operations["archive_template_api_v1_emails_templates__template_id__archive_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1640,6 +1941,146 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/dashboard/gerencial/campanas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Campanas
+         * @description Embudo consolidado de cada campaña: segmento, envío, entrega e interacción.
+         */
+        get: operations["gerencial_campanas_api_v1_dashboard_gerencial_campanas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/gerencial/campanas/{campaign_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Campana
+         * @description Detalle de una campaña: ritmo de envío y resultados por tanda.
+         */
+        get: operations["gerencial_campana_api_v1_dashboard_gerencial_campanas__campaign_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/gerencial/obligaciones": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Obligaciones
+         * @description Matriz de clientes y sus próximas obligaciones tributarias.
+         */
+        get: operations["gerencial_obligaciones_api_v1_dashboard_gerencial_obligaciones_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/gerencial/cartera": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Cartera
+         * @description Cartera pendiente por cliente repartida en edades.
+         */
+        get: operations["gerencial_cartera_api_v1_dashboard_gerencial_cartera_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/gerencial/prospectos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Prospectos
+         * @description Prospectos en seguimiento activo, con su etapa y última gestión.
+         */
+        get: operations["gerencial_prospectos_api_v1_dashboard_gerencial_prospectos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/gerencial/asesores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Asesores
+         * @description Control por asesor: uso del sistema, gestión comercial y cartera a cargo.
+         */
+        get: operations["gerencial_asesores_api_v1_dashboard_gerencial_asesores_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dashboard/gerencial/finanzas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gerencial Finanzas
+         * @description Facturado y recaudado del periodo, acumulado del año y saldo de cartera.
+         */
+        get: operations["gerencial_finanzas_api_v1_dashboard_gerencial_finanzas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -1781,6 +2222,11 @@ export interface components {
              */
             created_at: string;
         };
+        /** Body_import_catalog_api_v1_ciiu_import_post */
+        Body_import_catalog_api_v1_ciiu_import_post: {
+            /** File */
+            file: string;
+        };
         /** Body_import_cooperativas_api_v1_prospects_import_cooperativas_post */
         Body_import_cooperativas_api_v1_prospects_import_cooperativas_post: {
             /** File */
@@ -1872,6 +2318,8 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+            /** Template Id */
+            template_id?: string | null;
             /** Segmento */
             segmento: string | null;
             /** Estado */
@@ -1970,6 +2418,12 @@ export interface components {
              * @default true
              */
             skip_sent: boolean;
+            /** Departamento */
+            departamento?: string | null;
+            /** Ciudad */
+            ciudad?: string | null;
+            /** Zona */
+            zona?: string | null;
             /**
              * Limit
              * @default 10000
@@ -2346,9 +2800,14 @@ export interface components {
             type: components["schemas"]["FollowUpType"];
             /** Notes */
             notes: string;
-            /** Outcome */
-            outcome?: string | null;
+            outcome?: components["schemas"]["FollowUpOutcome"] | null;
         };
+        /**
+         * FollowUpOutcome
+         * @description En qué quedó el contacto. Es lo que mueve el estado del prospecto.
+         * @enum {string}
+         */
+        FollowUpOutcome: "CONTESTO" | "NO_CONTESTO" | "BUZON" | "DATO_ERRADO" | "VOLVER_A_LLAMAR" | "PIDIO_INFORMACION" | "AGENDO_CITA" | "EN_NEGOCIACION" | "NO_INTERESADO";
         /** FollowUpRead */
         FollowUpRead: {
             /**
@@ -2386,17 +2845,6 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
-        };
-        /** ImportResult */
-        ImportResult: {
-            /** Created */
-            created: number;
-            /** Skipped */
-            skipped: number;
-            /** Errors */
-            errors: {
-                [key: string]: unknown;
-            }[];
         };
         /** InvoiceCreate */
         InvoiceCreate: {
@@ -3358,6 +3806,8 @@ export interface components {
             description: string;
             /** Norma */
             norma?: string | null;
+            /** Area Contrato */
+            area_contrato?: string | null;
             /**
              * Default Value
              * @default 0
@@ -3384,6 +3834,8 @@ export interface components {
             description: string;
             /** Norma */
             norma: string | null;
+            /** Area Contrato */
+            area_contrato?: string | null;
             /** Default Value */
             default_value: string;
             /** Is Active */
@@ -3399,6 +3851,8 @@ export interface components {
             description?: string | null;
             /** Norma */
             norma?: string | null;
+            /** Area Contrato */
+            area_contrato?: string | null;
             /** Default Value */
             default_value?: number | string | null;
             /** Is Active */
@@ -4350,12 +4804,49 @@ export interface operations {
             };
         };
     };
+    user_activity_daily_api_v1_admin_audit_activity__user_id__get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_prospects_api_v1_prospects_get: {
         parameters: {
             query?: {
                 q?: string | null;
                 estado?: components["schemas"]["ProspectStatus"] | null;
                 ciudad?: string | null;
+                departamento?: string | null;
+                zona?: string | null;
                 segmento?: components["schemas"]["ProspectSegment"] | null;
                 actividad_ciiu?: string | null;
                 regimen?: string | null;
@@ -4447,9 +4938,95 @@ export interface operations {
             };
         };
     };
-    import_prospects_api_v1_prospects_import_post: {
+    ubicaciones_api_v1_prospects_ubicaciones_get: {
+        parameters: {
+            query?: {
+                departamento?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    zonas_api_v1_prospects_zonas_get: {
         parameters: {
             query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+        };
+    };
+    purge_base_api_v1_prospects_purge_delete: {
+        parameters: {
+            query?: {
+                confirmar?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_prospects_api_v1_prospects_import_post: {
+        parameters: {
+            query?: {
+                segmento?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4466,7 +5043,75 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ImportResult"];
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    listar_cargues_api_v1_prospects_import_jobs_get: {
+        parameters: {
+            query?: {
+                limite?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estado_cargue_api_v1_prospects_import_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -4499,7 +5144,9 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ImportResult"];
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -5028,6 +5675,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ClientServiceRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    clientes_facturables_api_v1_clients_facturables_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                solo_con_saldo?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             /** @description Validation Error */
@@ -5773,6 +6454,39 @@ export interface operations {
             };
         };
     };
+    obligations_by_nit_api_v1_tax_obligations_by_nit__nit__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                nit: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     summary_api_v1_tax_obligations_summary_get: {
         parameters: {
             query?: never;
@@ -5789,6 +6503,28 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaxSummary"];
+                };
+            };
+        };
+    };
+    clientes_sin_control_api_v1_tax_obligations_clientes_sin_control_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
         };
@@ -6068,6 +6804,63 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CiiuRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    catalog_status_api_v1_ciiu_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    import_catalog_api_v1_ciiu_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_catalog_api_v1_ciiu_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -6604,6 +7397,37 @@ export interface operations {
             };
         };
     };
+    export_sends_api_v1_emails_export_get: {
+        parameters: {
+            query?: {
+                campaign_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     send_limits_api_v1_emails_limits_get: {
         parameters: {
             query?: never;
@@ -6672,6 +7496,9 @@ export interface operations {
                 segmento?: string | null;
                 estado?: string | null;
                 actividad_ciiu?: string | null;
+                departamento?: string | null;
+                ciudad?: string | null;
+                zona?: string | null;
                 template_id?: string | null;
                 skip_sent?: boolean;
                 source_campaign_id?: string | null;
@@ -6690,6 +7517,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AudienceCount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recampaign_progress_api_v1_emails_recampaign_progress_get: {
+        parameters: {
+            query: {
+                source_campaign_id: string;
+                source_filter?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: number;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -6738,7 +7599,9 @@ export interface operations {
     };
     list_templates_api_v1_emails_templates_get: {
         parameters: {
-            query?: never;
+            query?: {
+                archived?: boolean;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -6752,6 +7615,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmailTemplateRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -6771,6 +7643,39 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailTemplateRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    archive_template_api_v1_emails_templates__template_id__archive_post: {
+        parameters: {
+            query?: {
+                archived?: boolean;
+            };
+            header?: never;
+            path: {
+                template_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7059,6 +7964,244 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    gerencial_campanas_api_v1_dashboard_gerencial_campanas_get: {
+        parameters: {
+            query?: {
+                archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gerencial_campana_api_v1_dashboard_gerencial_campanas__campaign_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gerencial_obligaciones_api_v1_dashboard_gerencial_obligaciones_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                asesor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gerencial_cartera_api_v1_dashboard_gerencial_cartera_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                asesor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gerencial_prospectos_api_v1_dashboard_gerencial_prospectos_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                asesor?: string | null;
+                zona?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gerencial_asesores_api_v1_dashboard_gerencial_asesores_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                asesor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    gerencial_finanzas_api_v1_dashboard_gerencial_finanzas_get: {
+        parameters: {
+            query?: {
+                desde?: string | null;
+                hasta?: string | null;
+                asesor?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
