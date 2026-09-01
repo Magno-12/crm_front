@@ -21,7 +21,7 @@ import {
 } from '@/features/admin/api/admin.api';
 import { getPortfolio } from '@/features/payments/api/payments.api';
 import { getSummary, getRevenueByService } from '@/features/dashboard/api/dashboard.api';
-import { formatCOP, formatDateTime } from '@/lib/utils';
+import { formatCOP, formatDateTime, formatTime } from '@/lib/utils';
 
 type Tab = 'usuarios' | 'cartera' | 'ingresos';
 
@@ -373,10 +373,8 @@ function HistorialUsuario({
     queryFn: () => getUserActivityDaily(usuario.user_id, days),
   });
 
-  const hora = (iso: string | null) =>
-    iso
-      ? new Date(iso).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
-      : '—';
+  // La hora se muestra en hora de Colombia: el servidor guarda en UTC.
+  const hora = (iso: string | null) => formatTime(iso);
 
   const exportarDetalle = () => {
     if (!q.data) return;

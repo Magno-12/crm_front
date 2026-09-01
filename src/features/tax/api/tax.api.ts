@@ -46,3 +46,17 @@ export async function searchTaxCalendar(q: string, nit?: string): Promise<Calend
   });
   return data;
 }
+
+export interface ClienteSinControl {
+  client_id: string;
+  razon_social: string;
+  nit: string;
+  /** Obligaciones que le aplican según las áreas del contrato. */
+  sugeridas: string[];
+}
+
+/** Clientes fidelizados con contrato a los que aún no se les registró ninguna obligación. */
+export async function getClientesSinControl(): Promise<ClienteSinControl[]> {
+  const { data } = await api.get<ClienteSinControl[]>('/tax-obligations/clientes-sin-control');
+  return data;
+}

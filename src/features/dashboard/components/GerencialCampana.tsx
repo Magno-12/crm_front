@@ -18,7 +18,7 @@ import {
   getCampaignDetalle,
   type CampaignRow,
 } from '@/features/dashboard/api/gerencial.api';
-import { formatCOP } from '@/lib/utils';
+import { formatCOP, formatDateShort } from '@/lib/utils';
 
 const NUM = new Intl.NumberFormat('es-CO');
 
@@ -26,14 +26,7 @@ function pct(a: number, b: number): string {
   return b > 0 ? `${((a / b) * 100).toFixed(1)}%` : '—';
 }
 
-function fechaLarga(iso: string | null): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+const fechaLarga = formatDateShort;
 
 /** Detalle de una campaña: a qué ritmo va y qué está produciendo. */
 export function GerencialCampana({ campana }: { campana: CampaignRow }) {
@@ -79,7 +72,7 @@ export function GerencialCampana({ campana }: { campana: CampaignRow }) {
               {avance.toFixed(1)}% enviado ({NUM.format(campana.enviados)})
             </span>
             <span className="text-amber-600 dark:text-amber-400">
-              {pct(campana.pendientes, campana.total_segmento)} pendiente (
+              {pct(campana.pendientes, campana.total_segmento)} sin enviar (
               {NUM.format(campana.pendientes)})
             </span>
           </div>
@@ -100,7 +93,7 @@ export function GerencialCampana({ campana }: { campana: CampaignRow }) {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi icon={<Database />} label="Total del segmento" valor={NUM.format(campana.total_segmento)} detalle={campana.segmento ?? 'Todos los segmentos'} color="border-l-violet-500" />
         <Kpi icon={<Send />} label="Enviados" valor={NUM.format(campana.enviados)} detalle={`${pct(campana.enviados, campana.total_segmento)} de la base`} color="border-l-sky-500" />
-        <Kpi icon={<Clock />} label="Pendientes por enviar" valor={NUM.format(campana.pendientes)} detalle={pct(campana.pendientes, campana.total_segmento)} color="border-l-amber-500" />
+        <Kpi icon={<Clock />} label="No enviados" valor={NUM.format(campana.pendientes)} detalle={pct(campana.pendientes, campana.total_segmento)} color="border-l-amber-500" />
         <Kpi icon={<MailOpen />} label="Tasa de apertura" valor={pct(campana.abiertos, campana.recibidos)} detalle={`${NUM.format(campana.abiertos)} abrieron`} color="border-l-emerald-500" />
       </div>
 

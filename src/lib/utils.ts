@@ -76,6 +76,28 @@ export function formatDateTime(iso: string | null | undefined): string {
   });
 }
 
+/** Solo la hora, en hora de Colombia. */
+export function formatTime(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  return toDate(iso).toLocaleTimeString('es-CO', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: CO_TZ,
+  });
+}
+
+/** Fecha corta (12 ago 2026) en hora de Colombia. */
+export function formatDateShort(iso: string | null | undefined): string {
+  if (!iso) return '—';
+  if (isDateOnly(iso)) return formatDate(iso);
+  return toDate(iso).toLocaleDateString('es-CO', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: CO_TZ,
+  });
+}
+
 /** Muestra solo la fecha si viene sin hora (YYYY-MM-DD); si no, fecha y hora. */
 export function formatDateOrTime(iso: string | null | undefined): string {
   if (!iso) return '—';

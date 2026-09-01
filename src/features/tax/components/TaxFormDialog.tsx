@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -46,9 +46,12 @@ interface FormValues {
 export function TaxFormDialog({
   open,
   onOpenChange,
+  preset,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  /** Cliente y tipo con los que abrir el formulario ya diligenciado. */
+  preset?: { client_id: string; type: TaxObligationType };
 }) {
   const qc = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +63,15 @@ export function TaxFormDialog({
   const form = useForm<FormValues>({
     defaultValues: { client_id: '', type: 'iva', period: '', due_date: '', amount: '', notes: '' },
   });
+
+  // Cuando se abre desde un cliente sin control, el formulario ya llega
+  // apuntando a ese cliente y a la obligación que le falta.
+  useEffect(() => {
+    if (open && preset) {
+      form.setValue('client_id', preset.client_id);
+      form.setValue('type', preset.type);
+    }
+  }, [open, preset, form]);
 
   const clientId = form.watch('client_id');
   const type = form.watch('type');

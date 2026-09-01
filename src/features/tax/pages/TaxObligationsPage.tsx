@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, ShieldCheck, CheckCircle2, RotateCcw, Trash2, BellRing } from 'lucide-react';
+import {
+  Plus,
+  ShieldCheck,
+  CheckCircle2,
+  RotateCcw,
+  Trash2,
+  BellRing,
+  UserPlus,
+} from 'lucide-react';
 import { AlertsPage } from '@/features/alerts/pages/AlertsPage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +27,7 @@ import { TableSkeleton } from '@/components/common/table-skeleton';
 import { Can } from '@/components/auth/Can';
 import {
   deleteObligation,
+  getClientesSinControl,
   getTaxSummary,
   listObligations,
   markObligation,
@@ -26,6 +35,7 @@ import {
 import { TAX_TYPES, semaforoMeta, taxTypeLabel } from '@/features/tax/lib/meta';
 import { TaxFormDialog } from '@/features/tax/components/TaxFormDialog';
 import { apiErrorMessage } from '@/api/client';
+import type { TaxObligationType } from '@/types/api';
 import { cn, formatDate } from '@/lib/utils';
 
 type Vista = 'obligaciones' | 'alertas';
@@ -64,8 +74,15 @@ export function TaxObligationsPage() {
   const [type, setType] = useState('all');
   const [status, setStatus] = useState('all');
   const [formOpen, setFormOpen] = useState(false);
+  const [preset, setPreset] = useState<
+    { client_id: string; type: TaxObligationType } | undefined
+  >();
 
   const summary = useQuery({ queryKey: ['tax', 'summary'], queryFn: getTaxSummary });
+  const sinControl = useQuery({
+    queryKey: ['tax', 'sin-control'],
+    queryFn: getClientesSinControl,
+  });
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['tax', 'list', { type, status }],
     queryFn: () =>
@@ -118,7 +135,12 @@ export function TaxObligationsPage() {
           </p>
         </div>
         <Can code="tax.create">
-          <Button onClick={() => setFormOpen(true)}>
+          <Button
+            onClick={() => {
+              setPreset(undefined);
+              setFormOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4" /> Nueva obligación
           </Button>
         </Can>
@@ -132,6 +154,55 @@ export function TaxObligationsPage() {
         <SummaryChip label="Próximas a vencer" value={summary.data?.proximas ?? 0} dot="bg-warning" />
         <SummaryChip label="Cumplidas" value={summary.data?.cumplidas ?? 0} dot="bg-success" />
       </div>
+
+      {sinControl.data && sinControl.data.length > 0 && (
+        <Card className="border-warning/60 bg-warning/5">
+          <CardContent className="space-y-3 pt-5">
+            <div>
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <UserPlus className="h-4 w-4 text-warning" />
+                Clientes con contrato sin control tributario
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Al fidelizar un cliente la firma asume el control de sus impuestos. Estos ya
+                tienen contrato pero todavía no se les registró ninguna obligación: haga clic en
+                la que corresponda para crearla con el cliente ya seleccionado.
+              </p>
+            </div>
+            <ul className="space-y-2">
+              {sinControl.data.map((c) => (
+                <li
+                  key={c.client_id}
+                  className="flex flex-col gap-2 rounded-md border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{c.razon_social}</p>
+                    <p className="text-xs text-muted-foreground">NIT {c.nit}</p>
+                  </div>
+                  <Can code="tax.create">
+                    <div className="flex flex-wrap gap-1.5">
+                      {c.sugeridas.map((t) => (
+                        <Button
+                          key={t}
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => {
+                            setPreset({ client_id: c.client_id, type: t as TaxObligationType });
+                            setFormOpen(true);
+                          }}
+                        >
+                          <Plus className="h-3 w-3" /> {taxTypeLabel(t)}
+                        </Button>
+                      ))}
+                    </div>
+                  </Can>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <Select value={type} onValueChange={setType}>
@@ -243,7 +314,14 @@ export function TaxObligationsPage() {
         </Card>
       )}
 
-      <TaxFormDialog open={formOpen} onOpenChange={setFormOpen} />
+      <TaxFormDialog
+        open={formOpen}
+        onOpenChange={(o) => {
+          setFormOpen(o);
+          if (!o) setPreset(undefined);
+        }}
+        preset={preset}
+      />
     </div>
   );
 }

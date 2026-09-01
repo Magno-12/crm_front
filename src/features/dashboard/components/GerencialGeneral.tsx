@@ -24,7 +24,7 @@ import {
   type FiltrosGerencial,
   type ObligacionCelda,
 } from '@/features/dashboard/api/gerencial.api';
-import { formatCOP } from '@/lib/utils';
+import { formatCOP, formatDateShort } from '@/lib/utils';
 import { rangoDelPeriodo } from '@/features/dashboard/components/FiltrosDashboard';
 
 const NUM = new Intl.NumberFormat('es-CO');
@@ -33,14 +33,7 @@ function pct(a: number, b: number): string {
   return b > 0 ? `${((a / b) * 100).toFixed(1)}%` : '—';
 }
 
-function fechaCorta(iso: string | null): string {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('es-CO', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+const fechaCorta = formatDateShort;
 
 /** Tabla consolidada de campañas: el embudo completo de la firma. */
 export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
@@ -102,7 +95,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
               <th className="px-4 py-2 text-left font-medium">Campaña</th>
               <th className="px-3 py-2 text-right font-medium">Total segmento</th>
               <th className="px-3 py-2 text-right font-medium">Enviados</th>
-              <th className="px-3 py-2 text-right font-medium">Pendientes</th>
+              <th className="px-3 py-2 text-right font-medium">No enviados</th>
               <th className="px-3 py-2 text-right font-medium">Recibidos</th>
               <th className="px-3 py-2 text-right font-medium">Abiertos</th>
               <th className="px-3 py-2 text-right font-medium">Respondidos</th>

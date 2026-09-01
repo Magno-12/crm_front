@@ -333,6 +333,8 @@ function CampaignDialog({
   const senders = useQuery({ queryKey: ['email-senders'], queryFn: listSenders, enabled: open });
   const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
   const dailyLimit = limits.data?.daily_limit ?? DEFAULT_DAILY_LIMIT;
+  const enviadosHoy = limits.data?.sent_today ?? 0;
+  const restanteHoy = limits.data?.remaining_today ?? dailyLimit;
   // Opciones de 500 en 500 hasta el límite diario (3.000 hoy; se adapta si sube el plan).
   const limitOptions: number[] = [];
   for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
@@ -645,16 +647,49 @@ function CampaignDialog({
             No reenviar a quienes ya recibieron esta plantilla
           </label>
 
+          {/* Cupo del día: lo que ya salió y lo que queda, sin importar por qué
+              filtro se esté enviando. */}
           <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-b pb-2 text-xs">
+              <span className="font-medium">Cupo de hoy</span>
+              <span className="text-muted-foreground">
+                Enviados:{' '}
+                <b className="text-foreground">{enviadosHoy.toLocaleString('es-CO')}</b>
+              </span>
+              <span className="text-muted-foreground">
+                Disponibles:{' '}
+                <b className={restanteHoy > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-destructive'}>
+                  {restanteHoy.toLocaleString('es-CO')}
+                </b>{' '}
+                de {dailyLimit.toLocaleString('es-CO')}
+              </span>
+              <span className="ml-auto text-muted-foreground">
+                Este envío usaría{' '}
+                <b className="text-foreground">
+                  {Math.min(count, chosenLimit, restanteHoy).toLocaleString('es-CO')}
+                </b>
+              </span>
+            </div>
             Audiencia con correo:{' '}
             <span className="font-semibold">{audience.isLoading ? '…' : count}</span> destinatario(s)
             {skipSent && templateId ? ' nuevos' : ''}.
-            {count > chosenLimit && (
+            {restanteHoy <= 0 && (
+              <span className="text-destructive">
+                {' '}
+                Hoy ya se agotó el cupo de {dailyLimit.toLocaleString('es-CO')} correos; el envío
+                continúa mañana.
+              </span>
+            )}
+            {restanteHoy > 0 && count > Math.min(chosenLimit, restanteHoy) && (
               <span className="text-muted-foreground">
                 {' '}
-                Hoy se enviarán {chosenLimit.toLocaleString('es-CO')}
-                {sendLimit === 'max' ? ' por el límite diario' : ' según la cantidad elegida'}; el
-                resto queda pendiente.
+                Hoy se enviarán {Math.min(chosenLimit, restanteHoy).toLocaleString('es-CO')}
+                {restanteHoy < chosenLimit
+                  ? ' porque es lo que queda del cupo del día'
+                  : sendLimit === 'max'
+                    ? ' por el límite diario'
+                    : ' según la cantidad elegida'}
+                ; el resto queda para los días siguientes.
               </span>
             )}
           </div>
