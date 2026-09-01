@@ -119,29 +119,49 @@ export async function getCampaignDetalle(id: string): Promise<CampaignDetalle> {
   return data;
 }
 
-export async function getFinanzas(): Promise<FinanzasGerencial> {
-  const { data } = await api.get<FinanzasGerencial>('/dashboard/gerencial/finanzas');
+/** Filtros que atraviesan el dashboard. */
+export interface FiltrosGerencial {
+  /** Días hacia atrás del periodo (7, 30, 90, 365). */
+  days?: number;
+  desde?: string;
+  hasta?: string;
+  asesor?: string;
+  zona?: string;
+}
+
+export async function getFinanzas(f: FiltrosGerencial = {}): Promise<FinanzasGerencial> {
+  const { data } = await api.get<FinanzasGerencial>('/dashboard/gerencial/finanzas', {
+    params: { desde: f.desde, hasta: f.hasta, asesor: f.asesor },
+  });
   return data;
 }
 
-export async function getCarteraEdades(): Promise<CarteraEdades> {
-  const { data } = await api.get<CarteraEdades>('/dashboard/gerencial/cartera');
+export async function getCarteraEdades(f: FiltrosGerencial = {}): Promise<CarteraEdades> {
+  const { data } = await api.get<CarteraEdades>('/dashboard/gerencial/cartera', {
+    params: { asesor: f.asesor },
+  });
   return data;
 }
 
-export async function getObligaciones(): Promise<ObligacionesFila[]> {
-  const { data } = await api.get<ObligacionesFila[]>('/dashboard/gerencial/obligaciones');
+export async function getObligaciones(f: FiltrosGerencial = {}): Promise<ObligacionesFila[]> {
+  const { data } = await api.get<ObligacionesFila[]>('/dashboard/gerencial/obligaciones', {
+    params: { asesor: f.asesor },
+  });
   return data;
 }
 
-export async function getProspectosActivos(): Promise<ProspectoActivo[]> {
-  const { data } = await api.get<ProspectoActivo[]>('/dashboard/gerencial/prospectos');
+export async function getProspectosActivos(
+  f: FiltrosGerencial = {},
+): Promise<ProspectoActivo[]> {
+  const { data } = await api.get<ProspectoActivo[]>('/dashboard/gerencial/prospectos', {
+    params: { asesor: f.asesor, zona: f.zona },
+  });
   return data;
 }
 
-export async function getAsesores(days = 30): Promise<AsesorControl[]> {
+export async function getAsesores(f: FiltrosGerencial = {}): Promise<AsesorControl[]> {
   const { data } = await api.get<AsesorControl[]>('/dashboard/gerencial/asesores', {
-    params: { days },
+    params: { days: f.days ?? 30, asesor: f.asesor },
   });
   return data;
 }

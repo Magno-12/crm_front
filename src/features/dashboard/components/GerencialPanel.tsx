@@ -3,7 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { LayoutGrid, Megaphone } from 'lucide-react';
 import { CardGridSkeleton } from '@/components/common/table-skeleton';
 import { ErrorState } from '@/components/common/states';
-import { getCampaigns } from '@/features/dashboard/api/gerencial.api';
+import {
+  getCampaigns,
+  type FiltrosGerencial,
+} from '@/features/dashboard/api/gerencial.api';
 import { GerencialCampana } from '@/features/dashboard/components/GerencialCampana';
 import {
   KpisFinancieros,
@@ -22,7 +25,7 @@ const ESTADO_TONO: Record<string, string> = {
 };
 
 /** Panel gerencial: la vista general de la firma y el detalle de cada campaña. */
-export function GerencialPanel({ days }: { days: number }) {
+export function GerencialPanel({ filtros }: { filtros: FiltrosGerencial }) {
   const [vista, setVista] = useState<string>('general');
   const campanas = useQuery({ queryKey: ['gerencial', 'campanas'], queryFn: () => getCampaigns() });
 
@@ -82,11 +85,11 @@ export function GerencialPanel({ days }: { days: number }) {
       ) : (
         <>
           <TablaCampanas campanas={lista} />
-          <KpisFinancieros />
-          <TablaCartera />
-          <TablaObligaciones />
-          <ProspectosActivos />
-          <TablaAsesores days={days} />
+          <KpisFinancieros filtros={filtros} />
+          <TablaCartera filtros={filtros} />
+          <TablaObligaciones filtros={filtros} />
+          <ProspectosActivos filtros={filtros} />
+          <TablaAsesores filtros={filtros} />
         </>
       )}
     </div>

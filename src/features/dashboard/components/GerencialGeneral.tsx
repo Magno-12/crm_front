@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   BellRing,
@@ -20,9 +21,11 @@ import {
   getObligaciones,
   getProspectosActivos,
   type CampaignRow,
+  type FiltrosGerencial,
   type ObligacionCelda,
 } from '@/features/dashboard/api/gerencial.api';
 import { formatCOP } from '@/lib/utils';
+import { rangoDelPeriodo } from '@/features/dashboard/components/FiltrosDashboard';
 
 const NUM = new Intl.NumberFormat('es-CO');
 
@@ -198,26 +201,34 @@ function Celda({
 }
 
 /** Los cuatro indicadores de plata: qué se facturó, qué entró y qué falta cobrar. */
-export function KpisFinancieros() {
-  const q = useQuery({ queryKey: ['gerencial', 'finanzas'], queryFn: getFinanzas });
+export function KpisFinancieros({ filtros }: { filtros: FiltrosGerencial }) {
+  const navegar = useNavigate();
+  const rango = rangoDelPeriodo(filtros.days ?? 30);
+  const consulta = { ...filtros, ...rango };
+  const q = useQuery({
+    queryKey: ['gerencial', 'finanzas', consulta],
+    queryFn: () => getFinanzas(consulta),
+  });
   const d = q.data;
-  const mes = new Date().toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
+  const periodo = `${fechaCorta(rango.desde)} — ${fechaCorta(rango.hasta)}`;
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <KpiBloque
         icon={<FileText />}
-        label="Facturado del mes"
+        label="Facturado del periodo"
         value={d ? formatCOP(d.facturado_mes) : '—'}
-        detalle={mes}
+        detalle={periodo}
         color="border-l-teal-600"
+        onClick={() => navegar('/invoices')}
       />
       <KpiBloque
         icon={<HandCoins />}
-        label="Recaudo del mes"
+        label="Recaudo del periodo"
         value={d ? formatCOP(d.recaudo_mes) : '—'}
-        detalle="Pagos recibidos"
+        detalle="Recibos de caja registrados"
         color="border-l-emerald-500"
+        onClick={() => navegar('/recibos')}
       />
       <KpiBloque
         icon={<TrendingUp />}
@@ -233,6 +244,7 @@ export function KpisFinancieros() {
         detalle={d ? `${d.cartera_facturas} factura(s) por cobrar` : 'Pendiente de cobro'}
         color="border-l-red-500"
         alerta
+        onClick={() => navegar('/cartera')}
       />
     </div>
   );
@@ -245,6 +257,7 @@ function KpiBloque({
   detalle,
   color,
   alerta,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -252,9 +265,20 @@ function KpiBloque({
   detalle: string;
   color: string;
   alerta?: boolean;
+  /** Al hacer clic se abre la pantalla donde está el detalle de esa cifra. */
+  onClick?: () => void;
 }) {
   return (
-    <div className={`rounded-xl border border-l-4 bg-card p-3.5 shadow-soft ${color}`}>
+    <div
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(e) => onClick && e.key === 'Enter' && onClick()}
+      title={onClick ? 'Abrir el detalle' : undefined}
+      className={`rounded-xl border border-l-4 bg-card p-3.5 shadow-soft ${color} ${
+        onClick ? 'cursor-pointer transition hover:shadow-md' : ''
+      }`}
+    >
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground [&_svg]:h-3.5 [&_svg]:w-3.5">
         {icon}
         {label}
@@ -268,8 +292,12 @@ function KpiBloque({
 }
 
 /** Cartera por edades: cuánto se debe y desde hace cuánto. */
-export function TablaCartera() {
-  const q = useQuery({ queryKey: ['gerencial', 'cartera'], queryFn: getCarteraEdades });
+export function TablaCartera({ filtros }: { filtros: FiltrosGerencial }) {
+  const navegar = useNavigate();
+  const q = useQuery({
+    queryKey: ['gerencial', 'cartera', filtros.asesor],
+    queryFn: () => getCarteraEdades(filtros),
+  });
   const d = q.data;
 
   if (d && d.clientes.length === 0) {
@@ -305,7 +333,12 @@ export function TablaCartera() {
           </thead>
           <tbody>
             {(d?.clientes ?? []).map((c) => (
-              <tr key={c.cliente} className="border-b last:border-0 hover:bg-muted/40">
+              <tr
+                key={c.cliente}
+                className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
+                onClick={() => navegar('/cartera')}
+                title="Ver la cartera del cliente"
+              >
                 <td className="px-4 py-2.5">
                   <div className="font-medium">{c.cliente}</div>
                   {c.dias_max > 0 && (
@@ -363,8 +396,12 @@ const OBLIGACIONES = [
 ];
 
 /** Matriz de clientes y sus próximos vencimientos tributarios. */
-export function TablaObligaciones() {
-  const q = useQuery({ queryKey: ['gerencial', 'obligaciones'], queryFn: getObligaciones });
+export function TablaObligaciones({ filtros }: { filtros: FiltrosGerencial }) {
+  const navegar = useNavigate();
+  const q = useQuery({
+    queryKey: ['gerencial', 'obligaciones', filtros.asesor],
+    queryFn: () => getObligaciones(filtros),
+  });
   const filas = q.data ?? [];
 
   return (
@@ -398,7 +435,12 @@ export function TablaObligaciones() {
             </thead>
             <tbody>
               {filas.map((f) => (
-                <tr key={f.cliente} className="border-b last:border-0 hover:bg-muted/40">
+                <tr
+                  key={f.cliente}
+                  className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
+                  onClick={() => navegar('/tax')}
+                  title="Abrir obligaciones y alertas"
+                >
                   <td className="px-4 py-3 font-medium">{f.cliente}</td>
                   {OBLIGACIONES.map((o) => (
                     <td key={o.key} className="px-3 py-3 text-center">
@@ -454,8 +496,12 @@ function CeldaObligacion({ celda }: { celda: ObligacionCelda | undefined }) {
 }
 
 /** Prospectos que están en juego ahora mismo. */
-export function ProspectosActivos() {
-  const q = useQuery({ queryKey: ['gerencial', 'prospectos'], queryFn: getProspectosActivos });
+export function ProspectosActivos({ filtros }: { filtros: FiltrosGerencial }) {
+  const navegar = useNavigate();
+  const q = useQuery({
+    queryKey: ['gerencial', 'prospectos', filtros.asesor, filtros.zona],
+    queryFn: () => getProspectosActivos(filtros),
+  });
   const filas = q.data ?? [];
   if (filas.length === 0) return null;
 
@@ -468,7 +514,15 @@ export function ProspectosActivos() {
       </h2>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {filas.map((p) => (
-          <div key={p.id} className="rounded-xl border bg-card p-3.5 shadow-soft">
+          <div
+            key={p.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => navegar(`/prospects/${p.id}`)}
+            onKeyDown={(e) => e.key === 'Enter' && navegar(`/prospects/${p.id}`)}
+            title="Abrir la ficha del prospecto"
+            className="cursor-pointer rounded-xl border bg-card p-3.5 shadow-soft transition hover:shadow-md"
+          >
             <p className="font-medium leading-tight">{p.razon_social}</p>
             <p className="text-xs text-muted-foreground">NIT {p.nit}</p>
             {p.telefono && (
@@ -508,10 +562,12 @@ export function ProspectosActivos() {
 }
 
 /** Qué hizo cada asesor: uso del sistema, gestión comercial y cartera a cargo. */
-export function TablaAsesores({ days }: { days: number }) {
+export function TablaAsesores({ filtros }: { filtros: FiltrosGerencial }) {
+  const navegar = useNavigate();
+  const dias = filtros.days ?? 30;
   const q = useQuery({
-    queryKey: ['gerencial', 'asesores', days],
-    queryFn: () => getAsesores(days),
+    queryKey: ['gerencial', 'asesores', dias, filtros.asesor],
+    queryFn: () => getAsesores(filtros),
   });
   const filas = q.data ?? [];
 
@@ -523,7 +579,7 @@ export function TablaAsesores({ days }: { days: number }) {
           Control por asesor
         </CardTitle>
         <CardDescription>
-          Uso del sistema, gestión comercial y cartera a cargo en los últimos {days} días.
+          Uso del sistema, gestión comercial y cartera a cargo en los últimos {dias} días.
         </CardDescription>
       </CardHeader>
       <CardContent className="overflow-x-auto p-0">
@@ -554,7 +610,12 @@ export function TablaAsesores({ days }: { days: number }) {
           </thead>
           <tbody>
             {filas.map((a) => (
-              <tr key={a.user_id} className="border-b last:border-0 hover:bg-muted/40">
+              <tr
+                key={a.user_id}
+                className="cursor-pointer border-b last:border-0 hover:bg-muted/40"
+                onClick={() => navegar('/reportes')}
+                title="Abrir el reporte del usuario"
+              >
                 <td className="px-4 py-3">
                   <div className="font-medium leading-tight">{a.full_name ?? '—'}</div>
                   <div className="text-xs text-muted-foreground">{a.email}</div>
