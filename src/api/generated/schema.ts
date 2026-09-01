@@ -3552,6 +3552,8 @@ export interface components {
             regimen_tributario: string | null;
             /** Telefono */
             telefono: string | null;
+            /** Telefono Fijo */
+            telefono_fijo: string | null;
             /** Email */
             email: string | null;
             /**
@@ -4855,6 +4857,7 @@ export interface operations {
                 activos_min?: number | string | null;
                 activos_max?: number | string | null;
                 en_gestion?: boolean;
+                con_telefono?: boolean;
                 exclude_segmento?: components["schemas"]["ProspectSegment"] | null;
                 page?: number;
                 page_size?: number;

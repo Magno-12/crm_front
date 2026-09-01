@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import {
   Download,
   Loader2,
+  MessageCircle,
+  Phone,
   Plus,
   Search,
   SlidersHorizontal,
@@ -47,7 +49,49 @@ import {
 } from '@/features/prospects/lib/status';
 import { ProspectFormDialog } from '@/features/prospects/components/ProspectFormDialog';
 import { ImportDialog } from '@/features/prospects/components/ImportDialog';
+import {
+  enlaceWhatsapp,
+  formatearTelefono,
+  paraMarcar,
+} from '@/features/prospects/lib/telefono';
 import { apiErrorMessage, getAccessToken } from '@/api/client';
+import type { ProspectRead } from '@/types/api';
+
+/** Teléfono del prospecto y cómo contactarlo, sin salir de la lista. */
+function CeldaTelefono({ prospecto }: { prospecto: ProspectRead }) {
+  // El celular manda: es el que sirve para llamar y para WhatsApp.
+  const numero = prospecto.telefono?.trim() || prospecto.telefono_fijo?.trim() || null;
+  const marcar = paraMarcar(numero);
+  const whatsapp = enlaceWhatsapp(numero);
+
+  if (!marcar) {
+    return <span className="text-xs text-muted-foreground">Sin teléfono</span>;
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 whitespace-nowrap">
+      <a
+        href={`tel:${marcar}`}
+        className="text-sm tabular-nums text-primary hover:underline"
+        title={`Llamar a ${marcar}`}
+      >
+        {formatearTelefono(numero)}
+      </a>
+      <Button asChild variant="ghost" size="icon" className="h-6 w-6" title="Llamar">
+        <a href={`tel:${marcar}`} aria-label="Llamar">
+          <Phone className="h-3.5 w-3.5" />
+        </a>
+      </Button>
+      {whatsapp && (
+        <Button asChild variant="ghost" size="icon" className="h-6 w-6" title="Abrir WhatsApp">
+          <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+            <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
+          </a>
+        </Button>
+      )}
+    </div>
+  );
+}
 
 export function ProspectsPage() {
   const [q, setQ] = useState('');
@@ -63,6 +107,8 @@ export function ProspectsPage() {
   const [ingresosMax, setIngresosMax] = useState('');
   const [activosMin, setActivosMin] = useState('');
   const [activosMax, setActivosMax] = useState('');
+  // Para trabajar la lista de llamadas sin tropezar con los que no tienen número.
+  const [soloConTelefono, setSoloConTelefono] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -84,6 +130,7 @@ export function ProspectsPage() {
     departamento: departamento === 'all' ? undefined : departamento,
     ciudad: municipio === 'all' ? undefined : municipio,
     zona: zona === 'all' ? undefined : zona,
+    con_telefono: soloConTelefono || undefined,
     regimen: debouncedRegimen || undefined,
     ingresos_min: debouncedIngMin || undefined,
     ingresos_max: debouncedIngMax || undefined,
@@ -200,6 +247,17 @@ export function ProspectsPage() {
             ))}
           </SelectContent>
         </Select>
+        <Button
+          variant={soloConTelefono ? 'default' : 'outline'}
+          onClick={() => {
+            setSoloConTelefono((v) => !v);
+            setPage(1);
+          }}
+          className="shrink-0"
+          title="Deja solo los prospectos a los que se les puede marcar"
+        >
+          <Phone className="h-4 w-4" /> Con teléfono
+        </Button>
         <Button
           variant="outline"
           onClick={() => setShowAdvanced((v) => !v)}
@@ -383,6 +441,7 @@ export function ProspectsPage() {
                 <TableHead>NIT</TableHead>
                 <TableHead>Segmento</TableHead>
                 <TableHead>Ciudad</TableHead>
+                <TableHead>Teléfono</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
@@ -398,6 +457,9 @@ export function ProspectsPage() {
                       <Badge variant="outline">{segmentLabel(p.segmento)}</Badge>
                     </TableCell>
                     <TableCell>{p.ciudad ?? '—'}</TableCell>
+                    <TableCell>
+                      <CeldaTelefono prospecto={p} />
+                    </TableCell>
                     <TableCell>
                       <Badge variant={meta.variant}>{meta.label}</Badge>
                     </TableCell>
