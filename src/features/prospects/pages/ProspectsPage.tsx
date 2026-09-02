@@ -55,10 +55,21 @@ import {
   paraMarcar,
 } from '@/features/prospects/lib/telefono';
 import { apiErrorMessage, getAccessToken } from '@/api/client';
+import {
+  type CanalContacto,
+  RegistroContactoDialog,
+} from '@/features/prospects/components/RegistroContactoDialog';
 import type { ProspectRead } from '@/types/api';
 
 /** Teléfono del prospecto y cómo contactarlo, sin salir de la lista. */
-function CeldaTelefono({ prospecto }: { prospecto: ProspectRead }) {
+function CeldaTelefono({
+  prospecto,
+  onContactar,
+}: {
+  prospecto: ProspectRead;
+  /** Al marcar se abre el registro del resultado, con el canal usado. */
+  onContactar: (prospecto: ProspectRead, canal: CanalContacto) => void;
+}) {
   // El celular manda: es el que sirve para llamar y para WhatsApp.
   const numero = prospecto.telefono?.trim() || prospecto.telefono_fijo?.trim() || null;
   const marcar = paraMarcar(numero);
@@ -72,19 +83,30 @@ function CeldaTelefono({ prospecto }: { prospecto: ProspectRead }) {
     <div className="flex items-center gap-1.5 whitespace-nowrap">
       <a
         href={`tel:${marcar}`}
+        onClick={() => onContactar(prospecto, 'LLAMADA')}
         className="text-sm tabular-nums text-primary hover:underline"
         title={`Llamar a ${marcar}`}
       >
         {formatearTelefono(numero)}
       </a>
-      <Button asChild variant="ghost" size="icon" className="h-6 w-6" title="Llamar">
-        <a href={`tel:${marcar}`} aria-label="Llamar">
+      <Button asChild variant="ghost" size="icon" className="h-6 w-6" title="Llamar y registrar">
+        <a
+          href={`tel:${marcar}`}
+          onClick={() => onContactar(prospecto, 'LLAMADA')}
+          aria-label="Llamar"
+        >
           <Phone className="h-3.5 w-3.5" />
         </a>
       </Button>
       {whatsapp && (
         <Button asChild variant="ghost" size="icon" className="h-6 w-6" title="Abrir WhatsApp">
-          <a href={whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+          <a
+            href={whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onContactar(prospecto, 'WHATSAPP')}
+            aria-label="WhatsApp"
+          >
             <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
           </a>
         </Button>
@@ -114,6 +136,11 @@ export function ProspectsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [purgeOpen, setPurgeOpen] = useState(false);
+  // Prospecto al que se acaba de marcar, para registrar en qué quedó.
+  const [contacto, setContacto] = useState<{
+    prospecto: ProspectRead;
+    canal: CanalContacto;
+  } | null>(null);
   const debouncedQ = useDebounce(q, 300);
   const debouncedCiiu = useDebounce(ciiu, 400);
   const debouncedRegimen = useDebounce(regimen, 400);
@@ -458,7 +485,10 @@ export function ProspectsPage() {
                     </TableCell>
                     <TableCell>{p.ciudad ?? '—'}</TableCell>
                     <TableCell>
-                      <CeldaTelefono prospecto={p} />
+                      <CeldaTelefono
+                        prospecto={p}
+                        onContactar={(prospecto, canal) => setContacto({ prospecto, canal })}
+                      />
                     </TableCell>
                     <TableCell>
                       <Badge variant={meta.variant}>{meta.label}</Badge>
@@ -501,6 +531,12 @@ export function ProspectsPage() {
           </div>
         </div>
       )}
+
+      <RegistroContactoDialog
+        prospecto={contacto?.prospecto ?? null}
+        canal={contacto?.canal ?? 'LLAMADA'}
+        onClose={() => setContacto(null)}
+      />
 
       <ProspectFormDialog open={formOpen} onOpenChange={setFormOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />

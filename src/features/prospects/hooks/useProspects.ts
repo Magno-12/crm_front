@@ -110,6 +110,8 @@ export function useCreateFollowUp(prospectId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (body: FollowUpCreate) => createFollowUp(prospectId, body),
-    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY, 'followups', prospectId] }),
+    // El resultado del seguimiento mueve el estado del prospecto, así que hay
+    // que refrescar también las listas y la ficha, no solo el historial.
+    onSuccess: () => qc.invalidateQueries({ queryKey: [KEY] }),
   });
 }
