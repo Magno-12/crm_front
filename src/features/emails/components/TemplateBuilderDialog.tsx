@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Check } from 'lucide-react';
+import { Check, HelpCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { GuiaHtmlDialog } from '@/features/emails/components/GuiaHtmlDialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -40,6 +41,7 @@ export function TemplateBuilderDialog({
     ...(DESIGNS[0]!.defaults ?? {}),
   });
   const [mode, setMode] = useState<'design' | 'html'>('design');
+  const [guiaOpen, setGuiaOpen] = useState(false);
   const [customHtml, setCustomHtml] = useState(
     '<div style="font-family:Arial,sans-serif;padding:24px;">\n  <h1>Tu título</h1>\n  <p>Pega aquí tu HTML. Puedes usar $razon_social, $nit, $ciudad.</p>\n</div>',
   );
@@ -165,8 +167,16 @@ export function TemplateBuilderDialog({
             {mode === 'html' && (
               <Field
                 label="HTML del correo"
-                hint="Pega tu diseño HTML. Usa $razon_social, $nit, $ciudad para personalizar."
+                hint="Pega solo lo que va dentro del <body>, con los estilos en línea."
               >
+                <button
+                  type="button"
+                  onClick={() => setGuiaOpen(true)}
+                  className="mb-2 flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  ¿Cómo debe ser el HTML? Ver la guía paso a paso
+                </button>
                 <textarea
                   rows={16}
                   className="flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -270,6 +280,7 @@ export function TemplateBuilderDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <GuiaHtmlDialog open={guiaOpen} onOpenChange={setGuiaOpen} />
     </Dialog>
   );
 }

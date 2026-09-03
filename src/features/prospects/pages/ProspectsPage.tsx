@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   Download,
   Loader2,
+  Mail,
   MessageCircle,
   Phone,
   Plus,
@@ -61,6 +62,57 @@ import {
 } from '@/features/prospects/components/RegistroContactoDialog';
 import type { ProspectRead } from '@/types/api';
 
+// Por dónde se le puede llegar a cada prospecto. Sin correo no entra a
+// ninguna campaña, así que a esos toca trabajarlos llamando.
+const CONTACTABILIDAD = [
+  { value: 'all', label: 'Todos los prospectos' },
+  { value: 'ambos', label: 'Con correo y teléfono' },
+  { value: 'con_telefono', label: 'Con teléfono (para llamar)' },
+  { value: 'solo_correo', label: 'Solo correo (sin teléfono)' },
+  { value: 'solo_telefono', label: 'Solo teléfono (no recibe campañas)' },
+  { value: 'sin_correo', label: 'Sin correo (no recibe campañas)' },
+];
+
+/**
+ * Por dónde se le puede llegar a este prospecto.
+ *
+ * Es lo que decide si entra a una campaña o hay que trabajarlo llamando: sin
+ * correo no recibe correos por más teléfono que tenga.
+ */
+function CeldaContacto({ prospecto }: { prospecto: ProspectRead }) {
+  const tieneTel = Boolean(
+    prospecto.telefono?.trim() || prospecto.telefono_fijo?.trim(),
+  );
+  const tieneCorreo = Boolean(prospecto.email?.trim());
+
+  if (tieneTel && tieneCorreo) {
+    return (
+      <Badge variant="success" className="gap-1 whitespace-nowrap">
+        <Mail className="h-3 w-3" /> Correo y teléfono
+      </Badge>
+    );
+  }
+  if (tieneCorreo) {
+    return (
+      <Badge variant="outline" className="gap-1 whitespace-nowrap">
+        <Mail className="h-3 w-3" /> Solo correo
+      </Badge>
+    );
+  }
+  if (tieneTel) {
+    return (
+      <Badge variant="warning" className="gap-1 whitespace-nowrap" title="No recibe campañas">
+        <Phone className="h-3 w-3" /> Solo teléfono
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="destructive" className="whitespace-nowrap">
+      Sin datos
+    </Badge>
+  );
+}
+
 /** Teléfono del prospecto y cómo contactarlo, sin salir de la lista. */
 function CeldaTelefono({
   prospecto,
@@ -76,7 +128,7 @@ function CeldaTelefono({
   const whatsapp = enlaceWhatsapp(numero);
 
   if (!marcar) {
-    return <span className="text-xs text-muted-foreground">Sin teléfono</span>;
+    return <span className="text-xs text-muted-foreground">—</span>;
   }
 
   return (
@@ -129,8 +181,8 @@ export function ProspectsPage() {
   const [ingresosMax, setIngresosMax] = useState('');
   const [activosMin, setActivosMin] = useState('');
   const [activosMax, setActivosMax] = useState('');
-  // Para trabajar la lista de llamadas sin tropezar con los que no tienen número.
-  const [soloConTelefono, setSoloConTelefono] = useState(false);
+  // Por dónde se puede contactar: define a quién se le escribe y a quién se llama.
+  const [contactabilidad, setContactabilidad] = useState('all');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -157,7 +209,7 @@ export function ProspectsPage() {
     departamento: departamento === 'all' ? undefined : departamento,
     ciudad: municipio === 'all' ? undefined : municipio,
     zona: zona === 'all' ? undefined : zona,
-    con_telefono: soloConTelefono || undefined,
+    contacto: contactabilidad === 'all' ? undefined : contactabilidad,
     regimen: debouncedRegimen || undefined,
     ingresos_min: debouncedIngMin || undefined,
     ingresos_max: debouncedIngMax || undefined,
@@ -274,17 +326,24 @@ export function ProspectsPage() {
             ))}
           </SelectContent>
         </Select>
-        <Button
-          variant={soloConTelefono ? 'default' : 'outline'}
-          onClick={() => {
-            setSoloConTelefono((v) => !v);
+        <Select
+          value={contactabilidad}
+          onValueChange={(v) => {
+            setContactabilidad(v);
             setPage(1);
           }}
-          className="shrink-0"
-          title="Deja solo los prospectos a los que se les puede marcar"
         >
-          <Phone className="h-4 w-4" /> Con teléfono
-        </Button>
+          <SelectTrigger className="sm:w-60" aria-label="Filtrar por contactabilidad">
+            <SelectValue placeholder="Cómo contactarlo" />
+          </SelectTrigger>
+          <SelectContent>
+            {CONTACTABILIDAD.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button
           variant="outline"
           onClick={() => setShowAdvanced((v) => !v)}
@@ -469,6 +528,7 @@ export function ProspectsPage() {
                 <TableHead>Segmento</TableHead>
                 <TableHead>Ciudad</TableHead>
                 <TableHead>Teléfono</TableHead>
+                <TableHead>Contacto</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
@@ -489,6 +549,9 @@ export function ProspectsPage() {
                         prospecto={p}
                         onContactar={(prospecto, canal) => setContacto({ prospecto, canal })}
                       />
+                    </TableCell>
+                    <TableCell>
+                      <CeldaContacto prospecto={p} />
                     </TableCell>
                     <TableCell>
                       <Badge variant={meta.variant}>{meta.label}</Badge>
