@@ -340,9 +340,18 @@ function CampaignDialog({
   for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
   const customNum = Number(customLimit);
   const customValido = Number.isInteger(customNum) && customNum >= 1 && customNum <= dailyLimit;
+  // Minutos para la medianoche en Colombia: una tanda que cruce esa hora gasta
+  // el cupo de los dos días, y al día siguiente el envío arranca a medias.
+  const minutosParaMedianoche = (() => {
+    const co = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' }));
+    return (23 - co.getHours()) * 60 + (60 - co.getMinutes());
+  })();
+  // "Máximo" es lo que queda del cupo de hoy, no el tope del plan: si ya salieron
+  // correos hoy, ofrecer el tope completo promete algo que no se va a cumplir.
+  const maximoHoy = Math.min(dailyLimit, restanteHoy);
   const chosenLimit =
     sendLimit === 'max'
-      ? dailyLimit
+      ? maximoHoy
       : sendLimit === 'custom'
         ? customValido
           ? customNum
@@ -582,14 +591,25 @@ function CampaignDialog({
                 {limitOptions.map((n) => (
                   <SelectItem key={n} value={String(n)}>
                     {n.toLocaleString('es-CO')} correos
+                    {n > restanteHoy && ` · hoy solo salen ${restanteHoy.toLocaleString('es-CO')}`}
                   </SelectItem>
                 ))}
                 <SelectItem value="max">
-                  Máximo del día ({dailyLimit.toLocaleString('es-CO')})
+                  {restanteHoy < dailyLimit
+                    ? `Máximo disponible hoy (${restanteHoy.toLocaleString('es-CO')} de ${dailyLimit.toLocaleString('es-CO')})`
+                    : `Máximo del día (${dailyLimit.toLocaleString('es-CO')})`}
                 </SelectItem>
                 <SelectItem value="custom">Otra cantidad…</SelectItem>
               </SelectContent>
             </Select>
+
+            {minutosParaMedianoche <= 90 && (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-500">
+                Faltan {minutosParaMedianoche} minutos para la medianoche. Lo que alcance a salir
+                hoy consume el cupo de hoy; el resto cuenta al de mañana, así que mañana el envío
+                arrancará con menos disponible.
+              </p>
+            )}
 
             {/* Cantidad libre: cualquier número, sin quedar atado a los topes de 500. */}
             {sendLimit === 'custom' && (
