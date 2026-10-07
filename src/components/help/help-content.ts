@@ -232,7 +232,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         ],
       },
     ],
-    tip: 'Para enviar 3.000/día se necesita el plan pago del proveedor de correo (Resend). El envío es real; los "abiertos" se miden en Apertura de correos.',
+    tip: 'La cantidad que se puede enviar por día la define el plan del proveedor de correo (Resend) y la muestra el propio diálogo de campaña. El envío es real; los "abiertos" se miden en Apertura de correos.',
     match: (p) => p.startsWith('/emails'),
   },
   {

@@ -62,8 +62,11 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { apiErrorMessage } from '@/api/client';
 import type { EmailTemplateRead } from '@/types/api';
 
-// Límite diario de respaldo mientras carga el real (viene del backend según el plan).
-const DEFAULT_DAILY_LIMIT = 3000;
+// Respaldo mientras carga el límite real, que viene del backend. Debe coincidir
+// con DAILY_SEND_LIMIT del servidor: cuando este número se quedó viejo y la
+// consulta del cupo falló, la pantalla mostró 3.000 durante semanas sin que
+// nadie supiera por qué. Si la consulta falla, además se avisa en pantalla.
+const DEFAULT_DAILY_LIMIT = 10000;
 
 export function EmailsPage() {
   const qc = useQueryClient();
@@ -335,7 +338,7 @@ function CampaignDialog({
   const dailyLimit = limits.data?.daily_limit ?? DEFAULT_DAILY_LIMIT;
   const enviadosHoy = limits.data?.sent_today ?? 0;
   const restanteHoy = limits.data?.remaining_today ?? dailyLimit;
-  // Opciones de 500 en 500 hasta el límite diario (3.000 hoy; se adapta si sube el plan).
+  // Opciones de 500 en 500 hasta el límite diario (se adapta solo si cambia el plan).
   const limitOptions: number[] = [];
   for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
   const customNum = Number(customLimit);
@@ -670,6 +673,12 @@ function CampaignDialog({
           {/* Cupo del día: lo que ya salió y lo que queda, sin importar por qué
               filtro se esté enviando. */}
           <div className="rounded-md border bg-muted/30 p-3 text-sm">
+            {limits.isError && (
+              <p className="mb-2 rounded border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
+                No se pudo consultar el cupo de hoy, así que las cantidades de abajo son
+                orientativas. El envío respeta el límite real del servidor.
+              </p>
+            )}
             <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-b pb-2 text-xs">
               <span className="font-medium">Cupo de hoy</span>
               <span className="text-muted-foreground">

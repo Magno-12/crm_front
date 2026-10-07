@@ -224,10 +224,15 @@ function RecampaignDialog({
   const [sendLimit, setSendLimit] = useState('max');
   const templates = useQuery({ queryKey: ['email-templates'], queryFn: () => listTemplates(), enabled: open });
   const limits = useQuery({ queryKey: ['email-limits'], queryFn: getSendLimits, enabled: open });
-  const dailyLimit = limits.data?.daily_limit ?? 3000;
+  // El respaldo debe coincidir con DAILY_SEND_LIMIT del backend.
+  const dailyLimit = limits.data?.daily_limit ?? 10000;
+  const restanteHoy = limits.data?.remaining_today ?? dailyLimit;
   const limitOptions: number[] = [];
   for (let n = 500; n < dailyLimit; n += 500) limitOptions.push(n);
-  const chosenLimit = sendLimit === 'max' ? dailyLimit : Number(sendLimit);
+  // "Máximo" es lo que queda del cupo de hoy, no el tope del plan: ofrecer el
+  // tope completo promete correos que no van a salir.
+  const chosenLimit =
+    sendLimit === 'max' ? Math.min(dailyLimit, restanteHoy) : Number(sendLimit);
 
   const usingTemplate = mode === 'template';
   const audience = useQuery({
@@ -407,7 +412,9 @@ function RecampaignDialog({
                   </SelectItem>
                 ))}
                 <SelectItem value="max">
-                  Máximo del día ({dailyLimit.toLocaleString('es-CO')})
+                  {restanteHoy < dailyLimit
+                    ? `Máximo disponible hoy (${restanteHoy.toLocaleString('es-CO')} de ${dailyLimit.toLocaleString('es-CO')})`
+                    : `Máximo del día (${dailyLimit.toLocaleString('es-CO')})`}
                 </SelectItem>
               </SelectContent>
             </Select>
