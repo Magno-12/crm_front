@@ -14,6 +14,7 @@ import {
   BarChart3,
   Wallet,
   BellRing,
+  Globe,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -74,6 +75,7 @@ export const NAV_SECTIONS: NavSection[] = [
         icon: FileSpreadsheet,
         permission: 'prospects.view',
       },
+      { label: 'Página web', to: '/admin/sitio', icon: Globe, permission: 'site.view' },
     ],
   },
 ];

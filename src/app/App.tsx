@@ -72,6 +72,11 @@ const ServicesPage = lazy(() =>
 const CiiuPage = lazy(() =>
   import('@/features/admin/ciiu/CiiuPage').then((m) => ({ default: m.CiiuPage })),
 );
+const SiteContentPage = lazy(() =>
+  import('@/features/site/pages/SiteContentPage').then((m) => ({
+    default: m.SiteContentPage,
+  })),
+);
 
 export function App() {
   const { user, isLoading } = useAuth();
@@ -248,6 +253,14 @@ export function App() {
             element={
               <ProtectedRoute requires="prospects.view">
                 <CiiuPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/sitio"
+            element={
+              <ProtectedRoute requires="site.view">
+                <SiteContentPage />
               </ProtectedRoute>
             }
           />

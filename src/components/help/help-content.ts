@@ -424,6 +424,30 @@ export const HELP_TOPICS: HelpTopic[] = [
     ],
     match: (p) => p.startsWith('/admin/services'),
   },
+  {
+    id: 'sitio',
+    title: 'Página web',
+    intro: 'Los textos de la página pública de la firma, editables desde aquí.',
+    sections: [
+      {
+        heading: 'Qué puedes hacer',
+        items: [
+          'Cambiar teléfonos, correos, dirección y horario: se actualizan también los enlaces para llamar y escribir por WhatsApp.',
+          'Cambiar el titular y la presentación del inicio, las nueve tarjetas de servicios y las diez preguntas frecuentes.',
+          'Volver al texto original de cualquier campo con el botón de al lado.',
+        ],
+      },
+      {
+        heading: 'Cómo se ve en la página',
+        items: [
+          'Guardar deja el texto listo en el CRM, pero la página sigue igual.',
+          'Publicar reconstruye la página; tarda uno o dos minutos en verse.',
+          'El diseño, los colores y la animación del inicio no se tocan desde aquí.',
+        ],
+      },
+    ],
+    match: (p) => p.startsWith('/admin/sitio'),
+  },
 ];
 
 /** Id del tema que corresponde a la ruta actual (o 'general'). */
