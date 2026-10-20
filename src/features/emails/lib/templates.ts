@@ -135,7 +135,9 @@ function footer(company: string, contact: string): string {
   return `<tr><td style="background:#f8fafc;border-top:1px solid ${LINE};padding:24px 36px;text-align:center;">
     <div style="color:#334155;font-size:13px;font-weight:bold;letter-spacing:.2px;">${company}</div>
     ${contactRow}
-    <div style="color:#cbd5e1;font-size:11px;margin-top:12px;line-height:1.6;">Recibió este correo de su firma contable.<br><a href="#" style="color:${FAINT};text-decoration:underline;">Cancelar suscripción</a></div>
+    <!-- Sin enlace de baja aquí: el CRM agrega al enviar el botón real,
+         firmado por destinatario. Uno escrito a mano no da de baja a nadie. -->
+    <div style="color:#cbd5e1;font-size:11px;margin-top:12px;line-height:1.6;">Recibió este correo de su firma contable.</div>
   </td></tr>`;
 }
 

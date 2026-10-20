@@ -227,7 +227,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         heading: 'Límite diario y privacidad',
         items: [
           'Si se agota la cuota diaria del proveedor, la campaña frena y se reanuda después sin perder trabajo.',
-          'Cada correo lleva al pie el aviso de privacidad (Ley 1581) y un botón "Cancelar suscripción".',
+          'Cada correo lleva al pie el aviso de privacidad (Ley 1581) y un botón "Baja de suscripción".',
           'Quien se da de baja queda excluido de futuras campañas automáticamente.',
         ],
       },
