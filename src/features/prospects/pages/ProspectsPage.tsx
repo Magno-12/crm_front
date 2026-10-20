@@ -55,6 +55,7 @@ import {
   formatearTelefono,
   paraMarcar,
 } from '@/features/prospects/lib/telefono';
+import { formatDate } from '@/lib/utils';
 import { apiErrorMessage, getAccessToken } from '@/api/client';
 import {
   type CanalContacto,
@@ -71,6 +72,14 @@ const CONTACTABILIDAD = [
   { value: 'solo_correo', label: 'Solo correo (sin teléfono)' },
   { value: 'solo_telefono', label: 'Solo teléfono (no recibe campañas)' },
   { value: 'sin_correo', label: 'Sin correo (no recibe campañas)' },
+];
+
+// Si al prospecto ya le llegó un correo. Es lo que permite saber cuántos de la
+// base quedan por tocar, en vez de descubrirlo solo al momento de enviar.
+const ENVIOS = [
+  { value: 'all', label: 'Enviados y sin enviar' },
+  { value: 'sin_enviar', label: 'Sin enviar (faltan por contactar)' },
+  { value: 'enviados', label: 'Ya recibieron correo' },
 ];
 
 /**
@@ -167,6 +176,24 @@ function CeldaTelefono({
   );
 }
 
+/** Si al prospecto ya le llegó correo, cuántos y cuándo el último. */
+function CeldaEnvios({ prospecto }: { prospecto: ProspectRead }) {
+  const n = prospecto.correos_enviados ?? 0;
+  if (n === 0) {
+    return <span className="whitespace-nowrap text-xs text-muted-foreground">Sin enviar</span>;
+  }
+  return (
+    <div className="whitespace-nowrap text-xs">
+      <span className="font-medium text-foreground">
+        {n} {n === 1 ? 'correo' : 'correos'}
+      </span>
+      {prospecto.ultimo_envio && (
+        <div className="text-muted-foreground">{formatDate(prospecto.ultimo_envio)}</div>
+      )}
+    </div>
+  );
+}
+
 export function ProspectsPage() {
   const [q, setQ] = useState('');
   const [estado, setEstado] = useState<string>('all');
@@ -183,6 +210,7 @@ export function ProspectsPage() {
   const [activosMax, setActivosMax] = useState('');
   // Por dónde se puede contactar: define a quién se le escribe y a quién se llama.
   const [contactabilidad, setContactabilidad] = useState('all');
+  const [envios, setEnvios] = useState('all');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [page, setPage] = useState(1);
   const [formOpen, setFormOpen] = useState(false);
@@ -210,6 +238,7 @@ export function ProspectsPage() {
     ciudad: municipio === 'all' ? undefined : municipio,
     zona: zona === 'all' ? undefined : zona,
     contacto: contactabilidad === 'all' ? undefined : contactabilidad,
+    envio: envios === 'all' ? undefined : envios,
     regimen: debouncedRegimen || undefined,
     ingresos_min: debouncedIngMin || undefined,
     ingresos_max: debouncedIngMax || undefined,
@@ -340,6 +369,24 @@ export function ProspectsPage() {
             {CONTACTABILIDAD.map((c) => (
               <SelectItem key={c.value} value={c.value}>
                 {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={envios}
+          onValueChange={(v) => {
+            setEnvios(v);
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="sm:w-60" aria-label="Filtrar por envíos de correo">
+            <SelectValue placeholder="Envíos de correo" />
+          </SelectTrigger>
+          <SelectContent>
+            {ENVIOS.map((e) => (
+              <SelectItem key={e.value} value={e.value}>
+                {e.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -529,6 +576,7 @@ export function ProspectsPage() {
                 <TableHead>Ciudad</TableHead>
                 <TableHead>Teléfono</TableHead>
                 <TableHead>Contacto</TableHead>
+                <TableHead>Correos</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acción</TableHead>
               </TableRow>
@@ -552,6 +600,9 @@ export function ProspectsPage() {
                     </TableCell>
                     <TableCell>
                       <CeldaContacto prospecto={p} />
+                    </TableCell>
+                    <TableCell>
+                      <CeldaEnvios prospecto={p} />
                     </TableCell>
                     <TableCell>
                       <Badge variant={meta.variant}>{meta.label}</Badge>

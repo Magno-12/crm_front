@@ -22,6 +22,13 @@ export interface ProspectFilters {
   activos_min?: string;
   activos_max?: string;
   en_gestion?: boolean;
+  departamento?: string;
+  ciudad_like?: string;
+  zona?: string;
+  /** Contactabilidad: ambos, con_telefono, solo_correo, solo_telefono, sin_correo. */
+  contacto?: string;
+  /** Envíos de correo: sin_enviar | enviados. */
+  envio?: string;
   page?: number;
   page_size?: number;
 }

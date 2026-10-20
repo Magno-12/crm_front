@@ -3586,6 +3586,13 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+            /**
+             * Correos Enviados
+             * @default 0
+             */
+            correos_enviados: number;
+            /** Ultimo Envio */
+            ultimo_envio?: string | null;
         };
         /**
          * ProspectSegment
@@ -4857,7 +4864,10 @@ export interface operations {
                 activos_min?: number | string | null;
                 activos_max?: number | string | null;
                 en_gestion?: boolean;
-                con_telefono?: boolean;
+                /** @description Contactabilidad: con_telefono, ambos, solo_telefono, solo_correo, sin_correo */
+                contacto?: string | null;
+                /** @description Envíos de correo: sin_enviar, enviados */
+                envio?: string | null;
                 exclude_segmento?: components["schemas"]["ProspectSegment"] | null;
                 page?: number;
                 page_size?: number;
