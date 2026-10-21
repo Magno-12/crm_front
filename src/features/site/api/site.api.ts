@@ -19,6 +19,8 @@ export interface SiteImageSlot {
   clave: string;
   etiqueta: string;
   ayuda: string;
+  /** Si pertenece a un bloque, se muestra junto a los textos de ese bloque. */
+  subgrupo: string;
 }
 
 export interface SiteGroup {

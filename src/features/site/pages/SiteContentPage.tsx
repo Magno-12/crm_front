@@ -121,15 +121,18 @@ export function SiteContentPage() {
 
   const renderGrupo = (grupo: SiteGroup) => {
     const sueltos = grupo.campos.filter((c) => !c.subgrupo);
+    // Una imagen que pertenece a un bloque se muestra dentro de ese bloque, al
+    // lado de sus textos; las demás van arriba, sueltas.
+    const imagenesSueltas = grupo.imagenes.filter((i) => !i.subgrupo);
     return (
       <Card key={grupo.grupo} className="p-5">
         <h2 className="mb-4 text-lg font-semibold">{grupo.titulo}</h2>
 
         {sueltos.length > 0 && renderCampos(sueltos)}
 
-        {grupo.imagenes.length > 0 && (
+        {imagenesSueltas.length > 0 && (
           <div className={`grid gap-4 md:grid-cols-2 ${sueltos.length ? 'mt-5' : ''}`}>
-            {grupo.imagenes.map((slot) => (
+            {imagenesSueltas.map((slot) => (
               <SiteImageSlotCard key={slot.clave} slot={slot} puedeEditar={puedeEditar} />
             ))}
           </div>
@@ -160,7 +163,14 @@ export function SiteContentPage() {
                   <Badge variant="outline">{editados} editados</Badge>
                 )}
               </summary>
-              <div className="border-t p-4">{renderCampos(delSub)}</div>
+              <div className="space-y-5 border-t p-4">
+                {grupo.imagenes
+                  .filter((i) => i.subgrupo === sub)
+                  .map((slot) => (
+                    <SiteImageSlotCard key={slot.clave} slot={slot} puedeEditar={puedeEditar} />
+                  ))}
+                {renderCampos(delSub)}
+              </div>
             </details>
           );
         })}
