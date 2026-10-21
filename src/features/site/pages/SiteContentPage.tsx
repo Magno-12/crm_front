@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Globe, RotateCcw, Save, UploadCloud } from 'lucide-react';
+import { ChevronRight, Globe, RotateCcw, Save, UploadCloud } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,9 @@ import { Can } from '@/components/auth/Can';
 import { useCan } from '@/features/auth/hooks/useAuth';
 import { apiErrorMessage } from '@/api/client';
 import { getSiteContent, publishSite, saveSiteContent } from '@/features/site/api/site.api';
-import type { SiteField } from '@/features/site/api/site.api';
+import type { SiteField, SiteGroup } from '@/features/site/api/site.api';
+import { SiteImageSlotCard } from '@/features/site/components/SiteImageSlotCard';
+import { SiteCardsEditor } from '@/features/site/components/SiteCardsEditor';
 
 const SITIO = 'https://www.proyectamosasesoria.net';
 
@@ -66,13 +68,113 @@ export function SiteContentPage() {
     onError: (e) => toast.error(apiErrorMessage(e)),
   });
 
+  const escribir = (clave: string, valor: string) =>
+    setBorrador((b) => ({ ...b, [clave]: valor }));
+
+  const renderCampos = (lista: SiteField[]) => (
+    <div className="grid gap-5 md:grid-cols-2">
+      {lista.map((campo) => {
+        const valor = valorDe(campo);
+        const tocado = cambiado(campo);
+        return (
+          <div key={campo.clave} className={campo.multilinea ? 'md:col-span-2' : undefined}>
+            <div className="mb-1.5 flex items-center gap-2">
+              <Label htmlFor={campo.clave}>{campo.etiqueta}</Label>
+              {tocado && <Badge variant="secondary">sin guardar</Badge>}
+              {!tocado && campo.editado && <Badge variant="outline">editado</Badge>}
+              {valor !== campo.original && puedeEditar && (
+                <button
+                  type="button"
+                  onClick={() => escribir(campo.clave, campo.original)}
+                  className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                  title="Volver al texto con el que venía la página"
+                >
+                  <RotateCcw className="h-3 w-3" /> Texto original
+                </button>
+              )}
+            </div>
+            {campo.multilinea ? (
+              <textarea
+                id={campo.clave}
+                rows={Math.min(8, Math.max(3, Math.ceil(valor.length / 90)))}
+                value={valor}
+                disabled={!puedeEditar}
+                onChange={(e) => escribir(campo.clave, e.target.value)}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+              />
+            ) : (
+              <Input
+                id={campo.clave}
+                value={valor}
+                disabled={!puedeEditar}
+                onChange={(e) => escribir(campo.clave, e.target.value)}
+              />
+            )}
+            {campo.ayuda && (
+              <p className="mt-1 text-xs text-muted-foreground">{campo.ayuda}</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const renderGrupo = (grupo: SiteGroup) => {
+    const sueltos = grupo.campos.filter((c) => !c.subgrupo);
+    return (
+      <Card key={grupo.grupo} className="p-5">
+        <h2 className="mb-4 text-lg font-semibold">{grupo.titulo}</h2>
+
+        {sueltos.length > 0 && renderCampos(sueltos)}
+
+        {grupo.imagenes.length > 0 && (
+          <div className={`grid gap-4 md:grid-cols-2 ${sueltos.length ? 'mt-5' : ''}`}>
+            {grupo.imagenes.map((slot) => (
+              <SiteImageSlotCard key={slot.clave} slot={slot} puedeEditar={puedeEditar} />
+            ))}
+          </div>
+        )}
+
+        {grupo.coleccion && (
+          <div className={sueltos.length || grupo.imagenes.length ? 'mt-6' : ''}>
+            <SiteCardsEditor coleccion={grupo.coleccion} puedeEditar={puedeEditar} />
+          </div>
+        )}
+
+        {/* Los nueve servicios van plegados: son más de cien textos y abiertos
+            de golpe no habría forma de encontrar nada. */}
+        {grupo.subgrupos.map((sub) => {
+          const delSub = grupo.campos.filter((c) => c.subgrupo === sub);
+          const tocados = delSub.filter(cambiado).length;
+          const editados = delSub.filter((c) => c.editado).length;
+          return (
+            <details key={sub} className="group mt-3 rounded-md border">
+              <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-muted/50">
+                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+                {sub}
+                <span className="text-xs font-normal text-muted-foreground">
+                  {delSub.length} textos
+                </span>
+                {tocados > 0 && <Badge variant="secondary">{tocados} sin guardar</Badge>}
+                {tocados === 0 && editados > 0 && (
+                  <Badge variant="outline">{editados} editados</Badge>
+                )}
+              </summary>
+              <div className="border-t p-4">{renderCampos(delSub)}</div>
+            </details>
+          );
+        })}
+      </Card>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Página web</h1>
           <p className="text-sm text-muted-foreground">
-            Textos de{' '}
+            Textos e imágenes de{' '}
             <a
               href={SITIO}
               target="_blank"
@@ -81,7 +183,7 @@ export function SiteContentPage() {
             >
               proyectamosasesoria.net
             </a>
-            . El diseño no cambia: solo lo que dice cada bloque.
+            . El diseño no cambia: solo lo que dice y lo que muestra cada bloque.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -107,8 +209,9 @@ export function SiteContentPage() {
       </header>
 
       <Card className="border-dashed p-4 text-sm text-muted-foreground">
-        Guardar deja el texto listo en el CRM; <strong>publicar</strong> es lo que lo saca al
-        aire, y la página tarda uno o dos minutos en actualizarse.
+        Guardar deja el cambio listo en el CRM; <strong>publicar</strong> es lo que lo saca al
+        aire, y la página tarda uno o dos minutos en actualizarse. Las fotos y las fichas se
+        guardan una por una, con su propio botón.
         {yaEditados.length > 0 && (
           <> Hay {yaEditados.length} texto{yaEditados.length === 1 ? '' : 's'} ya guardado
             {yaEditados.length === 1 ? '' : 's'}.</>
@@ -124,61 +227,7 @@ export function SiteContentPage() {
       ) : grupos.error ? (
         <ErrorState error={grupos.error} onRetry={() => grupos.refetch()} />
       ) : (
-        (grupos.data ?? []).map((grupo) => (
-          <Card key={grupo.grupo} className="p-5">
-            <h2 className="mb-4 text-lg font-semibold">{grupo.titulo}</h2>
-            <div className="grid gap-5 md:grid-cols-2">
-              {grupo.campos.map((campo) => {
-                const valor = valorDe(campo);
-                const tocado = cambiado(campo);
-                const escribir = (v: string) =>
-                  setBorrador((b) => ({ ...b, [campo.clave]: v }));
-                return (
-                  <div
-                    key={campo.clave}
-                    className={campo.multilinea ? 'md:col-span-2' : undefined}
-                  >
-                    <div className="mb-1.5 flex items-center gap-2">
-                      <Label htmlFor={campo.clave}>{campo.etiqueta}</Label>
-                      {tocado && <Badge variant="secondary">sin guardar</Badge>}
-                      {!tocado && campo.editado && <Badge variant="outline">editado</Badge>}
-                      {valor !== campo.original && puedeEditar && (
-                        <button
-                          type="button"
-                          onClick={() => escribir(campo.original)}
-                          className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                          title="Volver al texto con el que venía la página"
-                        >
-                          <RotateCcw className="h-3 w-3" /> Texto original
-                        </button>
-                      )}
-                    </div>
-                    {campo.multilinea ? (
-                      <textarea
-                        id={campo.clave}
-                        rows={Math.min(8, Math.max(3, Math.ceil(valor.length / 90)))}
-                        value={valor}
-                        disabled={!puedeEditar}
-                        onChange={(e) => escribir(e.target.value)}
-                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
-                      />
-                    ) : (
-                      <Input
-                        id={campo.clave}
-                        value={valor}
-                        disabled={!puedeEditar}
-                        onChange={(e) => escribir(e.target.value)}
-                      />
-                    )}
-                    {campo.ayuda && (
-                      <p className="mt-1 text-xs text-muted-foreground">{campo.ayuda}</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
-        ))
+        (grupos.data ?? []).map(renderGrupo)
       )}
 
       <Dialog open={confirmarPublicar} onOpenChange={setConfirmarPublicar}>
@@ -188,7 +237,7 @@ export function SiteContentPage() {
           </DialogHeader>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p>
-              Se va a reconstruir la página con los textos guardados. Los cambios quedan
+              Se va a reconstruir la página con lo que esté guardado. Los cambios quedan
               visibles para cualquiera en uno o dos minutos.
             </p>
             {sinGuardar.length > 0 && (

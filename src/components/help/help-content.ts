@@ -430,19 +430,30 @@ export const HELP_TOPICS: HelpTopic[] = [
     intro: 'Los textos de la página pública de la firma, editables desde aquí.',
     sections: [
       {
-        heading: 'Qué puedes hacer',
+        heading: 'Qué puedes cambiar',
         items: [
-          'Cambiar teléfonos, correos, dirección y horario: se actualizan también los enlaces para llamar y escribir por WhatsApp.',
-          'Cambiar el titular y la presentación del inicio, las nueve tarjetas de servicios y las diez preguntas frecuentes.',
-          'Volver al texto original de cualquier campo con el botón de al lado.',
+          'Teléfonos, correos, dirección y horario: se actualizan también los enlaces para llamar y escribir por WhatsApp.',
+          'El titular y la presentación del inicio, y las diez preguntas frecuentes.',
+          'Los nueve servicios: su título, su descripción y cada uno de los puntos que aparecen al entrar. Están plegados por área, se abren haciendo clic.',
+          'El logo y la foto de la dirección técnica.',
+          'El equipo directivo y la galería de la firma: se agregan, ordenan y quitan fichas con foto.',
         ],
       },
       {
         heading: 'Cómo se ve en la página',
         items: [
-          'Guardar deja el texto listo en el CRM, pero la página sigue igual.',
+          'Guardar deja el cambio listo en el CRM, pero la página sigue igual.',
           'Publicar reconstruye la página; tarda uno o dos minutos en verse.',
+          'Las fotos y las fichas se guardan una por una, con su propio botón.',
+          'Si el equipo o la galería no tienen ninguna ficha, esa sección no sale en la página.',
           'El diseño, los colores y la animación del inicio no se tocan desde aquí.',
+        ],
+      },
+      {
+        heading: 'Para volver atrás',
+        items: [
+          'Cada texto tiene «Texto original» al lado: lo devuelve a como venía la página.',
+          'Una foto se puede quitar y el bloque vuelve a su aspecto anterior (en la dirección técnica, el círculo con las iniciales).',
         ],
       },
     ],
