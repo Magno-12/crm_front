@@ -54,7 +54,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
     (acc, c) => ({
       total_segmento: acc.total_segmento + c.total_segmento,
       enviados: acc.enviados + c.enviados,
-      pendientes: acc.pendientes + c.pendientes,
+      no_recibidos: acc.no_recibidos + c.no_recibidos,
       recibidos: acc.recibidos + c.recibidos,
       abiertos: acc.abiertos + c.abiertos,
       respondidos: acc.respondidos + c.respondidos,
@@ -64,7 +64,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
     {
       total_segmento: 0,
       enviados: 0,
-      pendientes: 0,
+      no_recibidos: 0,
       recibidos: 0,
       abiertos: 0,
       respondidos: 0,
@@ -139,7 +139,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
                 {NUM.format(t.total_segmento)}
               </td>
               <td className="px-3 py-2.5 text-right">{NUM.format(t.enviados)}</td>
-              <td className="px-3 py-2.5 text-right">{NUM.format(t.pendientes)}</td>
+              <td className="px-3 py-2.5 text-right">{NUM.format(t.no_recibidos)}</td>
               <td className="px-3 py-2.5 text-right">{NUM.format(t.recibidos)}</td>
               <td className="px-3 py-2.5 text-right">{NUM.format(t.abiertos)}</td>
               <td className="px-3 py-2.5 text-right">{NUM.format(t.respondidos)}</td>
@@ -150,7 +150,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
               <td className="px-4 py-1.5 italic">% sobre el paso anterior</td>
               <td className="px-3 py-1.5 text-right">100%</td>
               <td className="px-3 py-1.5 text-right">{pct(t.enviados, t.total_segmento)}</td>
-              <td className="px-3 py-1.5 text-right">{pct(t.pendientes, t.total_segmento)}</td>
+              <td className="px-3 py-1.5 text-right">{pct(t.no_recibidos, t.enviados)}</td>
               <td className="px-3 py-1.5 text-right">{pct(t.recibidos, t.enviados)}</td>
               <td className="px-3 py-1.5 text-right">{pct(t.abiertos, t.recibidos)}</td>
               <td className="px-3 py-1.5 text-right">{pct(t.respondidos, t.abiertos)}</td>
