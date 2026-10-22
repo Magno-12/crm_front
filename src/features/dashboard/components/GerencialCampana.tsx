@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Clock, Database, MailOpen, MousePointerClick, Rocket, Send, Undo2 } from 'lucide-react';
+import { Database, MailOpen, MousePointerClick, Rocket, Send, Undo2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/common/states';
 import {
@@ -89,26 +89,28 @@ export function GerencialCampana({ campana }: { campana: CampaignRow }) {
         </CardContent>
       </Card>
 
-      {/* Indicadores de la campaña */}
+      {/* Indicadores de la campaña. Lo que importa de una campaña no es a
+          cuántos falta escribirles, sino a cuántos les llegó: por eso va
+          "No recibidos" y no "No enviados". Lo que falta por enviar se lee
+          arriba, en la barra de avance. */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi icon={<Database />} label="Total del segmento" valor={NUM.format(campana.total_segmento)} detalle={campana.segmento ?? 'Todos los segmentos'} color="border-l-violet-500" />
         <Kpi icon={<Send />} label="Enviados" valor={NUM.format(campana.enviados)} detalle={`${pct(campana.enviados, campana.total_segmento)} de la base`} color="border-l-sky-500" />
-        <Kpi icon={<Clock />} label="No enviados" valor={NUM.format(campana.pendientes)} detalle={pct(campana.pendientes, campana.total_segmento)} color="border-l-amber-500" />
-        <Kpi icon={<MailOpen />} label="Tasa de apertura" valor={pct(campana.abiertos, campana.recibidos)} detalle={`${NUM.format(campana.abiertos)} abrieron`} color="border-l-emerald-500" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi icon={<Send />} label="Recibidos" valor={NUM.format(campana.recibidos)} detalle={pct(campana.recibidos, campana.enviados)} color="border-l-emerald-500" />
         <Kpi icon={<Undo2 />} label="No recibidos" valor={NUM.format(campana.no_recibidos)} detalle={`${campana.rebotados} rebotaron · ${campana.no_salieron} no salieron`} color="border-l-red-500" />
-        <Kpi icon={<MailOpen />} label="Respondidos" valor={NUM.format(campana.respondidos)} detalle={`${pct(campana.respondidos, campana.abiertos)} de los abiertos`} color="border-l-violet-500" />
-        <Kpi icon={<MousePointerClick />} label="Clics" valor={NUM.format(campana.clics)} detalle={`${pct(campana.clics, campana.abiertos)} de los abiertos`} color="border-l-amber-500" />
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Kpi icon={<MailOpen />} label="Tasa de apertura" valor={pct(campana.abiertos, campana.recibidos)} detalle={`${NUM.format(campana.abiertos)} abrieron`} color="border-l-emerald-500" />
+        <Kpi icon={<MailOpen />} label="Respondidos" valor={NUM.format(campana.respondidos)} detalle={`${pct(campana.respondidos, campana.abiertos)} de los abiertos`} color="border-l-violet-500" />
+        <Kpi icon={<MousePointerClick />} label="Clics" valor={NUM.format(campana.clics)} detalle={`${pct(campana.clics, campana.abiertos)} de los abiertos`} color="border-l-amber-500" />
+        <Kpi icon={<MailOpen />} label="Entregas confirmadas" valor={NUM.format(campana.entregas_confirmadas)} detalle="Confirmadas por el proveedor" color="border-l-emerald-500" />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <Kpi icon={<Database />} label="Clientes de la campaña" valor={NUM.format(campana.clientes)} detalle={`${pct(campana.clientes, campana.enviados)} de los correos enviados`} color="border-l-teal-600" />
         <Kpi icon={<Send />} label="Facturación de la campaña" valor={formatCOP(campana.facturacion)} detalle={campana.clientes ? `Ticket promedio ${formatCOP(campana.facturacion / campana.clientes)}` : 'Sin clientes aún'} color="border-l-teal-600" />
         <Kpi icon={<MousePointerClick />} label="Tasa de conversión" valor={pct(campana.clientes, campana.enviados)} detalle="De correo enviado a cliente" color="border-l-sky-500" />
-        <Kpi icon={<MailOpen />} label="Entregas confirmadas" valor={NUM.format(campana.entregas_confirmadas)} detalle="Confirmadas por el proveedor" color="border-l-emerald-500" />
       </div>
 
       {/* Tendencia por tanda de envío */}

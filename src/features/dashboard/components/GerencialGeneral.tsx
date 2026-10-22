@@ -95,7 +95,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
               <th className="px-4 py-2 text-left font-medium">Campaña</th>
               <th className="px-3 py-2 text-right font-medium">Total segmento</th>
               <th className="px-3 py-2 text-right font-medium">Enviados</th>
-              <th className="px-3 py-2 text-right font-medium">No enviados</th>
+              <th className="px-3 py-2 text-right font-medium">No recibidos</th>
               <th className="px-3 py-2 text-right font-medium">Recibidos</th>
               <th className="px-3 py-2 text-right font-medium">Abiertos</th>
               <th className="px-3 py-2 text-right font-medium">Respondidos</th>
@@ -123,7 +123,7 @@ export function TablaCampanas({ campanas }: { campanas: CampaignRow[] }) {
                   {NUM.format(c.total_segmento)}
                 </td>
                 <Celda valor={c.enviados} sub={pct(c.enviados, c.total_segmento)} />
-                <Celda valor={c.pendientes} sub={pct(c.pendientes, c.total_segmento)} alerta />
+                <Celda valor={c.no_recibidos} sub={pct(c.no_recibidos, c.enviados)} alerta />
                 <Celda valor={c.recibidos} sub={pct(c.recibidos, c.enviados)} bueno />
                 <Celda valor={c.abiertos} sub={pct(c.abiertos, c.recibidos)} bueno />
                 <Celda valor={c.respondidos} sub={pct(c.respondidos, c.abiertos)} />
