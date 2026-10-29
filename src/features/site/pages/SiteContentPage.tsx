@@ -148,6 +148,7 @@ export function SiteContentPage() {
             de golpe no habría forma de encontrar nada. */}
         {grupo.subgrupos.map((sub) => {
           const delSub = grupo.campos.filter((c) => c.subgrupo === sub);
+          const fotosDelSub = grupo.imagenes.filter((i) => i.subgrupo === sub);
           const tocados = delSub.filter(cambiado).length;
           const editados = delSub.filter((c) => c.editado).length;
           return (
@@ -156,7 +157,9 @@ export function SiteContentPage() {
                 <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
                 {sub}
                 <span className="text-xs font-normal text-muted-foreground">
-                  {delSub.length} textos
+                  {delSub.length > 0
+                    ? `${delSub.length} ${delSub.length === 1 ? 'texto' : 'textos'}`
+                    : `${fotosDelSub.length} ${fotosDelSub.length === 1 ? 'foto' : 'fotos'}`}
                 </span>
                 {tocados > 0 && <Badge variant="secondary">{tocados} sin guardar</Badge>}
                 {tocados === 0 && editados > 0 && (
@@ -164,12 +167,10 @@ export function SiteContentPage() {
                 )}
               </summary>
               <div className="space-y-5 border-t p-4">
-                {grupo.imagenes
-                  .filter((i) => i.subgrupo === sub)
-                  .map((slot) => (
-                    <SiteImageSlotCard key={slot.clave} slot={slot} puedeEditar={puedeEditar} />
-                  ))}
-                {renderCampos(delSub)}
+                {fotosDelSub.map((slot) => (
+                  <SiteImageSlotCard key={slot.clave} slot={slot} puedeEditar={puedeEditar} />
+                ))}
+                {delSub.length > 0 && renderCampos(delSub)}
               </div>
             </details>
           );
